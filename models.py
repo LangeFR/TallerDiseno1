@@ -56,3 +56,4 @@ class Pago:
     estado: str
     concepto: str
     fecha: str
+    cantidad: int
