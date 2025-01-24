@@ -42,6 +42,7 @@ class Asistencia_Torneo:
     id: int
     miembro_id: int
     torneo_id: int
+    puesto: int
 
 @dataclass
 class Inscripcion:
@@ -54,3 +55,4 @@ class Pago:
     id: int
     estado: str
     concepto: str
+    fecha: str
