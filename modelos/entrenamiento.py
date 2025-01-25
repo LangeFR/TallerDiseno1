@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import json
-from asistencia_entrenamientos import Asistencia_Entrenamiento
+from .asistencia_entrenamientos import Asistencia_Entrenamiento
 
 @dataclass
 class Entrenamiento:
@@ -33,7 +33,17 @@ class Entrenamiento:
                 usuarios = json.load(archivo)
         except (FileNotFoundError, json.JSONDecodeError):
             usuarios = []
+        
+        # Filtrar solo los usuarios matriculados
+        usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
 
-        for usuario in usuarios:
-            asistencia = Asistencia_Entrenamiento(entrenamiento_id=self.id, usuario_id=usuario['id'])
-            asistencia.guardar()
+        for usuario in usuarios_matriculados:
+            asistencia = Asistencia_Entrenamiento(
+                id=Asistencia_Entrenamiento.nuevo_id(),
+                usuario_id=usuario['id'],
+                entrenamiento_id=self.id,
+                estado="pendiente"  # Estado inicial para nuevas asistencias
+            )
+            asistencia.guardar()  # Guarda cada asistencia
+
+
