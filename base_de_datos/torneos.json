@@ -1,0 +1,52 @@
+[
+    {
+        "id": 1,
+        "nombre": "Open de Primavera",
+        "fecha": "2025-01-01"
+    },
+    {
+        "id": 2,
+        "nombre": "Torneo de Verano",
+        "fecha": "2025-01-31"
+    },
+    {
+        "id": 3,
+        "nombre": "Clásico de Otoño",
+        "fecha": "2025-03-02"
+    },
+    {
+        "id": 4,
+        "nombre": "Campeonato de Invierno",
+        "fecha": "2025-04-01"
+    },
+    {
+        "id": 5,
+        "nombre": "Copa de los Campeones",
+        "fecha": "2025-05-01"
+    },
+    {
+        "id": 6,
+        "nombre": "Desafío Nacional",
+        "fecha": "2025-05-31"
+    },
+    {
+        "id": 7,
+        "nombre": "Torneo Internacional",
+        "fecha": "2025-06-30"
+    },
+    {
+        "id": 8,
+        "nombre": "Copa Ciudad",
+        "fecha": "2025-07-30"
+    },
+    {
+        "id": 9,
+        "nombre": "Maratón de Tenis",
+        "fecha": "2025-08-29"
+    },
+    {
+        "id": 10,
+        "nombre": "Festival Deportivo",
+        "fecha": "2025-09-28"
+    }
+]
