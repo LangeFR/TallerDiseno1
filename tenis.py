@@ -3,6 +3,8 @@ import re
 import json
 from typing import List
 from modelos.informe import Informe
+from modelos.entrenamiento import Entrenamiento
+from datetime import datetime
 import os
 
 # ------------------------- MODELO -------------------------
@@ -229,6 +231,25 @@ def main(page: ft.Page):
         generar_informe_button,
         informe_view
     ], spacing=10)
+
+
+    def crear_entrenamiento(dia, mes, anio):
+        # Formatear día y mes para asegurar el formato de dos dígitos
+        dia_formateado = str(dia).zfill(2)
+        mes_formateado = str(mes).zfill(2)
+        
+        # Componer la fecha en formato aaaa-mm-dd
+        fecha = f"{anio}-{mes_formateado}-{dia_formateado}"
+        
+        # Intentar crear un nuevo objeto de Entrenamiento
+        try:
+            nuevo_entrenamiento = Entrenamiento(id=Entrenamiento.nuevo_id(), fecha=fecha)
+            nuevo_entrenamiento.guardar()  # Guarda el entrenamiento en la base de datos
+            nuevo_entrenamiento.crear_asistencia_entrenamientos()  # Crea asistencias para todos los usuarios
+            print(f"Entrenamiento creado para la fecha {fecha}")
+        except Exception as e:
+            print(f"No se pudo crear el entrenamiento: {e}")
+
 
     # Cambiar vistas
     def destination_change(e):
