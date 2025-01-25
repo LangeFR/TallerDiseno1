@@ -25,8 +25,8 @@ class BaseModel:
         except FileNotFoundError:
             return []
 
-# Clase Miembro
-class Miembro(BaseModel):
+# Clase Usuario
+class Usuario(BaseModel):
     def __init__(self, nombre, edad, num_identificacion, correo, telefono, estado="inscrito"):
         self.nombre = nombre
         self.edad = edad
@@ -49,7 +49,7 @@ class Miembro(BaseModel):
 
     @staticmethod
     def from_dict(data):
-        return Miembro(
+        return Usuario(
             data["nombre"],
             data["edad"],          # Asegúrate de pasar la edad
             data["num_identificacion"], # Asegúrate de pasar la identificación
@@ -60,23 +60,23 @@ class Miembro(BaseModel):
 # ------------------------- CONTROLADOR -------------------------
 class ClubController:
     def __init__(self):
-        self.miembros: List[Miembro] = self.cargar_miembros()
+        self.usuarios: List[Usuario] = self.cargar_usuarios()
 
-    def agregar_miembro(self, miembro: Miembro):
-        self.miembros.append(miembro)
-        self.guardar_miembros()
-        print(f"Agregado: {miembro.to_dict()}")
+    def agregar_usuario(self, usuario: Usuario):
+        self.usuarios.append(usuario)
+        self.guardar_usuarios()
+        print(f"Agregado: {usuario.to_dict()}")
 
-    def cargar_miembros(self):
+    def cargar_usuarios(self):
         datos = BaseModel.cargar_datos("usuarios.json")
-        return [Miembro.from_dict(d) for d in datos]
+        return [Usuario.from_dict(d) for d in datos]
 
-    def guardar_miembros(self):
-        datos = [miembro.to_dict() for miembro in self.miembros]
+    def guardar_usuarios(self):
+        datos = [usuario.to_dict() for usuario in self.usuarios]
         BaseModel.guardar_datos("usuarios.json", datos)
 
     def generar_informe(self):
-        return self.miembros
+        return self.usuarios
 
 # ------------------------- VISTA -------------------------
 def main(page: ft.Page):
@@ -128,7 +128,7 @@ def main(page: ft.Page):
             page.update()
             return
 
-        nuevo_miembro = Miembro(
+        nuevo_usuario = Usuario(
             nombre=nombre_field.value,
             edad=edad_field.value,
             num_identificacion=id_field.value,
@@ -137,7 +137,7 @@ def main(page: ft.Page):
             
         )
 
-        controller.agregar_miembro(nuevo_miembro)
+        controller.agregar_usuario(nuevo_usuario)
 
         nombre_field.value = ""
         edad_field.value = ""
@@ -145,7 +145,7 @@ def main(page: ft.Page):
         correo_field.value = ""
         telefono_field.value = ""
         page.update()
-        page.snack_bar = ft.SnackBar(ft.Text("Miembro inscrito exitosamente"), bgcolor=ft.colors.SUCCESS)
+        page.snack_bar = ft.SnackBar(ft.Text("Usuario inscrito exitosamente"), bgcolor=ft.colors.SUCCESS)
         page.snack_bar.open()
 
     # Validación para permitir solo números en el campo de identificación
