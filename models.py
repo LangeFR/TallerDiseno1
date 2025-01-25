@@ -19,6 +19,9 @@ class Informe:
     clases_mes: int
     clases_asistidas: int
     torneos_asistidos: int
+    asistencia_torneo1_id: int
+    asistencia_torneo2_id: int
+    asistencia_torneo3_id: int
 
 @dataclass
 class Entrenamiento:
