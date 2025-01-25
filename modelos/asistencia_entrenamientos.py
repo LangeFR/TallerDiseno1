@@ -4,7 +4,7 @@ import json
 @dataclass
 class Asistencia_Entrenamiento:
     id: int
-    miembro_id: int
+    usuario_id: int
     entrenamiento_id: int
     estado: str
 
