@@ -64,12 +64,12 @@ class ClubController:
         self.guardar_miembros()
 
     def cargar_miembros(self):
-        datos = BaseModel.cargar_datos("inscripciones.json")
+        datos = BaseModel.cargar_datos("usuarios.json")
         return [Miembro.from_dict(d) for d in datos]
 
     def guardar_miembros(self):
         datos = [miembro.to_dict() for miembro in self.miembros]
-        BaseModel.guardar_datos("inscripciones.json", datos)
+        BaseModel.guardar_datos("usuarios.json", datos)
 
     def generar_informe(self):
         return self.miembros
