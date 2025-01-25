@@ -24,18 +24,18 @@ class Pago:
             "fecha": self.fecha,
             "cantidad": self.cantidad
         }
-
+        
     @staticmethod
     def nuevo_id():
-        """Genera un nuevo ID para el pago basado en los pagos existentes."""
+        """Genera un nuevo ID para el pago basado en los pagos existentes en pagos.json."""
         try:
             with open("base_de_datos/pagos.json", "r") as archivo:
                 pagos = json.load(archivo)
                 if pagos:  # Asegurarse de que hay pagos para calcular el máximo
                     return max(pago["id"] for pago in pagos) + 1
-                return 1  # Devuelve 1 si el archivo está vacío
-        except (FileNotFoundError, json.JSONDecodeError):
-            return 1  # Devuelve 1 si hay un error al abrir o leer el archivo
+                return 1  # Si el archivo existe pero está vacío, empezamos desde 1
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):  # Captura errores de archivo no encontrado y problemas de decodificación JSON, además de un archivo vacío
+            return 1
 
     def guardar(self):
         """Guarda el pago en el archivo JSON de pagos."""
