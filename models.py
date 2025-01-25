@@ -26,7 +26,7 @@ class Informe:
 @dataclass
 class Entrenamiento:
     id: int
-    fecha: str  # Formato 'AAAA-MM-DD'
+    fecha: str
 
 @dataclass
 class Asistencia_Entrenamiento:
@@ -39,6 +39,7 @@ class Asistencia_Entrenamiento:
 class Torneo:
     id: int
     nombre: str
+    fecha: str
 
 @dataclass
 class Asistencia_Torneo:
