@@ -6,7 +6,7 @@
         "num_identificacion": "262145367",
         "correo": "juan.rodríguez@example.com",
         "telefono": "903215016",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 2,
@@ -15,7 +15,7 @@
         "num_identificacion": "587519834",
         "correo": "josé.ramírez@example.com",
         "telefono": "932380910",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 3,
@@ -24,7 +24,7 @@
         "num_identificacion": "122331266",
         "correo": "carlos.sánchez@example.com",
         "telefono": "946494188",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 4,
@@ -33,7 +33,7 @@
         "num_identificacion": "660487544",
         "correo": "ana.sánchez@example.com",
         "telefono": "945945701",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 5,
