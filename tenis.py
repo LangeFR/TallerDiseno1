@@ -23,13 +23,14 @@ class BaseModel:
 
 # Clase Miembro
 class Miembro(BaseModel):
-    def __init__(self, nombre, edad, contacto, identificacion, correo, telefono):
+    def __init__(self, nombre, edad, contacto, identificacion, correo, telefono, estado="inscrito"):
         self.nombre = nombre
         self.edad = edad
         self.contacto = contacto
         self.identificacion = identificacion
         self.correo = correo
         self.telefono = telefono
+        self.estado = estado
 
 
     def to_dict(self):
@@ -40,6 +41,7 @@ class Miembro(BaseModel):
             "identificacion": self.identificacion,
             "correo": self.correo,
             "telefono": self.telefono,
+            "estado": self.estado,
 
         }
 
