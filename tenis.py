@@ -251,9 +251,10 @@ def main(page: ft.Page):
         min_extended_width=200,
         destinations=[
             ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
-            ft.NavigationRailDestination(icon=ft.icons.BOOKMARK, label="Matrícula"),
-            ft.NavigationRailDestination(icon=ft.icons.TIMELINE, label="Seguimiento"),
-            ft.NavigationRailDestination(icon=ft.icons.REPORT, label="Informes"),
+            ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
+            ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
+            ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamientos"),
+            ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
         ],
         on_change=destination_change,
     )
