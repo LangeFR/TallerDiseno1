@@ -1,11 +1,14 @@
 import flet as ft
-from modelos.informe import Informe
+import re
 import json
-
+from typing import List
+from modelos.informe import Informe
 
 def main(page: ft.Page):
     page.title = "Club de Tenis"
     page.theme_mode = ft.ThemeMode.DARK
+
+    controller = ClubController()
 
     # Cambiar tema
     def change_theme(e):
@@ -28,47 +31,80 @@ def main(page: ft.Page):
         actions=[theme_icon_button],
     )
 
-    # --- Funcionalidades ---
-    inscritos = []
+    # Diálogo de aviso
+    def cerrar_dialogo(e):
+        aviso_dialog.open = False
+        page.update()
+
+    aviso_dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Advertencia"),
+        content=ft.Text("Por favor, complete todos los campos."),
+        actions=[
+            ft.TextButton("Cerrar", on_click=cerrar_dialogo),
+        ],
+    )
 
     # Inscripción
     def inscribir_persona(e):
-        if not nombre_field.value or not edad_field.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Por favor, complete todos los campos"), bgcolor=ft.colors.ERROR)
-            page.snack_bar.open()
+        if not nombre_field.value or not id_field.value or not correo_field.value:
+            page.dialog = aviso_dialog
+            aviso_dialog.open = True
+            page.update()
             return
 
-        inscritos.append({
-            "nombre": nombre_field.value,
-            "edad": edad_field.value,
-            "contacto": contacto_field.value,
-            "identificación": id_field.value,
-            "correo": correo_field.value,
-            "telefono": telefono_field.value
-        })
+        nuevo_miembro = Miembro(
+            nombre=nombre_field.value,
+            edad=edad_field.value,
+            contacto=contacto_field.value,
+            identificacion=id_field.value,
+            correo=correo_field.value,
+            telefono=telefono_field.value,
+            
+        )
+
+        controller.agregar_miembro(nuevo_miembro)
 
         nombre_field.value = ""
         edad_field.value = ""
         contacto_field.value = ""
         id_field.value = ""
-        correo_field = ""
-        telefono_field = ""
+        correo_field.value = ""
+        telefono_field.value = ""
         page.update()
-        page.snack_bar = ft.SnackBar(ft.Text("Persona inscrita exitosamente"), bgcolor=ft.colors.SUCCESS)
+        page.snack_bar = ft.SnackBar(ft.Text("Miembro inscrito exitosamente"), bgcolor=ft.colors.SUCCESS)
         page.snack_bar.open()
 
-    nombre_field = ft.TextField(label="Nombre", width=300)
-    edad_field = ft.TextField(label="Edad", width=300)
-    contacto_field = ft.TextField(label="Contacto", width=300)
-    id_field = ft.TextField(label=" Inscripción", width=300)
-    correo_field = ft.TextField(label=" Correo", width=300)
-    telefono_field = ft.TextField(label=" Correo", width=300)
+    # Validación para permitir solo números en el campo de identificación
+    def validar_identificacion(e):
+        if not e.control.value.isdigit():
+            e.control.error_text = "Solo se permiten números."
+            e.control.value = ''.join(filter(str.isdigit, e.control.value))
+        else:
+            e.control.error_text = None
+        e.control.update()
 
+    # Validación del correo electrónico
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+
+    def validar_email(e):
+        if not re.match(email_regex, e.control.value):
+            e.control.error_text = "Ingrese un correo válido."
+        else:
+            e.control.error_text = None
+        e.control.update()
+
+    nombre_field = ft.TextField(label="Nombre", width=300)
+    edad_field = ft.TextField(label="Edad", width=300, on_change=validar_identificacion)
+    contacto_field = ft.TextField(label="Contacto", width=300)
+    id_field = ft.TextField(label="Número de identificación", width=300, on_change=validar_identificacion)
+    correo_field = ft.TextField(label="Correo", width=300, on_change=validar_email)
+    telefono_field = ft.TextField(label="Teléfono", width=300, on_change=validar_identificacion)
     inscribir_button = ft.ElevatedButton("Inscribir", on_click=inscribir_persona)
 
     inscripcion_view = ft.Column([
-        ft.Text("Inscripción", size=20, weight=ft.FontWeight.BOLD),
-        nombre_field, edad_field, contacto_field, id_field, correo_field, telefono_field, inscribir_button
+        ft.Text("Inscripción de Miembros", size=20, weight=ft.FontWeight.BOLD),
+        nombre_field, edad_field, contacto_field ,id_field, correo_field, telefono_field, inscribir_button
     ], spacing=10)
 
     # Matrícula
@@ -84,7 +120,11 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Informes
-    def generar_informes(mes, año):
+    def generar_informes(mes, anio):
+        
+        informe_view.controls.clear()
+        informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
+        
         # Cargar los datos de los miembros desde el archivo JSON
         try:
             with open("base_de_datos/miembros.json", "r") as archivo_miembros:
@@ -101,11 +141,10 @@ def main(page: ft.Page):
 
         # Generar un informe para cada miembro matriculado
         for miembro in miembros_matriculados:
-            Informe.crear_informe(miembro['id'], mes, año)
+            Informe.crear_informe(miembro['id'], mes, anio)
 
-        print(f"Informes generados para el mes {mes} del año {año}")
+        print(f"Informes generados para el mes {mes} del anio {anio}")
 
-        
         informe_view.update()
 
 
@@ -149,6 +188,5 @@ def main(page: ft.Page):
     content = ft.Column([inscripcion_view], expand=True)
 
     page.add(app_bar, ft.Row([rail, ft.VerticalDivider(width=1), content], expand=True))
-
 
 ft.app(target=main)
