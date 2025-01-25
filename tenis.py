@@ -1,4 +1,6 @@
 import flet as ft
+from modelos.informe import Informe
+import json
 
 
 def main(page: ft.Page):
@@ -82,24 +84,33 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Informes
-    def generar_informe(e):
-        informe_view.controls.clear()
+    def generar_informes(mes, año):
+        # Cargar los datos de los miembros desde el archivo JSON
+        try:
+            with open("base_de_datos/miembros.json", "r") as archivo_miembros:
+                miembros = json.load(archivo_miembros)
+        except FileNotFoundError:
+            print("El archivo de miembros no se encuentra.")
+            return
+        except json.JSONDecodeError:
+            print("El archivo de miembros no está en el formato correcto.")
+            return
 
-        informe_view.controls.append(ft.Text("Informe del Club", size=20, weight=ft.FontWeight.BOLD))
+        # Filtrar miembros con estado 'matriculado'
+        miembros_matriculados = [miembro for miembro in miembros if miembro['estado'] == 'matriculado']
 
-        if not inscritos:
-            informe_view.controls.append(ft.Text("No hay personas inscritas.", italic=True))
-        else:
-            informe_view.controls.append(ft.Text(f"Total inscritos: {len(inscritos)}", size=16))
-            for i, inscrito in enumerate(inscritos, start=1):
-                informe_view.controls.append(
-                    ft.Text(f"{i}. {inscrito['nombre']} - Edad: {inscrito['edad']} - Contacto: {inscrito['contacto']}")
-                )
+        # Generar un informe para cada miembro matriculado
+        for miembro in miembros_matriculados:
+            Informe.crear_informe(miembro['id'], mes, año)
+
+        print(f"Informes generados para el mes {mes} del año {año}")
+
         
         informe_view.update()
 
+
     informe_view = ft.Column([], spacing=10)
-    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informe)
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informes('2025-01'))
 
     informes_view = ft.Column([
         ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
