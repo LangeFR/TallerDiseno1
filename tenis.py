@@ -261,6 +261,8 @@ def main(page: ft.Page):
         except Exception as e:
             print(f"No se pudo crear el entrenamiento: {e}")
     
+    # crear_entrenamiento_button = ft.ElevatedButton("Crear Entrenamiento", on_click=lambda e: crear_entrenamiento(1, 1, 2025)) #Modificar para que sea dinamico en el front
+    
     def crear_torneo(anio, mes, dia):
         # Formatear día y mes para asegurar el formato de dos dígitos
         dia_formateado = str(dia).zfill(2)
@@ -278,6 +280,8 @@ def main(page: ft.Page):
         nuevo_torneo.guardar()
         print(f"Torneo creado para la fecha {fecha}")
 
+    #crear_torneo_button = ft.ElevatedButton("Crear Torneo", on_click=lambda e: crear_torneo(2025, 10, 1)) #Modificar para que sea dinamico en el front
+
     def crear_asistencia_torneo(torneo_id, miembro_id, puesto):
         Asistencia_Torneo.crear_asistencia(
             torneo_id=torneo_id,
@@ -286,6 +290,7 @@ def main(page: ft.Page):
         )
         print(f"Asistencia para el torneo {torneo_id} creada para el miembro {miembro_id} con puesto {puesto}")
 
+    #crear_asistencia_torneo_button = ft.ElevatedButton("Aceptar", on_click=lambda e: crear_asistencia_torneo(usuario_id, torneo_id, puesto)) #Modificar para que sea dinamico en el front
 
 
     # Cambiar vistas
