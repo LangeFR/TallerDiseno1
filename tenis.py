@@ -1,12 +1,11 @@
 import flet as ft
-import matplotlib.pyplot as plt
-import networkx as nx
 
 
 def main(page: ft.Page):
-    page.title = "Club de tenis"
+    page.title = "Club de Tenis"
     page.theme_mode = ft.ThemeMode.DARK
 
+    # Cambiar tema
     def change_theme(e):
         page.theme_mode = ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
         theme_icon_button.icon = ft.icons.DARK_MODE if page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.LIGHT_MODE
@@ -18,7 +17,7 @@ def main(page: ft.Page):
         on_click=change_theme,
     )
 
-    titulo = ft.Text("Tenis")
+    titulo = ft.Text("Club de Tenis", size=24, weight=ft.FontWeight.BOLD)
 
     app_bar = ft.AppBar(
         title=titulo,
@@ -27,117 +26,118 @@ def main(page: ft.Page):
         actions=[theme_icon_button],
     )
 
+    # --- Funcionalidades ---
+    inscritos = []
 
-    search_field = ft.TextField(label="Buscar por título, autor, género o año", width=300, on_change=lambda e: search_books())
-    clear_search_button = ft.ElevatedButton("Limpiar Filtro", on_click=lambda _: clear_search())
-    
-
-    sort_button = ft.PopupMenuButton(
-        icon=ft.icons.SORT,
-        items=[
-            ft.PopupMenuItem(text="Título", on_click=lambda _: sort_books("title")),
-            ft.PopupMenuItem(text="Autor", on_click=lambda _: sort_books("author")),
-            ft.PopupMenuItem(text="Género", on_click=lambda _: sort_books("genre")),
-            ft.PopupMenuItem(text="Año", on_click=lambda _: sort_books("year")),
-        ],
-        
-    )
-
-
-    all_books = []
-
-    def search_books():
-        search_text = search_field.value.lower()
-        books_view.controls.clear()
-        for book in all_books:
-            if (search_text in book["title"].lower() or
-                search_text in book["author"].lower() or
-                search_text in book["genre"].lower() or
-                search_text in book["year"].lower()):
-                books_view.controls.append(book["display"])
-        page.update()
-
-    def clear_search():
-        search_field.value = ""
-        books_view.controls.clear()
-        books_view.controls.extend([book["display"] for book in all_books])
-        page.update()
-
-
-    def add_book(e):
-        if not title_field.value:
-            title_field.error_text = "Por favor ingrese un título"
-            page.update()
+    # Inscripción
+    def inscribir_persona(e):
+        if not nombre_field.value or not edad_field.value:
+            page.snack_bar = ft.SnackBar(ft.Text("Por favor, complete todos los campos"), bgcolor=ft.colors.ERROR)
+            page.snack_bar.open()
             return
-        
-         # Validar el campo de año solo si se ha ingresado un valor
-        if year_field.value and not year_field.value.isdigit():
-            year_field.error_text = "Por favor ingrese un año válido (número entero)"
-            page.update()
-            return  
-        else:
-            year_field.error_text = None
+
+        inscritos.append({
+            "nombre": nombre_field.value,
+            "edad": edad_field.value,
+            "contacto": contacto_field.value,
+            "identificación": id_field.value,
+            "correo": correo_field.value,
+            "telefono": telefono_field.value
+        })
+
+        nombre_field.value = ""
+        edad_field.value = ""
+        contacto_field.value = ""
+        id_field.value = ""
+        correo_field = ""
+        telefono_field = ""
         page.update()
+        page.snack_bar = ft.SnackBar(ft.Text("Persona inscrita exitosamente"), bgcolor=ft.colors.SUCCESS)
+        page.snack_bar.open()
+
+    nombre_field = ft.TextField(label="Nombre", width=300)
+    edad_field = ft.TextField(label="Edad", width=300)
+    contacto_field = ft.TextField(label="Contacto", width=300)
+    id_field = ft.TextField(label=" Inscripción", width=300)
+    correo_field = ft.TextField(label=" Correo", width=300)
+    telefono_field = ft.TextField(label=" Correo", width=300)
+
+    inscribir_button = ft.ElevatedButton("Inscribir", on_click=inscribir_persona)
+
+    inscripcion_view = ft.Column([
+        ft.Text("Inscripción", size=20, weight=ft.FontWeight.BOLD),
+        nombre_field, edad_field, contacto_field, id_field, correo_field, telefono_field, inscribir_button
+    ], spacing=10)
+
+    # Matrícula
+    matricula_view = ft.Column([
+        ft.Text("Matrícula", size=20, weight=ft.FontWeight.BOLD),
+        ft.Text("Aquí se implementará la funcionalidad de matrícula.")
+    ], spacing=10)
+
+    # Seguimiento
+    seguimiento_view = ft.Column([
+        ft.Text("Seguimiento", size=20, weight=ft.FontWeight.BOLD),
+        ft.Text("Aquí se implementará la funcionalidad de seguimiento.")
+    ], spacing=10)
+
+    # Informes
+    def generar_informe(e):
+        informe_view.controls.clear()
+
+        informe_view.controls.append(ft.Text("Informe del Club", size=20, weight=ft.FontWeight.BOLD))
+
+        if not inscritos:
+            informe_view.controls.append(ft.Text("No hay personas inscritas.", italic=True))
+        else:
+            informe_view.controls.append(ft.Text(f"Total inscritos: {len(inscritos)}", size=16))
+            for i, inscrito in enumerate(inscritos, start=1):
+                informe_view.controls.append(
+                    ft.Text(f"{i}. {inscrito['nombre']} - Edad: {inscrito['edad']} - Contacto: {inscrito['contacto']}")
+                )
         
-        new_book_data = {
-            "title": title_field.value,
-            "author": author_field.value if author_field.value else 'Desconocido',
-            "genre": genero_field.value if genero_field.value else 'Sin género',
-            "year": year_field.value if year_field.value else 'Sin reporte',
-            "image": image_state["path"]
-        }
+        informe_view.update()
 
-        image_container = ft.Container(
-            ft.Image(src=image_state["path"], fit=ft.ImageFit.COVER),
-            width=100,
-            height=150,
-        ) if image_state["path"] else None
+    informe_view = ft.Column([], spacing=10)
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informe)
 
-        
+    informes_view = ft.Column([
+        ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
+        generar_informe_button,
+        informe_view
+    ], spacing=10)
 
-
-
-    title_field = ft.TextField(label="Título del libro", width=300)
-    author_field = ft.TextField(label="Autor", width=300)
-    genero_field = ft.TextField(label="Género", width=300)
-    year_field = ft.TextField(label="Año de Publicación", width=300)
-    add_button = ft.ElevatedButton("Añadir libro", on_click=add_book)
-    upload_image_button = ft.ElevatedButton("Subir imagen", on_click=lambda _: image_picker.pick_files(allow_multiple=False))
-
-
+    # Cambiar vistas
     def destination_change(e):
         index = e.control.selected_index
         content.controls.clear()
         if index == 0:
-            content.controls.append(ft.Column([search_field, clear_search_button, sort_button, books_view], spacing=10))
+            content.controls.append(inscripcion_view)
         elif index == 1:
-            content.controls.append(add_book_view)
+            content.controls.append(matricula_view)
         elif index == 2:
-            content.controls.append(loans_view)
+            content.controls.append(seguimiento_view)
         elif index == 3:
-            content.controls.append(add_visual_view)
+            content.controls.append(informes_view)
         page.update()
 
     rail = ft.NavigationRail(
         selected_index=0,
         label_type=ft.NavigationRailLabelType.ALL,
         min_width=100,
-        min_extended_width=400,
+        min_extended_width=200,
         destinations=[
-            ft.NavigationRailDestination(icon=ft.icons.BOOK, label="Inscripción"),
-            ft.NavigationRailDestination(icon=ft.icons.ADD, label="Matrícula"),
-            ft.NavigationRailDestination(icon=ft.icons.LIBRARY_BOOKS, label="Seguimiento"),
-            ft.NavigationRailDestination(icon=ft.icons.REMOVE_RED_EYE_ROUNDED, label="Informes"),
+            ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
+            ft.NavigationRailDestination(icon=ft.icons.BOOKMARK, label="Matrícula"),
+            ft.NavigationRailDestination(icon=ft.icons.TIMELINE, label="Seguimiento"),
+            ft.NavigationRailDestination(icon=ft.icons.REPORT, label="Informes"),
         ],
         on_change=destination_change,
     )
 
-    content = ft.Column(
-        [search_field, clear_search_button, sort_button, books_view],
-        spacing=10,
-        expand=True
-    )
+    content = ft.Column([inscripcion_view], expand=True)
 
     page.add(app_bar, ft.Row([rail, ft.VerticalDivider(width=1), content], expand=True))
+
 
 ft.app(target=main)
