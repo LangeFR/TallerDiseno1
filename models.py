@@ -14,18 +14,6 @@ class Miembro:
 
 
 @dataclass
-class Entrenamiento:
-    id: int
-    fecha: str
-
-@dataclass
-class Asistencia_Entrenamiento:
-    id: int
-    miembro_id: int
-    entrenamiento_id: int
-    estado: str  # 'verde' o 'rojo'
-
-@dataclass
 class Torneo:
     id: int
     nombre: str
