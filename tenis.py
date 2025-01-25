@@ -225,7 +225,7 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Informes
-    def generar_informes(mes, anio):
+    def generar_informes(anio, mes):
         informe_view.controls.clear()
         informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
         
@@ -257,7 +257,10 @@ def main(page: ft.Page):
         #informe_view.update()
 
     informe_view = ft.Column([], spacing=10)
-    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(1, 2025)) #Modificar para que sea dinamico en el front
+    #Ejemplo
+    anio = 2025
+    mes = 1
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(anio, mes)) #Modificar para que sea dinamico en el front
 
     entrenamientos_view = ft.Column([
         ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
@@ -271,7 +274,7 @@ def main(page: ft.Page):
         informe_view
     ], spacing=10)
 
-    def crear_entrenamiento(dia, mes, anio):
+    def crear_entrenamiento(anio, mes, dia):
         # Formatear día y mes para asegurar el formato de dos dígitos
         dia_formateado = str(dia).zfill(2)
         mes_formateado = str(mes).zfill(2)
@@ -288,7 +291,7 @@ def main(page: ft.Page):
         except Exception as e:
             print(f"No se pudo crear el entrenamiento: {e}")
     
-    # crear_entrenamiento_button = ft.ElevatedButton("Crear Entrenamiento", on_click=lambda e: crear_entrenamiento(1, 1, 2025)) #Modificar para que sea dinamico en el front
+    # crear_entrenamiento_button = ft.ElevatedButton("Crear Entrenamiento", on_click=lambda e: crear_entrenamiento(anio, mes, dia)) #Modificar para que sea dinamico en el front
     
     def crear_torneo(anio, mes, dia):
         # Formatear día y mes para asegurar el formato de dos dígitos
@@ -307,7 +310,7 @@ def main(page: ft.Page):
         nuevo_torneo.guardar()
         print(f"Torneo creado para la fecha {fecha}")
 
-    #crear_torneo_button = ft.ElevatedButton("Crear Torneo", on_click=lambda e: crear_torneo(2025, 10, 1)) #Modificar para que sea dinamico en el front
+    #crear_torneo_button = ft.ElevatedButton("Crear Torneo", on_click=lambda e: crear_torneo(anio, mes, dia)) #Modificar para que sea dinamico en el front
 
     def crear_asistencia_torneo(torneo_id, miembro_id, puesto):
         Asistencia_Torneo.crear_asistencia(
@@ -352,7 +355,7 @@ def main(page: ft.Page):
         except json.JSONDecodeError:
             print("Error al decodificar el archivo de asistencias.")
         
-    #tomar_asistencia_entrenamiento_button = ft.ElevatedButton("Aceptar", on_click=lambda e: tomar_asistencia_entrenamiento(2, 26, "presente")) #Modificar para que sea dinamico en el front
+    #tomar_asistencia_entrenamiento_button = ft.ElevatedButton("Aceptar", on_click=lambda e: tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado)) #Modificar para que sea dinamico en el front
 
 
 
