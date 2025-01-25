@@ -2,6 +2,7 @@ import flet as ft
 import re
 import json
 from typing import List
+from modelos.informe import Informe
 
 # ------------------------- MODELO -------------------------
 # Clase base para persistencia de datos
@@ -192,16 +193,26 @@ def main(page: ft.Page):
     def generar_informe(e):
         informe_view.controls.clear()
         informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
+        
+        # Cargar los datos de los miembros desde el archivo JSON
+        try:
+            with open("base_de_datos/miembros.json", "r") as archivo_miembros:
+                miembros = json.load(archivo_miembros)
+        except FileNotFoundError:
+            print("El archivo de miembros no se encuentra.")
+            return
+        except json.JSONDecodeError:
+            print("El archivo de miembros no está en el formato correcto.")
+            return
 
-        miembros = controller.generar_informe()
-        if not miembros:
-            informe_view.controls.append(ft.Text("No hay miembros registrados.", italic=True))
-        else:
-            informe_view.controls.append(ft.Text(f"Total miembros: {len(miembros)}", size=16))
-            for i, miembro in enumerate(miembros, start=1):
-                informe_view.controls.append(
-                    ft.Text(f"{i}. {miembro.nombre}  - ID: {miembro.identificacion}")
-                )
+        # Filtrar miembros con estado 'matriculado'
+        miembros_matriculados = [miembro for miembro in miembros if miembro['estado'] == 'matriculado']
+
+        # Generar un informe para cada miembro matriculado
+        for miembro in miembros_matriculados:
+            Informe.crear_informe(miembro['id'], mes, anio)
+
+        print(f"Informes generados para el mes {mes} del anio {anio}")
 
         informe_view.update()
 
