@@ -26,16 +26,3 @@ class Asistencia_Torneo:
     torneo_id: int
     puesto: int
 
-@dataclass
-class Inscripcion:
-    id: int
-    miembro_id: int
-    pago_id: int
-
-@dataclass
-class Pago:
-    id: int
-    estado: str
-    concepto: str
-    fecha: str
-    cantidad: int
