@@ -54,6 +54,8 @@ def contar_clases_asistidas(id_usuario, mes, anio):
         entrenamientos = json.load(archivo)
         with open("base_de_datos/entrenamientos.json", "r") as archivo_ent:
             lista_entrenamientos = json.load(archivo_ent)
+            print("--------------------------------")
+            print(f"{anio}-{mes}")
             return sum(1 for e in entrenamientos if any(ent["id"] == e["entrenamiento_id"] and ent["fecha"].startswith(f"{anio}-{mes}") for ent in lista_entrenamientos) and e["usuario_id"] == id_usuario and e["estado"] == "presente")
 
 
@@ -74,14 +76,34 @@ def encontrar_top_3_torneos(id_usuario, mes, anio):
 
 
 def guardar_informe(informe):
-    with open("base_de_datos/informes.json", "a") as archivo:
-        json.dump(informe.__dict__, archivo, ensure_ascii=False, indent=4)
-        archivo.write("\n")
+    try:
+        with open("base_de_datos/informes.json", "r") as archivo:
+            # Cargar la lista existente de informes o inicializar una nueva si el archivo está vacío
+            try:
+                informes = json.load(archivo)
+            except json.JSONDecodeError:
+                informes = []
+    except FileNotFoundError:
+        informes = []  # Si el archivo no existe, empezamos una nueva lista
+
+    # Agregar el nuevo informe a la lista
+    informes.append(informe.__dict__)
+
+    # Guardar la lista actualizada en el archivo, sobreescribiendo el archivo existente
+    with open("base_de_datos/informes.json", "w") as archivo:
+        json.dump(informes, archivo, ensure_ascii=False, indent=4)
+
 
 def nuevo_id():
-    with open("base_de_datos/informes.json", "r") as archivo:
-        try:
-            informes = json.load(archivo)
-            return max(informe["id"] for informe in informes) + 1
-        except ValueError:
-            return 1  # Retorna 1 si el archivo está vacío o no se puede cargar
+    try:
+        with open("base_de_datos/informes.json", "r") as archivo:
+            try:
+                informes = json.load(archivo)
+                # Obtener el máximo ID existente y sumarle uno
+                return max(informe["id"] for informe in informes) + 1 if informes else 1
+            except json.JSONDecodeError:
+                return 1  # Si hay un error de decodificación, se asume que el archivo está mal formado o vacío
+    except FileNotFoundError:
+        return 1  # Si el archivo no existe, se comienza con el ID 1
+
+

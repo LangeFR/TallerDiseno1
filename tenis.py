@@ -195,6 +195,9 @@ def main(page: ft.Page):
         informe_view.controls.clear()
         informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
         
+        # Asegurarse de que el mes tiene dos dígitos
+        mes_formateado = str(mes).zfill(2)
+        
         # Cargar los datos de los usuarios desde el archivo JSON
         try:
             with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
@@ -212,14 +215,15 @@ def main(page: ft.Page):
 
         # Generar un informe para cada miembro matriculado
         for usuario in usuarios_matriculados:
-            Informe.crear_informe(usuario['id'], mes, anio)
+            Informe.crear_informe(usuario['id'], mes_formateado, anio)
+
 
         print(f"Informes generados para el mes {mes} del anio {anio}")
 
-        informe_view.update()
+        #informe_view.update()
 
     informe_view = ft.Column([], spacing=10)
-    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informes(1, 2025))
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(1, 2025)) #Modificar para que sea dinamico en el front
 
     informes_view = ft.Column([
         ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
