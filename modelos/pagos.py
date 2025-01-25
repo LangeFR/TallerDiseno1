@@ -1,20 +1,29 @@
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 import json
 from datetime import datetime
 
 @dataclass
 class Pago:
-    id: int = field(default=None, init=False)
     usuario_id: int
     concepto: str
     fecha: str
     cantidad: float
+    id: int = field(default=None, init=False)  # ID se establece automáticamente, no se pasa al constructor
 
     def __post_init__(self):
+        # Asignar un nuevo ID si es la primera vez que se crea el objeto
         if self.id is None:
             self.id = self.nuevo_id()
-        if not self.validar_fecha(self.fecha):
-            raise ValueError(f"Fecha {self.fecha} no es válida. Formato esperado: YYYY-MM-DD.")
+
+    def to_dict(self):
+        # Retorna un diccionario con los valores actuales de las propiedades
+        return {
+            "id": self.id,
+            "usuario_id": self.usuario_id,
+            "concepto": self.concepto,
+            "fecha": self.fecha,
+            "cantidad": self.cantidad
+        }
 
     @staticmethod
     def nuevo_id():
@@ -22,11 +31,11 @@ class Pago:
         try:
             with open("base_de_datos/pagos.json", "r") as archivo:
                 pagos = json.load(archivo)
-                if pagos:  # Asegúrate de que hay pagos para calcular el máximo
+                if pagos:  # Asegurarse de que hay pagos para calcular el máximo
                     return max(pago["id"] for pago in pagos) + 1
-                return 1
+                return 1  # Devuelve 1 si el archivo está vacío
         except (FileNotFoundError, json.JSONDecodeError):
-            return 1
+            return 1  # Devuelve 1 si hay un error al abrir o leer el archivo
 
     def guardar(self):
         """Guarda el pago en el archivo JSON de pagos."""
@@ -34,17 +43,11 @@ class Pago:
             with open("base_de_datos/pagos.json", "r") as archivo:
                 pagos = json.load(archivo)
         except (FileNotFoundError, json.JSONDecodeError):
-            pagos = []
+            pagos = []  # Inicializa una lista vacía si el archivo no existe o hay un error de decodificación
 
-        pagos.append(asdict(self))  # Correcto uso de asdict para convertir dataclass a dict
+        # Agrega el pago actual al listado de pagos
+        pagos.append(self.to_dict())
+
+        # Guarda la lista actualizada de pagos en el archivo
         with open("base_de_datos/pagos.json", "w") as archivo:
             json.dump(pagos, archivo, indent=4)
-
-    @staticmethod
-    def validar_fecha(fecha):
-        """Valida que la fecha esté en el formato correcto (YYYY-MM-DD)."""
-        try:
-            datetime.strptime(fecha, '%Y-%m-%d')
-            return True
-        except ValueError:
-            return False
