@@ -13,16 +13,4 @@ class Miembro:
     estado: str
 
 
-@dataclass
-class Torneo:
-    id: int
-    nombre: str
-    fecha: str
-
-@dataclass
-class Asistencia_Torneo:
-    id: int
-    miembro_id: int
-    torneo_id: int
-    puesto: int
 

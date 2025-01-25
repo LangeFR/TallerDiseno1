@@ -4,6 +4,8 @@ import json
 from typing import List
 from modelos.informe import Informe
 from modelos.entrenamiento import Entrenamiento
+from modelos.torneo import Torneo
+from modelos.asistencia_torneos import Asistencia_Torneo
 from datetime import datetime
 import os
 
@@ -258,6 +260,32 @@ def main(page: ft.Page):
             print(f"Entrenamiento creado para la fecha {fecha}")
         except Exception as e:
             print(f"No se pudo crear el entrenamiento: {e}")
+    
+    def crear_torneo(anio, mes, dia):
+        # Formatear día y mes para asegurar el formato de dos dígitos
+        dia_formateado = str(dia).zfill(2)
+        mes_formateado = str(mes).zfill(2)
+        
+        # Componer la fecha en formato aaaa-mm-dd
+        fecha = f"{anio}-{mes_formateado}-{dia_formateado}"
+        
+        # Intentar crear un nuevo objeto de Torneo
+        nuevo_torneo = Torneo(
+            id=Torneo.nuevo_id(),
+            nombre="Nombre del Torneo",  # Asumiendo que el nombre se proveerá o se manejará de otra manera
+            fecha=fecha
+        )
+        nuevo_torneo.guardar()
+        print(f"Torneo creado para la fecha {fecha}")
+
+    def crear_asistencia_torneo(torneo_id, miembro_id, puesto):
+        Asistencia_Torneo.crear_asistencia(
+            torneo_id=torneo_id,
+            miembro_id=miembro_id,
+            puesto=puesto
+        )
+        print(f"Asistencia para el torneo {torneo_id} creada para el miembro {miembro_id} con puesto {puesto}")
+
 
 
     # Cambiar vistas
