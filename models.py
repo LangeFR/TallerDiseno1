@@ -12,21 +12,11 @@ class Miembro:
     telefono: str
     estado: str
 
-@dataclass
-class Informe:
-    id: int
-    miembro_id: int
-    clases_mes: int
-    clases_asistidas: int
-    torneos_asistidos: int
-    asistencia_torneo1_id: int
-    asistencia_torneo2_id: int
-    asistencia_torneo3_id: int
 
 @dataclass
 class Entrenamiento:
     id: int
-    fecha: str  # Formato 'AAAA-MM-DD'
+    fecha: str
 
 @dataclass
 class Asistencia_Entrenamiento:
@@ -39,6 +29,7 @@ class Asistencia_Entrenamiento:
 class Torneo:
     id: int
     nombre: str
+    fecha: str
 
 @dataclass
 class Asistencia_Torneo:
