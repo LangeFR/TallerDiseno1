@@ -23,13 +23,14 @@ class BaseModel:
 
 # Clase Miembro
 class Miembro(BaseModel):
-    def __init__(self, nombre, edad, contacto, identificacion, correo, telefono):
+    def __init__(self, nombre, edad, contacto, identificacion, correo, telefono, estado="inscrito"):
         self.nombre = nombre
         self.edad = edad
         self.contacto = contacto
         self.identificacion = identificacion
         self.correo = correo
         self.telefono = telefono
+        self.estado = estado
 
 
     def to_dict(self):
@@ -40,6 +41,7 @@ class Miembro(BaseModel):
             "identificacion": self.identificacion,
             "correo": self.correo,
             "telefono": self.telefono,
+            "estado": self.estado,
 
         }
 
@@ -64,12 +66,12 @@ class ClubController:
         self.guardar_miembros()
 
     def cargar_miembros(self):
-        datos = BaseModel.cargar_datos("inscripciones.json")
+        datos = BaseModel.cargar_datos("usuarios.json")
         return [Miembro.from_dict(d) for d in datos]
 
     def guardar_miembros(self):
         datos = [miembro.to_dict() for miembro in self.miembros]
-        BaseModel.guardar_datos("inscripciones.json", datos)
+        BaseModel.guardar_datos("usuarios.json", datos)
 
     def generar_informe(self):
         return self.miembros
