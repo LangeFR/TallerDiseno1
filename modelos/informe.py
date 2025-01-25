@@ -1,50 +1,79 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+import json
 from typing import List
 
 @dataclass
 class Informe:
-    def __init__(self, id, miembro_id, clases_mes, clases_asistidas, torneos_asistidos, asistencia_torneo1_id, asistencia_torneo2_id, asistencia_torneo3_id):
+    id: int
+    miembro_id: int
+    clases_mes: int
+    clases_asistidas: int
+    torneos_asistidos: int
+    top_torneos: List[dict] 
+
+    def __init__(self, id, miembro_id, clases_mes, clases_asistidas, torneos_asistidos, top_torneos):
         self.id = id
         self.miembro_id = miembro_id
         self.clases_mes = clases_mes
         self.clases_asistidas = clases_asistidas
         self.torneos_asistidos = torneos_asistidos
-        self.asistencia_torneo1_id = asistencia_torneo1_id
-        self.asistencia_torneo2_id = asistencia_torneo2_id
-        self.asistencia_torneo3_id = asistencia_torneo3_id
+        self.top_torneos = top_torneos
 
-    def crear_informe(id_miembro, mes):
-        clases_asignadas = contar_clases_asignadas(id_miembro, mes)
-        clases_asistidas = contar_clases_asistidas(id_miembro, mes)
-        torneos_asistidos = contar_torneos_asistidos(id_miembro, mes)
-        top_torneos = encontrar_top_3_torneos(id_miembro, mes)
-        
-        # Asumiendo una lógica para asignar un ID único al nuevo informe
-        nuevo_informe = Informe(
-            id=nuevo_id(),
-            miembro_id=id_miembro,
-            clases_mes=clases_asignadas,
-            clases_asistidas=clases_asistidas,
-            torneos_asistidos=torneos_asistidos,
-            asistencia_torneo1_id=top_torneos[0] if len(top_torneos) > 0 else None,
-            asistencia_torneo2_id=top_torneos[1] if len(top_torneos) > 1 else None,
-            asistencia_torneo3_id=top_torneos[2] if len(top_torneos) > 2 else None
-        )
-        
-        # Guardar el nuevo informe en el archivo JSON
-        guardar_informe(nuevo_informe)
+def crear_informe(id_miembro, mes):
+    clases_asignadas = contar_clases_asignadas(id_miembro, mes)
+    clases_asistidas = contar_clases_asistidas(id_miembro, mes)
+    torneos_asistidos = contar_torneos_asistidos(id_miembro, mes)
+    top_torneos = encontrar_top_3_torneos(id_miembro, mes)
+    
+    nuevo_informe = Informe(
+        id=nuevo_id(),
+        miembro_id=id_miembro,
+        clases_mes=clases_asignadas,
+        clases_asistidas=clases_asistidas,
+        torneos_asistidos=torneos_asistidos,
+        top_torneos=top_torneos
+    )
+    
+    guardar_informe(nuevo_informe)
 
 def contar_clases_asignadas(id_miembro, mes):
-    return None
+    with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+        entrenamientos = json.load(archivo)
+        return sum(1 for e in entrenamientos if e["miembro_id"] == id_miembro and e["fecha"].startswith(mes))
 
 def contar_clases_asistidas(id_miembro, mes):
-    return None
+    with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+        entrenamientos = json.load(archivo)
+        return sum(1 for e in entrenamientos if e["miembro_id"] == id_miembro and e["fecha"].startswith(mes) and e["estado"] == "verde")
 
 def contar_torneos_asistidos(id_miembro, mes):
-    return None
+    with open("base_de_datos/asistencia_torneos.json", "r") as archivo:
+        torneos = json.load(archivo)
+        return sum(1 for t in torneos if t["miembro_id"] == id_miembro and t["fecha"].startswith(mes))
 
 def encontrar_top_3_torneos(id_miembro, mes):
-    return None
+    with open("base_de_datos/asistencia_torneos.json", "r") as archivo_asistencia, \
+         open("base_de_datos/torneos.json", "r") as archivo_torneos:
+        asistencia = json.load(archivo_asistencia)
+        torneos = json.load(archivo_torneos)
+        resultados = [
+            (t["nombre"], a["puesto"])
+            for a in asistencia if a["miembro_id"] == id_miembro and a["fecha"].startswith(mes)
+            for t in torneos if t["id"] == a["torneo_id"]
+        ]
+        resultados.sort(key=lambda x: x[1])  # Ordenar por el puesto, ascendente
+        return resultados[:3]  # Devolver solo los 3 mejores
 
+def guardar_informe(informe):
+    with open("base_de_datos/informes.json", "a") as archivo:
+        json.dump(informe.__dict__, archivo, ensure_ascii=False, indent=4)
+        archivo.write("\n")
 
+def nuevo_id():
+    with open("base_de_datos/informes.json", "r") as archivo:
+        try:
+            informes = json.load(archivo)
+            return max(informe["id"] for informe in informes) + 1
+        except ValueError:
+            return 1  # Retorna 1 si el archivo está vacío o no se puede cargar
 
