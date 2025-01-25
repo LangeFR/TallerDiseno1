@@ -184,13 +184,13 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Matrícula
-    matricula_view = ft.Column([
+    Usuarios_view = ft.Column([
         ft.Text("Matrícula", size=20, weight=ft.FontWeight.BOLD),
         ft.Text("Aquí se implementará la funcionalidad de matrícula.")
     ], spacing=10)
 
     # Seguimiento
-    seguimiento_view = ft.Column([
+    torneos_view = ft.Column([
         ft.Text("Seguimiento", size=20, weight=ft.FontWeight.BOLD),
         ft.Text("Aquí se implementará la funcionalidad de seguimiento.")
     ], spacing=10)
@@ -230,12 +230,17 @@ def main(page: ft.Page):
     informe_view = ft.Column([], spacing=10)
     generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(1, 2025)) #Modificar para que sea dinamico en el front
 
-    informes_view = ft.Column([
+    entrenamientos_view = ft.Column([
         ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
         generar_informe_button,
         informe_view
     ], spacing=10)
 
+    pagos_view = ft.Column([
+        ft.Text("Infome de Pagos Mensuales", size=20, weight=ft.FontWeight.BOLD),
+        generar_informe_button,
+        informe_view
+    ], spacing=10)
 
     def crear_entrenamiento(dia, mes, anio):
         # Formatear día y mes para asegurar el formato de dos dígitos
@@ -262,11 +267,13 @@ def main(page: ft.Page):
         if index == 0:
             content.controls.append(inscripcion_view)
         elif index == 1:
-            content.controls.append(matricula_view)
+            content.controls.append(Usuarios_view)
         elif index == 2:
-            content.controls.append(seguimiento_view)
+            content.controls.append(torneos_view)
         elif index == 3:
-            content.controls.append(informes_view)
+            content.controls.append(entrenamientos_view)
+        elif index ==4:
+            content.controls.append(pagos_view)
         page.update()
 
     rail = ft.NavigationRail(
