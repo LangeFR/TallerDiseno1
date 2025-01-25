@@ -4,76 +4,6 @@ import json
 from typing import List
 from modelos.informe import Informe
 
-# ------------------------- MODELO -------------------------
-# Clase base para persistencia de datos
-class BaseModel:
-    @staticmethod
-    def guardar_datos(nombre_archivo, datos):
-        with open(nombre_archivo, 'w') as file:
-            json.dump(datos, file, indent=4)
-
-    @staticmethod
-    def cargar_datos(nombre_archivo):
-        try:
-            with open(nombre_archivo, 'r') as file:
-                return json.load(file)
-        except FileNotFoundError:
-            return []
-
-# Clase Miembro
-class Miembro(BaseModel):
-    def __init__(self, nombre, edad, contacto, identificacion, correo, telefono):
-        self.nombre = nombre
-        self.edad = edad
-        self.contacto = contacto
-        self.identificacion = identificacion
-        self.correo = correo
-        self.telefono = telefono
-
-
-    def to_dict(self):
-        return {
-            "nombre": self.nombre,
-            "edad": self.edad,
-            "contacto": self.contacto,
-            "identificacion": self.identificacion,
-            "correo": self.correo,
-            "telefono": self.telefono,
-
-        }
-
-    @staticmethod
-    def from_dict(data):
-        return Miembro(
-            data["nombre"],
-            data["edad"],          # Asegúrate de pasar la edad
-            data["contacto"],      # Asegúrate de pasar el contacto
-            data["identificacion"], # Asegúrate de pasar la identificación
-            data["correo"],        # Asegúrate de pasar el correo
-            data["telefono"],      # Asegúrate de pasar el teléfono
-        )
-
-# ------------------------- CONTROLADOR -------------------------
-class ClubController:
-    def __init__(self):
-        self.miembros: List[Miembro] = self.cargar_miembros()
-
-    def agregar_miembro(self, miembro: Miembro):
-        self.miembros.append(miembro)
-        self.guardar_miembros()
-
-    def cargar_miembros(self):
-        datos = BaseModel.cargar_datos("inscripciones.json")
-        return [Miembro.from_dict(d) for d in datos]
-
-    def guardar_miembros(self):
-        datos = [miembro.to_dict() for miembro in self.miembros]
-        BaseModel.guardar_datos("inscripciones.json", datos)
-
-    def generar_informe(self):
-        return self.miembros
-
-# ------------------------- VISTA -------------------------
 def main(page: ft.Page):
     page.title = "Club de Tenis"
     page.theme_mode = ft.ThemeMode.DARK
@@ -190,7 +120,8 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Informes
-    def generar_informe(e):
+    def generar_informes(mes, anio):
+        
         informe_view.controls.clear()
         informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
         
@@ -216,8 +147,9 @@ def main(page: ft.Page):
 
         informe_view.update()
 
+
     informe_view = ft.Column([], spacing=10)
-    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informe)
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informes('2025-01'))
 
     informes_view = ft.Column([
         ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
