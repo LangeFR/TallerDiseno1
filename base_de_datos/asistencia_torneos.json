@@ -1,73 +1,73 @@
 [
     {
         "id": 1,
-        "miembro_id": 1,
+        "usuario_id": 1,
         "torneo_id": 1,
         "puesto": 10
     },
     {
         "id": 2,
-        "miembro_id": 1,
+        "usuario_id": 1,
         "torneo_id": 2,
         "puesto": 5
     },
     {
         "id": 3,
-        "miembro_id": 1,
+        "usuario_id": 1,
         "torneo_id": 3,
         "puesto": 4
     },
     {
         "id": 4,
-        "miembro_id": 2,
+        "usuario_id": 2,
         "torneo_id": 1,
         "puesto": 4
     },
     {
         "id": 5,
-        "miembro_id": 2,
+        "usuario_id": 2,
         "torneo_id": 2,
         "puesto": 7
     },
     {
         "id": 6,
-        "miembro_id": 2,
+        "usuario_id": 2,
         "torneo_id": 3,
         "puesto": 7
     },
     {
         "id": 7,
-        "miembro_id": 3,
+        "usuario_id": 3,
         "torneo_id": 1,
         "puesto": 3
     },
     {
         "id": 8,
-        "miembro_id": 3,
+        "usuario_id": 3,
         "torneo_id": 2,
         "puesto": 10
     },
     {
         "id": 9,
-        "miembro_id": 3,
+        "usuario_id": 3,
         "torneo_id": 3,
         "puesto": 7
     },
     {
         "id": 10,
-        "miembro_id": 4,
+        "usuario_id": 4,
         "torneo_id": 1,
         "puesto": 8
     },
     {
         "id": 11,
-        "miembro_id": 4,
+        "usuario_id": 4,
         "torneo_id": 2,
         "puesto": 5
     },
     {
         "id": 12,
-        "miembro_id": 4,
+        "usuario_id": 4,
         "torneo_id": 3,
         "puesto": 6
     }

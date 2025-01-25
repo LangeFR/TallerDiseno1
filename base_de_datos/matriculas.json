@@ -1,22 +1,22 @@
 [
     {
         "id": 1,
-        "miembro_id": 1,
+        "usuario_id": 1,
         "pago_id": 1
     },
     {
         "id": 2,
-        "miembro_id": 2,
+        "usuario_id": 2,
         "pago_id": 2
     },
     {
         "id": 3,
-        "miembro_id": 3,
+        "usuario_id": 3,
         "pago_id": 3
     },
     {
         "id": 4,
-        "miembro_id": 4,
+        "usuario_id": 4,
         "pago_id": 4
     }
 ]
