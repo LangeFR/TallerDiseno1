@@ -28,6 +28,7 @@ class BaseModel:
 # Clase Usuario
 class Usuario(BaseModel):
     def __init__(self, nombre, edad, num_identificacion, correo, telefono, estado="inscrito"):
+        self.id = self.nuevo_id()  # Generar un nuevo ID para cada usuario creado
         self.nombre = nombre
         self.edad = edad
         self.num_identificacion = num_identificacion
@@ -35,27 +36,30 @@ class Usuario(BaseModel):
         self.telefono = telefono
         self.estado = estado
 
-
     def to_dict(self):
         return {
+            "id": self.id,  # Incluir el ID en el diccionario para guardarlo
             "nombre": self.nombre,
             "edad": self.edad,
             "num_identificacion": self.num_identificacion,
             "correo": self.correo,
             "telefono": self.telefono,
             "estado": self.estado,
-
         }
+        
+    def from_dict(data):
+        # Asegúrate de pasar el ID y los otros datos al crear un usuario desde un diccionario
+        usuario = Usuario(data["nombre"], data["edad"], data["num_identificacion"], data["correo"], data["telefono"], data["estado"])
+        usuario.id = data["id"]  # Establecer el ID del usuario desde el diccionario
+        return usuario
 
     @staticmethod
-    def from_dict(data):
-        return Usuario(
-            data["nombre"],
-            data["edad"],          # Asegúrate de pasar la edad
-            data["num_identificacion"], # Asegúrate de pasar la identificación
-            data["correo"],        # Asegúrate de pasar el correo
-            data["telefono"],      # Asegúrate de pasar el teléfono
-        )
+    def nuevo_id():
+        """Genera un nuevo ID para el usuario basado en los usuarios existentes."""
+        usuarios = Usuario.cargar_datos("usuarios.json")
+        if not usuarios:
+            return 1  # Si no hay usuarios, empezamos con ID 1
+        return max(usuario["id"] for usuario in usuarios) + 1
 
 # ------------------------- CONTROLADOR -------------------------
 class ClubController:
@@ -272,10 +276,9 @@ def main(page: ft.Page):
         min_extended_width=200,
         destinations=[
             ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
-            ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
-            ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
-            ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamientos"),
-            ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
+            ft.NavigationRailDestination(icon=ft.icons.BOOKMARK, label="Matrícula"),
+            ft.NavigationRailDestination(icon=ft.icons.TIMELINE, label="Seguimiento"),
+            ft.NavigationRailDestination(icon=ft.icons.REPORT, label="Informes"),
         ],
         on_change=destination_change,
     )
