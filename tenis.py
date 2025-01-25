@@ -190,7 +190,7 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Informes
-    def generar_informe(e):
+    def generar_informes(e, mes, anio):
         informe_view.controls.clear()
         informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
         
@@ -217,7 +217,7 @@ def main(page: ft.Page):
         informe_view.update()
 
     informe_view = ft.Column([], spacing=10)
-    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informe)
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=generar_informes(1, 2025))
 
     informes_view = ft.Column([
         ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
