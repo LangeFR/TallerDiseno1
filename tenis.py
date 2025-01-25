@@ -3,6 +3,7 @@ import re
 import json
 from typing import List
 from modelos.informe import Informe
+import os
 
 # ------------------------- MODELO -------------------------
 # Clase base para persistencia de datos
@@ -190,27 +191,28 @@ def main(page: ft.Page):
     ], spacing=10)
 
     # Informes
-    def generar_informes(e, mes, anio):
+    def generar_informes(mes, anio):
         informe_view.controls.clear()
         informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
         
-        # Cargar los datos de los miembros desde el archivo JSON
+        # Cargar los datos de los usuarios desde el archivo JSON
         try:
-            with open("base_de_datos/miembros.json", "r") as archivo_miembros:
-                miembros = json.load(archivo_miembros)
+            with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
+                usuarios = json.load(archivo_usuarios)
         except FileNotFoundError:
-            print("El archivo de miembros no se encuentra.")
+            print("El archivo de usuarios no se encuentra.")
+            print(os.getcwd())
             return
         except json.JSONDecodeError:
-            print("El archivo de miembros no está en el formato correcto.")
+            print("El archivo de usuarios no está en el formato correcto.")
             return
 
-        # Filtrar miembros con estado 'matriculado'
-        miembros_matriculados = [miembro for miembro in miembros if miembro['estado'] == 'matriculado']
+        # Filtrar usuarios con estado 'matriculado'
+        usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
 
         # Generar un informe para cada miembro matriculado
-        for miembro in miembros_matriculados:
-            Informe.crear_informe(miembro['id'], mes, anio)
+        for usuario in usuarios_matriculados:
+            Informe.crear_informe(usuario['id'], mes, anio)
 
         print(f"Informes generados para el mes {mes} del anio {anio}")
 
