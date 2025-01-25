@@ -45,30 +45,33 @@ class Informe:
 def contar_clases_asignadas(id_usuario, mes, anio):
     with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
         entrenamientos = json.load(archivo)
-        return sum(1 for e in entrenamientos if e["usuario_id"] == id_usuario and e["fecha"].startswith(f"{anio}-{mes}"))
+        with open("base_de_datos/entrenamientos.json", "r") as archivo_ent:
+            lista_entrenamientos = json.load(archivo_ent)
+            return sum(1 for e in entrenamientos if any(ent["id"] == e["entrenamiento_id"] and ent["fecha"].startswith(f"{anio}-{mes}") for ent in lista_entrenamientos) and e["usuario_id"] == id_usuario)
 
 def contar_clases_asistidas(id_usuario, mes, anio):
     with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
         entrenamientos = json.load(archivo)
-        return sum(1 for e in entrenamientos if e["usuario_id"] == id_usuario and e["fecha"].startswith(f"{anio}-{mes}") and e["estado"] == "verde")
+        with open("base_de_datos/entrenamientos.json", "r") as archivo_ent:
+            lista_entrenamientos = json.load(archivo_ent)
+            return sum(1 for e in entrenamientos if any(ent["id"] == e["entrenamiento_id"] and ent["fecha"].startswith(f"{anio}-{mes}") for ent in lista_entrenamientos) and e["usuario_id"] == id_usuario and e["estado"] == "presente")
+
 
 def contar_torneos_asistidos(id_usuario, mes, anio):
     with open("base_de_datos/asistencia_torneos.json", "r") as archivo:
-        torneos = json.load(archivo)
-        return sum(1 for t in torneos if t["usuario_id"] == id_usuario and t["fecha"].startswith(f"{anio}-{mes}"))
+        torneos_asistidos = json.load(archivo)
+        with open("base_de_datos/torneos.json", "r") as archivo_tor:
+            lista_torneos = json.load(archivo_tor)
+            return sum(1 for t in torneos_asistidos if any(tor["id"] == t["torneo_id"] and tor["fecha"].startswith(f"{anio}-{mes}") for tor in lista_torneos) and t["usuario_id"] == id_usuario)
 
 def encontrar_top_3_torneos(id_usuario, mes, anio):
-    with open("base_de_datos/asistencia_torneos.json", "r") as archivo_asistencia, \
-        open("base_de_datos/torneos.json", "r") as archivo_torneos:
+    with open("base_de_datos/asistencia_torneos.json", "r") as archivo_asistencia, open("base_de_datos/torneos.json", "r") as archivo_torneos:
         asistencia = json.load(archivo_asistencia)
         torneos = json.load(archivo_torneos)
-        resultados = [
-            (t["nombre"], a["puesto"])
-            for a in asistencia if a["usuario_id"] == id_usuario and a["fecha"].startswith(f"{anio}-{mes}")
-            for t in torneos if t["id"] == a["torneo_id"]
-        ]
+        resultados = [(tor["nombre"], a["puesto"]) for a in asistencia for tor in torneos if a["usuario_id"] == id_usuario and tor["id"] == a["torneo_id"] and tor["fecha"].startswith(f"{anio}-{mes}")]
         resultados.sort(key=lambda x: x[1])  # Ordenar por el puesto, ascendente
         return resultados[:3]  # Devolver solo los 3 mejores
+
 
 def guardar_informe(informe):
     with open("base_de_datos/informes.json", "a") as archivo:
