@@ -83,6 +83,11 @@ class ClubController:
 
     def generar_informe(self):
         return self.usuarios
+    
+     # Método para filtrar usuarios por estado (inscrito o matriculado)
+    def filtrar_usuarios(self, estado: str):
+        """Filtra los usuarios por su estado ('inscrito' o 'matriculado')."""
+        return [usuario for usuario in self.usuarios if usuario.estado == estado]
 
 # ------------------------- VISTA -------------------------
 def main(page: ft.Page):
@@ -185,11 +190,32 @@ def main(page: ft.Page):
         nombre_field, edad_field,id_field, correo_field, telefono_field, inscribir_button
     ], spacing=10)
 
-    # Matrícula
+    # Usuarios View
+    def mostrar_usuarios(estado):
+        usuarios_filtrados = controller.filtrar_usuarios(estado)
+        usuarios_list = [ft.Text(f"{usuario.nombre} - {usuario.estado}") for usuario in usuarios_filtrados]
+        return ft.Column(usuarios_list, spacing=5)
+    
+     # Filtros para mostrar matriculados e inscritos
+    def mostrar_matriculados(e):
+        content.controls.clear()
+        content.controls.append(mostrar_usuarios("matriculado"))
+        page.update()
+
+    def mostrar_inscritos(e):
+        content.controls.clear()
+        content.controls.append(mostrar_usuarios("inscrito"))
+        page.update()
+        
+    matriculados_button = ft.ElevatedButton("Mostrar Matriculados", on_click=mostrar_matriculados)
+    inscritos_button = ft.ElevatedButton("Mostrar Inscritos", on_click=mostrar_inscritos)
+
     Usuarios_view = ft.Column([
-        ft.Text("Matrícula", size=20, weight=ft.FontWeight.BOLD),
-        ft.Text("Aquí se implementará la funcionalidad de matrícula.")
+        ft.Text("Usuarios", size=20, weight=ft.FontWeight.BOLD),
+        matriculados_button,
+        inscritos_button
     ], spacing=10)
+    
 
     # Seguimiento
     torneos_view = ft.Column([
@@ -311,9 +337,11 @@ def main(page: ft.Page):
         min_extended_width=200,
         destinations=[
             ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
-            ft.NavigationRailDestination(icon=ft.icons.BOOKMARK, label="Matrícula"),
-            ft.NavigationRailDestination(icon=ft.icons.TIMELINE, label="Seguimiento"),
-            ft.NavigationRailDestination(icon=ft.icons.REPORT, label="Informes"),
+            ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
+            ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
+            ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamientos"),
+            ft.NavigationRailDestination(icon=ft.icons.REPORT, label="Informe"),
+            ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY,label="Pagos"),
         ],
         on_change=destination_change,
     )
