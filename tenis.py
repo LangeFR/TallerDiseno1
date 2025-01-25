@@ -12,24 +12,25 @@ import os
 class BaseModel:
     @staticmethod
     def guardar_datos(nombre_archivo, datos):
-        with open(nombre_archivo, 'w') as file:
+        base_path = os.path.join('base_de_datos', nombre_archivo) 
+        with open(base_path, 'w') as file:
             json.dump(datos, file, indent=4)
 
     @staticmethod
     def cargar_datos(nombre_archivo):
+        base_path = os.path.join('base_de_datos', nombre_archivo)  
         try:
-            with open(nombre_archivo, 'r') as file:
+            with open(base_path, 'r') as file:
                 return json.load(file)
         except FileNotFoundError:
             return []
 
 # Clase Miembro
 class Miembro(BaseModel):
-    def __init__(self, nombre, edad, contacto, identificacion, correo, telefono, estado="inscrito"):
+    def __init__(self, nombre, edad, num_identificacion, correo, telefono, estado="inscrito"):
         self.nombre = nombre
         self.edad = edad
-        self.contacto = contacto
-        self.identificacion = identificacion
+        self.num_identificacion = num_identificacion
         self.correo = correo
         self.telefono = telefono
         self.estado = estado
@@ -39,8 +40,7 @@ class Miembro(BaseModel):
         return {
             "nombre": self.nombre,
             "edad": self.edad,
-            "contacto": self.contacto,
-            "identificacion": self.identificacion,
+            "num_identificacion": self.num_identificacion,
             "correo": self.correo,
             "telefono": self.telefono,
             "estado": self.estado,
@@ -52,8 +52,7 @@ class Miembro(BaseModel):
         return Miembro(
             data["nombre"],
             data["edad"],          # Asegúrate de pasar la edad
-            data["contacto"],      # Asegúrate de pasar el contacto
-            data["identificacion"], # Asegúrate de pasar la identificación
+            data["num_identificacion"], # Asegúrate de pasar la identificación
             data["correo"],        # Asegúrate de pasar el correo
             data["telefono"],      # Asegúrate de pasar el teléfono
         )
@@ -66,6 +65,7 @@ class ClubController:
     def agregar_miembro(self, miembro: Miembro):
         self.miembros.append(miembro)
         self.guardar_miembros()
+        print(f"Agregado: {miembro.to_dict()}")
 
     def cargar_miembros(self):
         datos = BaseModel.cargar_datos("usuarios.json")
@@ -131,8 +131,7 @@ def main(page: ft.Page):
         nuevo_miembro = Miembro(
             nombre=nombre_field.value,
             edad=edad_field.value,
-            contacto=contacto_field.value,
-            identificacion=id_field.value,
+            num_identificacion=id_field.value,
             correo=correo_field.value,
             telefono=telefono_field.value,
             
@@ -142,7 +141,6 @@ def main(page: ft.Page):
 
         nombre_field.value = ""
         edad_field.value = ""
-        contacto_field.value = ""
         id_field.value = ""
         correo_field.value = ""
         telefono_field.value = ""
@@ -171,7 +169,6 @@ def main(page: ft.Page):
 
     nombre_field = ft.TextField(label="Nombre", width=300)
     edad_field = ft.TextField(label="Edad", width=300, on_change=validar_identificacion)
-    contacto_field = ft.TextField(label="Contacto", width=300)
     id_field = ft.TextField(label="Número de identificación", width=300, on_change=validar_identificacion)
     correo_field = ft.TextField(label="Correo", width=300, on_change=validar_email)
     telefono_field = ft.TextField(label="Teléfono", width=300, on_change=validar_identificacion)
@@ -179,7 +176,7 @@ def main(page: ft.Page):
 
     inscripcion_view = ft.Column([
         ft.Text("Inscripción de Miembros", size=20, weight=ft.FontWeight.BOLD),
-        nombre_field, edad_field, contacto_field ,id_field, correo_field, telefono_field, inscribir_button
+        nombre_field, edad_field,id_field, correo_field, telefono_field, inscribir_button
     ], spacing=10)
 
     # Matrícula

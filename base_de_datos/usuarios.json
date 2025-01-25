@@ -1,182 +1,170 @@
 [
     {
-        "id": 1,
         "nombre": "Juan",
-        "apellidos": "Rodríguez",
+        "edad": 34,
         "num_identificacion": "262145367",
-        "correo": "juan.rodríguez@example.com",
+        "correo": "juan.rodr\u00c3\u00adguez@example.com",
         "telefono": "903215016",
-        "estado": "matriculado"
+        "estado": "inscrito"
     },
     {
-        "id": 2,
-        "nombre": "José",
-        "apellidos": "Ramírez",
+        "nombre": "Jos\u00c3\u00a9",
+        "edad": 45,
         "num_identificacion": "587519834",
-        "correo": "josé.ramírez@example.com",
+        "correo": "jos\u00c3\u00a9.ram\u00c3\u00adrez@example.com",
         "telefono": "932380910",
-        "estado": "matriculado"
+        "estado": "inscrito"
     },
     {
-        "id": 3,
         "nombre": "Carlos",
-        "apellidos": "Sánchez",
+        "edad": 52,
         "num_identificacion": "122331266",
-        "correo": "carlos.sánchez@example.com",
+        "correo": "carlos.s\u00c3\u00a1nchez@example.com",
         "telefono": "946494188",
-        "estado": "matriculado"
+        "estado": "inscrito"
     },
     {
-        "id": 4,
         "nombre": "Ana",
-        "apellidos": "Sánchez",
+        "edad": 26,
         "num_identificacion": "660487544",
-        "correo": "ana.sánchez@example.com",
+        "correo": "ana.s\u00c3\u00a1nchez@example.com",
         "telefono": "945945701",
-        "estado": "matriculado"
+        "estado": "inscrito"
     },
     {
-        "id": 5,
         "nombre": "Laura",
-        "apellidos": "Sánchez",
+        "edad": 38,
         "num_identificacion": "799387661",
-        "correo": "laura.sánchez@example.com",
+        "correo": "laura.s\u00c3\u00a1nchez@example.com",
         "telefono": "909452938",
         "estado": "inscrito"
     },
     {
-        "id": 6,
         "nombre": "Ana",
-        "apellidos": "Pérez",
+        "edad": 31,
         "num_identificacion": "299857080",
-        "correo": "ana.pérez@example.com",
+        "correo": "ana.p\u00c3\u00a9rez@example.com",
         "telefono": "990727819",
         "estado": "inscrito"
     },
     {
-        "id": 7,
         "nombre": "Patricia",
-        "apellidos": "Martínez",
+        "edad": 29,
         "num_identificacion": "507868793",
-        "correo": "patricia.martínez@example.com",
+        "correo": "patricia.mart\u00c3\u00adnez@example.com",
         "telefono": "974150108",
         "estado": "inscrito"
     },
     {
-        "id": 8,
         "nombre": "Laura",
-        "apellidos": "Pérez",
+        "edad": 47,
         "num_identificacion": "530644707",
-        "correo": "laura.pérez@example.com",
+        "correo": "laura.p\u00c3\u00a9rez@example.com",
         "telefono": "913164629",
         "estado": "inscrito"
     },
     {
-        "id": 9,
         "nombre": "Carlos",
-        "apellidos": "Gómez",
+        "edad": 55,
         "num_identificacion": "461705722",
-        "correo": "carlos.gómez@example.com",
+        "correo": "carlos.g\u00c3\u00b3mez@example.com",
         "telefono": "998673590",
         "estado": "inscrito"
     },
     {
-        "id": 10,
-        "nombre": "María",
-        "apellidos": "González",
+        "nombre": "Mar\u00c3\u00ada",
+        "edad": 23,
         "num_identificacion": "894751903",
-        "correo": "maría.gonzález@example.com",
+        "correo": "mar\u00c3\u00ada.gonz\u00c3\u00a1lez@example.com",
         "telefono": "948361642",
         "estado": "inscrito"
     },
     {
-        "id": 11,
         "nombre": "Roberto",
-        "apellidos": "López",
+        "edad": 60,
         "num_identificacion": "289475618",
-        "correo": "roberto.lópez@example.com",
+        "correo": "roberto.l\u00c3\u00b3pez@example.com",
         "telefono": "947160932",
         "estado": "inscrito"
     },
     {
-        "id": 12,
         "nombre": "Carmen",
-        "apellidos": "Martínez",
+        "edad": 22,
         "num_identificacion": "712406789",
-        "correo": "carmen.martínez@example.com",
+        "correo": "carmen.mart\u00c3\u00adnez@example.com",
         "telefono": "925381460",
         "estado": "inscrito"
     },
     {
-        "id": 13,
-        "nombre": "José",
-        "apellidos": "González",
+        "nombre": "Jos\u00c3\u00a9",
+        "edad": 42,
         "num_identificacion": "897571304",
-        "correo": "josé.gonzález@example.com",
+        "correo": "jos\u00c3\u00a9.gonz\u00c3\u00a1lez@example.com",
         "telefono": "913166032",
         "estado": "inscrito"
     },
     {
-        "id": 14,
-        "nombre": "María",
-        "apellidos": "Martínez",
+        "nombre": "Mar\u00c3\u00ada",
+        "edad": 36,
         "num_identificacion": "192518773",
-        "correo": "maría.martínez@example.com",
+        "correo": "mar\u00c3\u00ada.mart\u00c3\u00adnez@example.com",
         "telefono": "915538641",
         "estado": "inscrito"
     },
     {
-        "id": 15,
         "nombre": "Ana",
-        "apellidos": "López",
+        "edad": 24,
         "num_identificacion": "732212340",
-        "correo": "ana.lópez@example.com",
+        "correo": "ana.l\u00c3\u00b3pez@example.com",
         "telefono": "985249641",
         "estado": "inscrito"
     },
     {
-        "id": 16,
         "nombre": "Ana",
-        "apellidos": "Gómez",
+        "edad": 40,
         "num_identificacion": "202563662",
-        "correo": "ana.gómez@example.com",
+        "correo": "ana.g\u00c3\u00b3mez@example.com",
         "telefono": "957666132",
         "estado": "inscrito"
     },
     {
-        "id": 17,
         "nombre": "Carlos",
-        "apellidos": "González",
+        "edad": 50,
         "num_identificacion": "492223118",
-        "correo": "carlos.gonzález@example.com",
+        "correo": "carlos.gonz\u00c3\u00a1lez@example.com",
         "telefono": "974529188",
         "estado": "inscrito"
     },
     {
-        "id": 18,
-        "nombre": "José",
-        "apellidos": "Fernández",
+        "nombre": "Jos\u00c3\u00a9",
+        "edad": 27,
         "num_identificacion": "535178120",
-        "correo": "josé.fernández@example.com",
+        "correo": "jos\u00c3\u00a9.fern\u00c3\u00a1ndez@example.com",
         "telefono": "907740641",
         "estado": "inscrito"
     },
     {
-        "id": 19,
         "nombre": "Laura",
-        "apellidos": "Martínez",
+        "edad": 33,
         "num_identificacion": "416218862",
-        "correo": "laura.martínez@example.com",
+        "correo": "laura.mart\u00c3\u00adnez@example.com",
         "telefono": "929122952",
         "estado": "inscrito"
     },
     {
-        "id": 20,
-        "nombre": "José",
-        "apellidos": "Pérez",
+        "nombre": "Jos\u00c3\u00a9",
+        "edad": 37,
         "num_identificacion": "328863455",
-        "correo": "josé.pérez@example.com",
+        "correo": "jos\u00c3\u00a9.p\u00c3\u00a9rez@example.com",
         "telefono": "951793043",
+        "estado": "inscrito"
+    },
+    {
+        "nombre": "carlitos",
+        "edad": "11",
+        "num_identificacion": "11",
+        "correo": "fa@gmail.com",
+        "telefono": "666",
         "estado": "inscrito"
     }
 ]
