@@ -402,7 +402,7 @@ def main(page: ft.Page):
         if index == 0:
             content.controls.append(inscripcion_view)
         elif index == 1:
-            content.controls.append(suarios_view)
+            content.controls.append(Usuarios_view)
         elif index == 2:
             content.controls.append(torneos_view)
         elif index == 3:
