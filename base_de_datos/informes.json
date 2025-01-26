@@ -3,8 +3,8 @@
         "id": 1,
         "usuario_id": 24,
         "mes": "01",
-        "anio": "2025",
-        "clases_mes": 0,
+        "anio": 2025,
+        "clases_mes": 3,
         "clases_asistidas": 0,
         "torneos_asistidos": 0,
         "top_torneos": []
@@ -13,8 +13,8 @@
         "id": 2,
         "usuario_id": 25,
         "mes": "01",
-        "anio": "2025",
-        "clases_mes": 0,
+        "anio": 2025,
+        "clases_mes": 28,
         "clases_asistidas": 0,
         "torneos_asistidos": 0,
         "top_torneos": []
@@ -23,8 +23,8 @@
         "id": 3,
         "usuario_id": 24,
         "mes": "01",
-        "anio": "2025",
-        "clases_mes": 0,
+        "anio": 2025,
+        "clases_mes": 3,
         "clases_asistidas": 0,
         "torneos_asistidos": 0,
         "top_torneos": []
@@ -33,8 +33,28 @@
         "id": 4,
         "usuario_id": 25,
         "mes": "01",
-        "anio": "2025",
-        "clases_mes": 0,
+        "anio": 2025,
+        "clases_mes": 28,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 5,
+        "usuario_id": 24,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 3,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 6,
+        "usuario_id": 25,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 28,
         "clases_asistidas": 0,
         "torneos_asistidos": 0,
         "top_torneos": []

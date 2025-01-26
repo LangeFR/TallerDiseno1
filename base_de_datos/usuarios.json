@@ -78,7 +78,7 @@
         "num_identificacion": "461705722",
         "correo": "carlos.g\u00c3\u00b3mez@example.com",
         "telefono": "998673590",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 10,
@@ -150,7 +150,7 @@
         "num_identificacion": "492223118",
         "correo": "carlos.gonz\u00c3\u00a1lez@example.com",
         "telefono": "974529188",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 18,

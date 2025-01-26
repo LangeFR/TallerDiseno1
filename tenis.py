@@ -31,8 +31,8 @@ class BaseModel:
 
 # Clase Usuario
 class Usuario(BaseModel):
-    def __init__(self, nombre, edad, num_identificacion, correo, telefono, estado="inscrito"):
-        self.id = self.nuevo_id()  # Generar un nuevo ID para cada usuario creado
+    def __init__(self, id, nombre, edad, num_identificacion, correo, telefono, estado="inscrito"):
+        self.id = id 
         self.nombre = nombre
         self.edad = edad
         self.num_identificacion = num_identificacion
@@ -40,9 +40,10 @@ class Usuario(BaseModel):
         self.telefono = telefono
         self.estado = estado
 
+
     def to_dict(self):
         return {
-            "id": self.id,  # Incluir el ID en el diccionario para guardarlo
+            "id": self.id,  # Incluimos el ID en el diccionario
             "nombre": self.nombre,
             "edad": self.edad,
             "num_identificacion": self.num_identificacion,
@@ -50,11 +51,19 @@ class Usuario(BaseModel):
             "telefono": self.telefono,
             "estado": self.estado,
         }
-        
+
+    @staticmethod
     def from_dict(data):
-        usuario = Usuario(data["nombre"], data["edad"], data["num_identificacion"], data["correo"], data["telefono"], data["estado"])
-        usuario.id = data["id"]  # Establecer el ID del usuario desde el diccionario
-        return usuario
+        # Convertimos un diccionario en una instancia de Usuario
+        return Usuario(
+            id=data["id"],  # Incluimos el ID desde el diccionario
+            nombre=data["nombre"],
+            edad=data["edad"],
+            num_identificacion=data["num_identificacion"],
+            correo=data["correo"],
+            telefono=data["telefono"],
+            estado=data["estado"]
+        )
 
     @staticmethod
     def nuevo_id():
@@ -66,8 +75,20 @@ class Usuario(BaseModel):
 # ------------------------- CONTROLADOR -------------------------
 class ClubController:
     def __init__(self):
-        self.usuarios: List[Usuario] = self.cargar_usuarios()
+        self.usuarios = [Usuario.from_dict(u) for u in BaseModel.cargar_datos("usuarios.json")]
 
+    def actualizar_estado_usuario(self, usuario_id, nuevo_estado):
+        for usuario in self.usuarios:
+            if usuario.id == usuario_id:
+                usuario.estado = nuevo_estado
+        self.guardar_usuarios()
+
+    def guardar_usuarios(self):
+        BaseModel.guardar_datos("usuarios.json", [u.to_dict() for u in self.usuarios])
+
+    def cargar_pagos(self):
+        return BaseModel.cargar_datos("pagos.json")
+    
     def agregar_usuario(self, usuario: Usuario):
         self.usuarios.append(usuario)
         self.guardar_usuarios()
@@ -76,16 +97,16 @@ class ClubController:
         datos = BaseModel.cargar_datos("usuarios.json")
         return [Usuario.from_dict(d) for d in datos]
 
-    def guardar_usuarios(self):
-        datos = [usuario.to_dict() for usuario in self.usuarios]
-        BaseModel.guardar_datos("usuarios.json", datos)
-
     def filtrar_usuarios(self, estado: str):
         return [usuario for usuario in self.usuarios if usuario.estado == estado]
     
     def cargar_torneos(self):
         datos = BaseModel.cargar_datos("torneos.json")
         return [Torneo(**d) for d in datos]
+    
+    def cargar_pagos(self):
+        return BaseModel.cargar_datos("pagos.json")
+
 
 # ------------------------- VISTA -------------------------
 def main(page: ft.Page):
@@ -709,12 +730,6 @@ def main(page: ft.Page):
     mes = 1
     generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(anio, mes)) #Modificar para que sea dinamico en el front
 
-    pagos_view = ft.Column([
-        ft.Text("Infome de Pagos Mensuales", size=20, weight=ft.FontWeight.BOLD),
-        generar_informe_button,
-        informe_view
-    ], spacing=10)
-
     def crear_entrenamiento(anio, mes, dia):
         # Formatear día y mes para asegurar el formato de dos dígitos
         dia_formateado = str(dia).zfill(2)
@@ -798,7 +813,109 @@ def main(page: ft.Page):
         
     #tomar_asistencia_entrenamiento_button = ft.ElevatedButton("Aceptar", on_click=lambda e: tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado)) #Modificar para que sea dinamico en el front
 
+    def main(page: ft.Page):
+        page.title = "Gestión de Pagos del Club"
+        page.theme_mode = ft.ThemeMode.DARK
 
+    controller = ClubController()
+    
+    usuarios_inscritos = [u for u in controller.usuarios if u.estado == "inscrito"]
+# Dropdown de usuarios
+    # Crear un diccionario para mapear nombres de usuarios a sus IDs
+    nombre_id_map = {u.nombre: u.id for u in usuarios_inscritos}
+
+# Dropdown de usuarios usando solo el argumento 'text'
+    dropdown_usuarios = ft.Dropdown(
+        label="Seleccionar Usuario",
+        options=[ft.dropdown.Option(text=u.nombre) for u in usuarios_inscritos]
+    )
+
+    # Dropdown de conceptos
+    dropdown_conceptos = ft.Dropdown(
+        label="Concepto de Pago",
+        options=[
+            ft.dropdown.Option(text="Matrícula"),
+            ft.dropdown.Option(text="Mensualidad")
+        ]
+    )
+
+    # Campos adicionales
+    fecha_field = ft.TextField(label="Fecha (YYYY-MM-DD)")
+    cantidad_field = ft.TextField(label="Cantidad")
+    pagos_list = ft.ListView(expand=True)
+
+    # Función para registrar un pago
+    def registrar_pago():
+        usuario_nombre = dropdown_usuarios.value
+        if not (usuario_nombre and dropdown_conceptos.value and fecha_field.value and cantidad_field.value):
+            mostrar_snackbar("Por favor, completa todos los campos.", "ERROR")
+            return
+
+        if usuario_nombre in nombre_id_map:
+            usuario_id = nombre_id_map[usuario_nombre]
+            nuevo_pago = {
+                "id": len(controller.cargar_pagos()) + 1,
+                "usuario_id": usuario_id,
+                "concepto": dropdown_conceptos.value,
+                "fecha": fecha_field.value,
+                "cantidad": float(cantidad_field.value),
+            }
+
+        # Guardar el nuevo pago
+            pagos = controller.cargar_pagos()
+            pagos.append(nuevo_pago)
+            BaseModel.guardar_datos("pagos.json", pagos)
+
+        # Actualizar estado del usuario
+            controller.actualizar_estado_usuario(usuario_id, "matriculado")
+            mostrar_snackbar("Pago registrado exitosamente.", "SUCCESS")
+            actualizar_vista_pagos()
+        else:
+            mostrar_snackbar("Error: Usuario no encontrado.", "ERROR")
+
+
+    # Mostrar mensajes con SnackBar
+    def mostrar_snackbar(mensaje, tipo):
+        color = ft.colors.GREEN if tipo == "SUCCESS" else ft.colors.RED
+        snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
+        page.overlay.append(snack_bar)
+        
+    registrar_button = ft.ElevatedButton(
+    "Registrar Pago",
+    icon=ft.icons.SAVE,
+    on_click=lambda e: registrar_pago()
+)
+
+    # Actualizar la vista de pagos
+    def actualizar_vista_pagos():
+        pagos = controller.cargar_pagos()
+        pagos_list.controls.clear()
+        for pago in pagos:
+            pagos_list.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f"ID Usuario: {pago['usuario_id']} - {pago['concepto']} - ${pago['cantidad']}"),
+                    subtitle=ft.Text(f"Fecha: {pago['fecha']}"),
+                    leading=ft.Icon(ft.icons.MONETIZATION_ON),
+                )
+            )
+        page.update()
+    # Layout principal
+    pagos_view = ft.Column(
+        [
+            ft.Text("Gestión de Pagos", size=24, weight=ft.FontWeight.BOLD),
+            dropdown_usuarios,
+            dropdown_conceptos,
+            fecha_field,
+            cantidad_field,
+            registrar_button,
+            ft.Divider(),
+            ft.Text("Historial de Pagos", size=20, weight=ft.FontWeight.BOLD), 
+            pagos_list
+        ],
+        spacing=10
+    )
+
+    actualizar_vista_pagos()
 
     # Cambiar vistas
     def destination_change(e):
