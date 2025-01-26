@@ -254,11 +254,100 @@ def main(page: ft.Page):
     ], spacing=10)
     
 
-    # Seguimiento
-    torneos_view = ft.Column([
-        ft.Text("Seguimiento", size=20, weight=ft.FontWeight.BOLD),
-        ft.Text("Aquí se implementará la funcionalidad de seguimiento.")
-    ], spacing=10)
+    # Torneos
+    def inscribir_a_torneo(e):
+        if not dropdown_usuarios.value or not dropdown_torneos.value:
+            page.snack_bar = ft.SnackBar(ft.Text("Debe seleccionar un usuario y un torneo"), bgcolor=ft.colors.ERROR)
+            page.snack_bar.open()
+            return
+
+        # Aquí se manejaría la lógica para inscribir al usuario seleccionado en el torneo seleccionado
+        page.dialog = ft.AlertDialog(
+            title=ft.Text("Inscripción Exitosa"),
+            content=ft.Text(f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el torneo '{dropdown_torneos.value}'!"),
+            actions=[
+                ft.TextButton("Cerrar", on_click=lambda e: page.dialog.close()),
+            ],
+        )
+        page.dialog.open()
+        page.update()
+
+    def agregar_torneo(e):
+        nuevo_torneo = Torneo(id=Torneo.nuevo_id(), nombre="Nuevo Torneo", fecha="2025-01-01")
+        nuevo_torneo.guardar()
+        actualizar_torneos()
+        page.snack_bar = ft.SnackBar(ft.Text("Torneo añadido"), bgcolor=ft.colors.GREEN)
+        page.snack_bar.open()
+
+    def actualizar_torneos():
+        torneos = controller.cargar_torneos()
+        dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
+        torneos_list.controls.clear()
+        torneos_list.controls.append(
+            ft.ListView(
+                [
+                    ft.ListTile(title=ft.Text(torneo.nombre), subtitle=ft.Text(torneo.fecha)) for torneo in torneos
+                ],
+                expand=True,
+                spacing=10,
+            )
+        )
+        page.update()
+
+    dropdown_usuarios = ft.Dropdown(
+        label="Seleccionar Usuario",
+        options=[ft.dropdown.Option(usuario.nombre) for usuario in controller.filtrar_usuarios("matriculado")],
+    )
+
+    dropdown_torneos = ft.Dropdown(label="Seleccionar Torneo", options=[])
+
+    inscribir_button = ft.ElevatedButton(
+        "Inscribir en Torneo", icon=ft.icons.CHECK, on_click=inscribir_a_torneo
+    )
+
+    torneos_list = ft.Column([])
+
+    agregar_torneo_button = ft.FloatingActionButton(
+        icon=ft.icons.ADD, on_click=agregar_torneo, tooltip="Añadir Torneo"
+    )
+
+    torneos_view = ft.Row(
+        [
+            ft.Container(
+                ft.Column(
+                    [
+                        dropdown_usuarios,
+                        dropdown_torneos,
+                        inscribir_button,
+                    ],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                width=300,
+                padding=20,
+                bgcolor=ft.colors.SURFACE_VARIANT,
+                border_radius=10,
+            ),
+            ft.VerticalDivider(width=1),
+            ft.Container(
+                ft.Column(
+                    [
+                        ft.Text("Torneos", size=24, weight=ft.FontWeight.BOLD),
+                        ft.Divider(height=10, thickness=2),
+                        torneos_list,
+                    ],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                expand=True,
+                padding=20,
+            ),
+        ],
+        expand=True,
+    )
+
+    actualizar_torneos()
+    
 
     # Informes
     def generar_informes(anio, mes):
