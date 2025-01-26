@@ -281,15 +281,27 @@ def main(page: ft.Page):
 
     def actualizar_torneos():
         torneos = controller.cargar_torneos()
+
+        # Actualizamos las opciones del dropdown
         dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
+
+        # Limpiamos y reconstruimos la lista de torneos
         torneos_list.controls.clear()
         torneos_list.controls.append(
-            ft.ListView(
-                [
-                    ft.ListTile(title=ft.Text(torneo.nombre), subtitle=ft.Text(torneo.fecha)) for torneo in torneos
-                ],
-                expand=True,
-                spacing=10,
+            ft.Container(  # Agregamos un contenedor para definir el tamaño y permitir scroll
+                content=ft.ListView(
+                    [
+                        ft.ListTile(
+                            title=ft.Text(torneo.nombre),
+                            subtitle=ft.Text(torneo.fecha),
+                        ) for torneo in torneos
+                    ],
+                    spacing=10,  # Espaciado entre los elementos
+                ),
+                expand=True,  # El contenedor ocupará el espacio disponible
+                height=500,   # Altura fija para habilitar el scroll si es necesario
+                bgcolor=ft.colors.SURFACE_VARIANT,  # Color de fondo opcional
+                padding=10,  # Opcional: Espaciado interno
             )
         )
         page.update()
