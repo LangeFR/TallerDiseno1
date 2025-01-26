@@ -58,5 +58,125 @@
         "clases_asistidas": 0,
         "torneos_asistidos": 0,
         "top_torneos": []
+    },
+    {
+        "id": 7,
+        "usuario_id": 9,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 8,
+        "usuario_id": 17,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 9,
+        "usuario_id": 24,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 3,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 10,
+        "usuario_id": 25,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 28,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 11,
+        "usuario_id": 9,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 12,
+        "usuario_id": 17,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 13,
+        "usuario_id": 24,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 3,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 14,
+        "usuario_id": 25,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 28,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 15,
+        "usuario_id": 9,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 16,
+        "usuario_id": 17,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 17,
+        "usuario_id": 24,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 3,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 18,
+        "usuario_id": 25,
+        "mes": "01",
+        "anio": 2025,
+        "clases_mes": 28,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
     }
 ]

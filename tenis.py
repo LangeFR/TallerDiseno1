@@ -692,43 +692,169 @@ def main(page: ft.Page):
     actualizar_entrenamientos()
 
 
-    # Informes
-    def generar_informes(anio, mes):
-        informe_view.controls.clear()
-        informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
-        
-        # Asegurarse de que el mes tiene dos dígitos
-        mes_formateado = str(mes).zfill(2)
-        
-        # Cargar los datos de los usuarios desde el archivo JSON
-        try:
-            with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
-                usuarios = json.load(archivo_usuarios)
-        except FileNotFoundError:
-            print("El archivo de usuarios no se encuentra.")
-            print(os.getcwd())
-            return
-        except json.JSONDecodeError:
-            print("El archivo de usuarios no está en el formato correcto.")
-            return
+    def informes_view():
+        # Campo de texto para ingresar el año
+        input_anio = ft.TextField(
+            label="Ingresar Año",
+            width=100,
+            hint_text="2025",
+            keyboard_type=ft.KeyboardType.NUMBER,
+        )
 
-                # Filtrar usuarios con estado 'matriculado'
-                usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
+        # Campo de texto para ingresar el mes
+        input_mes = ft.TextField(
+            label="Ingresar Mes",
+            width=50,
+            hint_text="01",
+            keyboard_type=ft.KeyboardType.NUMBER,
+        )
 
-                # Generar un informe para cada miembro matriculado
-                for usuario in usuarios_matriculados:
-                    Informe.crear_informe(usuario['id'], mes_formateado, anio)
+        # Contenedor para mostrar los informes
+        informe_container = ft.Column([], expand=True, spacing=10)
+
+        # Función para crear informes
+        def crear_informes(anio, mes):
+            print("Generando informes...")
+            # Validar entradas
+            if not anio.isdigit() or not mes.isdigit():
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Año y mes deben ser números."),
+                    bgcolor=ft.colors.ERROR
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+
+            anio_int = int(anio)
+            mes_int = int(mes)
+
+            if not (1 <= mes_int <= 12):
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Mes debe estar entre 1 y 12."),
+                    bgcolor=ft.colors.ERROR
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+
+            # Formatear mes con dos dígitos
+            mes_formateado = str(mes_int).zfill(2)
+
+            # Cargar los datos de los usuarios
+            try:
+                with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
+                    usuarios = json.load(archivo_usuarios)
+            except FileNotFoundError:
+                print("El archivo de usuarios no se encuentra.")
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Archivo de usuarios no encontrado."),
+                    bgcolor=ft.colors.ERROR
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+            except json.JSONDecodeError:
+                print("El archivo de usuarios no está en el formato correcto.")
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Error en el formato del archivo de usuarios."),
+                    bgcolor=ft.colors.ERROR
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+
+            # Filtrar usuarios con estado 'matriculado'
+            usuarios_matriculados = [
+                usuario for usuario in usuarios if usuario["estado"] == "matriculado"
+            ]
+
+            # Generar un informe para cada miembro matriculado
+            for usuario in usuarios_matriculados:
+                Informe.crear_informe(usuario["id"], mes_formateado, anio_int)
+
+            print(f"Informes generados para el mes {mes_int} del año {anio_int}")
+            page.snack_bar = ft.SnackBar(
+                ft.Text(f"Informes generados para el mes {mes_int} del año {anio_int}."),
+                bgcolor=ft.colors.GREEN
+            )
+            page.snack_bar.open = True
+            page.update()
+
+        # Función para cargar y mostrar informes
+        def generar_informes(e):
+            anio_val = input_anio.value
+            mes_val = input_mes.value
+
+            # Primero, crear los informes en disco
+            crear_informes(anio_val, mes_val)
+
+            # Luego, limpiar el contenedor e intentar mostrar los informes creados
+            informe_container.controls.clear()
+            try:
+                with open("base_de_datos/informes.json", "r") as file:
+                    content = file.read().strip()
+                    if not content:
+                        informes = []
+                    else:
+                        informes = json.loads(content)
+
+                # Filtrar informes por año y mes
+                informes_filtrados = [
+                    inf for inf in informes
+                    if str(inf["anio"]) == str(anio_val)
+                    and str(inf["mes"]).zfill(2) == str(mes_val).zfill(2)
+                ]
+
+                print(f"Cantidad de informes filtrados: {len(informes_filtrados)}")
+
+                # Mostrar cada informe con sus datos en un Card
+                for inf in informes_filtrados:
+                    informe_card = ft.Card(
+                        content=ft.Container(
+                            ft.Column([
+                                ft.Text(f"Informe ID: {inf['id']}"),
+                                ft.Text(f"Usuario ID: {inf['usuario_id']}"),
+                                ft.Text(f"Año: {inf['anio']}  |  Mes: {inf['mes']}"),
+                                ft.Text(f"Clases del Mes: {inf['clases_mes']}"),
+                                ft.Text(f"Clases Asistidas: {inf['clases_asistidas']}"),
+                                ft.Text(f"Torneos Asistidos: {inf['torneos_asistidos']}"),
+                                ft.Text(f"Top Torneos: {inf['top_torneos']}")
+                            ]),
+                            padding=10
+                        ),
+                        width=300,
+                    )
+                    informe_container.controls.append(informe_card)
+
+                page.update()
+
+            except Exception as ex:
+                print("Error al cargar informes:", ex)
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Error al cargar informes."),
+                    bgcolor=ft.colors.ERROR
+                )
+                page.snack_bar.open = True
+                page.update()
+
+        # Botón para generar informes
+        generar_informe_button = ft.ElevatedButton(
+            "Generar Informes",
+            on_click=generar_informes
+        )
+
+        # Retornar la vista de informes
+        return ft.Column(
+            [
+                ft.Row([input_anio, input_mes]),
+                generar_informe_button,
+                informe_container
+            ],
+            spacing=10,
+            alignment=ft.MainAxisAlignment.START
+        )
 
 
-        print(f"Informes generados para el mes {mes} del anio {anio}")
-
-        #informe_view.update()
-
-    informe_view = ft.Column([], spacing=10)
-    #Ejemplo
-    anio = 2025
-    mes = 1
-    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(anio, mes)) #Modificar para que sea dinamico en el front
 
     def crear_entrenamiento(anio, mes, dia):
         # Formatear día y mes para asegurar el formato de dos dígitos
