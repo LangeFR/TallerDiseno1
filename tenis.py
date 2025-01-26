@@ -589,8 +589,10 @@ def main(page: ft.Page):
         elif index == 2:
             content.controls.append(torneos_view)
         elif index == 3:
-            content.controls.append(informe_view)
+            content.controls.append(entrenamientos_view)
         elif index == 4:
+            content.controls.append(informe_view)
+        elif index == 5:
             content.controls.append(pagos_view)
         page.update()
 
@@ -603,6 +605,7 @@ def main(page: ft.Page):
             ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
             ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
             ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
+            ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamiento"),
             ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
             ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
         ],
