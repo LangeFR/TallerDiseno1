@@ -1,26 +1,16 @@
 [
     {
-        "id": 1,
-        "concepto": "Cuota mensual de matriculación en club de tenis",
-        "fecha": "2025-01-25",
-        "cantidad": 169
+        "id": 5,
+        "usuario_id": 17,
+        "concepto": "Matr\u00edcula",
+        "fecha": "2000-22-01",
+        "cantidad": 123123123.0
     },
     {
         "id": 2,
-        "concepto": "Cuota mensual de matriculación en club de tenis",
-        "fecha": "2025-01-25",
-        "cantidad": 149
-    },
-    {
-        "id": 3,
-        "concepto": "Cuota mensual de matriculación en club de tenis",
-        "fecha": "2025-01-25",
-        "cantidad": 154
-    },
-    {
-        "id": 4,
-        "concepto": "Cuota mensual de matriculación en club de tenis",
-        "fecha": "2025-01-25",
-        "cantidad": 106
+        "usuario_id": 9,
+        "concepto": "Matr\u00edcula",
+        "fecha": "1111",
+        "cantidad": 11111.0
     }
 ]
