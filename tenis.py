@@ -763,14 +763,12 @@ def main(page: ft.Page):
                 page.update()
                 return
 
-            # Filtrar usuarios con estado 'matriculado'
-            usuarios_matriculados = [
-                usuario for usuario in usuarios if usuario["estado"] == "matriculado"
-            ]
+                # Filtrar usuarios con estado 'matriculado'
+        usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
 
-            # Generar un informe para cada miembro matriculado
-            for usuario in usuarios_matriculados:
-                Informe.crear_informe(usuario["id"], mes_formateado, anio_int)
+                # Generar un informe para cada miembro matriculado
+        for usuario in usuarios_matriculados:
+            Informe.crear_informe(usuario['id'], mes_formateado, anio)
 
             print(f"Informes generados para el mes {mes_int} del año {anio_int}")
             page.snack_bar = ft.SnackBar(
