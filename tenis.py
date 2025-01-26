@@ -6,6 +6,7 @@ from modelos.informe import Informe
 from modelos.entrenamiento import Entrenamiento
 from modelos.torneo import Torneo
 from modelos.asistencia_torneos import Asistencia_Torneo
+from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
 from datetime import datetime
 import os
 
@@ -246,137 +247,162 @@ def main(page: ft.Page):
     matriculados_button = ft.ElevatedButton("Mostrar Matriculados", on_click=lambda e: mostrar_usuarios_view("matriculado"))
     inscritos_button = ft.ElevatedButton("Mostrar Inscritos", on_click=lambda e: mostrar_usuarios_view("inscrito"))
 
-    usuarios_menu_view = ft.Column(
-        [
-            ft.Text("Usuarios", size=24, weight=ft.FontWeight.BOLD),
-            ft.Divider(height=10, thickness=2),
-            matriculados_button,
-            inscritos_button,
-        ],
-        spacing=20,
-        alignment=ft.MainAxisAlignment.START,
-    )
+    Usuarios_view = ft.Column([
+        ft.Text("Usuarios", size=20, weight=ft.FontWeight.BOLD),
+        matriculados_button,
+        inscritos_button
+    ], spacing=10)
+    
 
-    def inscribir_a_torneo(e):
-        if not dropdown_usuarios.value or not dropdown_torneos.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Debe seleccionar un usuario y un torneo"), bgcolor=ft.colors.ERROR)
-            page.snack_bar.open()
+    # Seguimiento
+    torneos_view = ft.Column([
+        ft.Text("Seguimiento", size=20, weight=ft.FontWeight.BOLD),
+        ft.Text("Aquí se implementará la funcionalidad de seguimiento.")
+    ], spacing=10)
+
+    # Informes
+    def generar_informes(anio, mes):
+        informe_view.controls.clear()
+        informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
+        
+        # Asegurarse de que el mes tiene dos dígitos
+        mes_formateado = str(mes).zfill(2)
+        
+        # Cargar los datos de los usuarios desde el archivo JSON
+        try:
+            with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
+                usuarios = json.load(archivo_usuarios)
+        except FileNotFoundError:
+            print("El archivo de usuarios no se encuentra.")
+            print(os.getcwd())
+            return
+        except json.JSONDecodeError:
+            print("El archivo de usuarios no está en el formato correcto.")
             return
 
-        # Aquí se manejaría la lógica para inscribir al usuario seleccionado en el torneo seleccionado
-        page.dialog = ft.AlertDialog(
-            title=ft.Text("Inscripción Exitosa"),
-            content=ft.Text(f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el torneo '{dropdown_torneos.value}'!"),
-            actions=[
-                ft.TextButton("Cerrar", on_click=lambda e: page.dialog.close()),
-            ],
-        )
-        page.dialog.open()
-        page.update()
+        # Filtrar usuarios con estado 'matriculado'
+        usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
 
-    def agregar_torneo(e):
-        nuevo_torneo = Torneo(id=Torneo.nuevo_id(), nombre="Nuevo Torneo", fecha="2025-01-01")
+        # Generar un informe para cada miembro matriculado
+        for usuario in usuarios_matriculados:
+            Informe.crear_informe(usuario['id'], mes_formateado, anio)
+
+
+        print(f"Informes generados para el mes {mes} del anio {anio}")
+
+        #informe_view.update()
+
+    informe_view = ft.Column([], spacing=10)
+    #Ejemplo
+    anio = 2025
+    mes = 1
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(anio, mes)) #Modificar para que sea dinamico en el front
+
+    entrenamientos_view = ft.Column([
+        ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
+        generar_informe_button,
+        informe_view
+    ], spacing=10)
+
+    pagos_view = ft.Column([
+        ft.Text("Infome de Pagos Mensuales", size=20, weight=ft.FontWeight.BOLD),
+        generar_informe_button,
+        informe_view
+    ], spacing=10)
+
+    def crear_entrenamiento(anio, mes, dia):
+        # Formatear día y mes para asegurar el formato de dos dígitos
+        dia_formateado = str(dia).zfill(2)
+        mes_formateado = str(mes).zfill(2)
+        
+        # Componer la fecha en formato aaaa-mm-dd
+        fecha = f"{anio}-{mes_formateado}-{dia_formateado}"
+        
+        # Intentar crear un nuevo objeto de Entrenamiento
+        try:
+            nuevo_entrenamiento = Entrenamiento(id=Entrenamiento.nuevo_id(), fecha=fecha)
+            nuevo_entrenamiento.guardar()  # Guarda el entrenamiento en la base de datos
+            nuevo_entrenamiento.crear_asistencia_entrenamientos()  # Crea asistencias para todos los usuarios
+            print(f"Entrenamiento creado para la fecha {fecha}")
+        except Exception as e:
+            print(f"No se pudo crear el entrenamiento: {e}")
+    
+    # crear_entrenamiento_button = ft.ElevatedButton("Crear Entrenamiento", on_click=lambda e: crear_entrenamiento(anio, mes, dia)) #Modificar para que sea dinamico en el front
+    
+    def crear_torneo(anio, mes, dia):
+        # Formatear día y mes para asegurar el formato de dos dígitos
+        dia_formateado = str(dia).zfill(2)
+        mes_formateado = str(mes).zfill(2)
+        
+        # Componer la fecha en formato aaaa-mm-dd
+        fecha = f"{anio}-{mes_formateado}-{dia_formateado}"
+        
+        # Intentar crear un nuevo objeto de Torneo
+        nuevo_torneo = Torneo(
+            id=Torneo.nuevo_id(),
+            nombre="Nombre del Torneo",  # Asumiendo que el nombre se proveerá o se manejará de otra manera
+            fecha=fecha
+        )
         nuevo_torneo.guardar()
-        actualizar_torneos()
-        page.snack_bar = ft.SnackBar(ft.Text("Torneo añadido"), bgcolor=ft.colors.GREEN)
-        page.snack_bar.open()
+        print(f"Torneo creado para la fecha {fecha}")
 
-    def actualizar_torneos():
-        torneos = controller.cargar_torneos()
-        dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
-        torneos_list.controls.clear()
-        torneos_list.controls.append(
-            ft.ListView(
-                [
-                    ft.ListTile(title=ft.Text(torneo.nombre), subtitle=ft.Text(torneo.fecha)) for torneo in torneos
-                ],
-                expand=True,
-                spacing=10,
-            )
+    #crear_torneo_button = ft.ElevatedButton("Crear Torneo", on_click=lambda e: crear_torneo(anio, mes, dia)) #Modificar para que sea dinamico en el front
+
+    def crear_asistencia_torneo(torneo_id, miembro_id, puesto):
+        Asistencia_Torneo.crear_asistencia(
+            torneo_id=torneo_id,
+            miembro_id=miembro_id,
+            puesto=puesto
         )
-        page.update()
+        print(f"Asistencia para el torneo {torneo_id} creada para el miembro {miembro_id} con puesto {puesto}")
 
-    dropdown_usuarios = ft.Dropdown(
-        label="Seleccionar Usuario",
-        options=[ft.dropdown.Option(usuario.nombre) for usuario in controller.filtrar_usuarios("matriculado")],
-    )
+    #crear_asistencia_torneo_button = ft.ElevatedButton("Aceptar", on_click=lambda e: crear_asistencia_torneo(usuario_id, torneo_id, puesto)) #Modificar para que sea dinamico en el front
 
-    dropdown_torneos = ft.Dropdown(label="Seleccionar Torneo", options=[])
 
-    inscribir_button = ft.ElevatedButton(
-        "Inscribir en Torneo", icon=ft.icons.CHECK, on_click=inscribir_a_torneo
-    )
 
-    torneos_list = ft.Column([])
+    def tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado):
+        # Verificar que el estado sea válido
+        if estado not in ["ausente", "presente"]:
+            print("Error: Estado no válido. Debe ser 'ausente' o 'presente'.")
+            return
+        
+        # Encontrar el ID de la asistencia correspondiente
+        asistencia_id = Asistencia_Entrenamiento.find_by_user_and_entrenamiento_id(usuario_id, entrenamiento_id)
+        
+        if asistencia_id is None:
+            print("No se encontró una asistencia correspondiente con los datos proporcionados.")
+            return
+        
+        # Cargar el objeto Asistencia_Entrenamiento usando el ID encontrado
+        try:
+            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+                asistencias = json.load(archivo)
+            
+            # Encontrar el objeto asistencia específico y cambiar su estado
+            asistencia = next((item for item in asistencias if item["id"] == asistencia_id), None)
+            if asistencia:
+                asistencia_obj = Asistencia_Entrenamiento(id=asistencia['id'], usuario_id=asistencia['usuario_id'], entrenamiento_id=asistencia['entrenamiento_id'], estado=asistencia['estado'])
+                asistencia_obj.cambiar_estado(estado)
+                print(f"Estado de asistencia actualizado correctamente a {estado}.")
+            else:
+                print("No se pudo cargar la asistencia correctamente.")
+        except FileNotFoundError:
+            print("Archivo de asistencias no encontrado.")
+        except json.JSONDecodeError:
+            print("Error al decodificar el archivo de asistencias.")
+        
+    #tomar_asistencia_entrenamiento_button = ft.ElevatedButton("Aceptar", on_click=lambda e: tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado)) #Modificar para que sea dinamico en el front
 
-    agregar_torneo_button = ft.FloatingActionButton(
-        icon=ft.icons.ADD, on_click=agregar_torneo, tooltip="Añadir Torneo"
-    )
 
-    torneos_view = ft.Row(
-        [
-            ft.Container(
-                ft.Column(
-                    [
-                        dropdown_usuarios,
-                        dropdown_torneos,
-                        inscribir_button,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                width=300,
-                padding=20,
-                bgcolor=ft.colors.SURFACE_VARIANT,
-                border_radius=10,
-            ),
-            ft.VerticalDivider(width=1),
-            ft.Container(
-                ft.Column(
-                    [
-                        ft.Text("Torneos", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=10, thickness=2),
-                        torneos_list,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                expand=True,
-                padding=20,
-            ),
-        ],
-        expand=True,
-    )
 
-    actualizar_torneos()
-
-    informe_view = ft.Column(
-        [
-            ft.Text("Informes", size=24, weight=ft.FontWeight.BOLD),
-            ft.Divider(height=10, thickness=2),
-            ft.ElevatedButton("Generar Informe", icon=ft.icons.BAR_CHART),
-        ],
-        spacing=20,
-        alignment=ft.MainAxisAlignment.START,
-    )
-
-    pagos_view = ft.Column(
-        [
-            ft.Text("Informe de Pagos Mensuales", size=24, weight=ft.FontWeight.BOLD),
-            ft.Divider(height=10, thickness=2),
-            ft.ElevatedButton("Generar Informe de Pagos", icon=ft.icons.ATTACH_MONEY),
-        ],
-        spacing=20,
-        alignment=ft.MainAxisAlignment.START,
-    )
-
+    # Cambiar vistas
     def destination_change(e):
         index = e.control.selected_index
         content.controls.clear()
         if index == 0:
             content.controls.append(inscripcion_view)
         elif index == 1:
-            content.controls.append(usuarios_menu_view)
+            content.controls.append(suarios_view)
         elif index == 2:
             content.controls.append(torneos_view)
         elif index == 3:
