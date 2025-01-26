@@ -1,0 +1,34 @@
+[
+    {
+        "usuario": "Gabis",
+        "torneo_id": 1
+    },
+    {
+        "usuario": "Gabis",
+        "torneo_id": 7
+    },
+    {
+        "usuario": "Gabis",
+        "torneo_id": 2
+    },
+    {
+        "usuario": "Gabis",
+        "torneo_id": 5
+    },
+    {
+        "usuario": "Gabis",
+        "torneo_id": 3
+    },
+    {
+        "usuario": "Michael Medina",
+        "torneo_id": 1
+    },
+    {
+        "usuario": "Michael Medina",
+        "torneo_id": 3
+    },
+    {
+        "usuario": "Michael Medina",
+        "torneo_id": 7
+    }
+]

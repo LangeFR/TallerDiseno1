@@ -1,6 +1,7 @@
 import flet as ft
 import re
 import json
+from modelos.Inscripcion import Inscripcion
 from typing import List
 from modelos.informe import Informe
 from modelos.entrenamiento import Entrenamiento
@@ -261,16 +262,78 @@ def main(page: ft.Page):
             page.snack_bar.open()
             return
 
-        # Aquí se manejaría la lógica para inscribir al usuario seleccionado en el torneo seleccionado
-        page.dialog = ft.AlertDialog(
-            title=ft.Text("Inscripción Exitosa"),
-            content=ft.Text(f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el torneo '{dropdown_torneos.value}'!"),
-            actions=[
-                ft.TextButton("Cerrar", on_click=lambda e: page.dialog.close()),
-            ],
-        )
-        page.dialog.open()
+        # Buscar el ID del torneo seleccionado
+        try:
+            with open("base_de_datos/torneos.json", "r") as archivo:
+                torneos = json.load(archivo)
+                torneo = next((t for t in torneos if t["nombre"] == dropdown_torneos.value), None)
+        except (FileNotFoundError, json.JSONDecodeError):
+            torneo = None
+
+        if not torneo:
+            page.snack_bar = ft.SnackBar(
+                ft.Text("El torneo seleccionado no existe."), bgcolor=ft.colors.ERROR
+            )
+            page.snack_bar.open()
+            return
+
+        try:
+            # Crear y guardar la inscripción
+            nueva_inscripcion = Inscripcion(usuario=dropdown_usuarios.value, torneo_id=torneo["id"])
+            nueva_inscripcion.guardar()
+
+            # Crear el diálogo
+            dialog = ft.AlertDialog(
+                title=ft.Text("Inscripción Exitosa"),
+                content=ft.Text(f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el torneo '{dropdown_torneos.value}'!"),
+                actions=[
+                    ft.TextButton("Cerrar", on_click=lambda e: page.overlay.remove(dialog)),
+                ],
+            )
+            # Agregar el diálogo al overlay y actualizar la página
+            page.overlay.append(dialog)
+            page.update()
+
+            # Opcional: Actualizar la vista de inscripciones
+            actualizar_inscripciones()
+
+        except ValueError as ex:
+            # Si ya está inscrito, mostrar un mensaje de advertencia
+            page.snack_bar = ft.SnackBar(ft.Text(str(ex)), bgcolor=ft.colors.WARNING)
+            page.snack_bar.open()
+
         page.update()
+
+
+    def actualizar_inscripciones():
+        try:
+            # Cargar inscripciones
+            inscripciones = Inscripcion.cargar_inscripciones()
+        except Exception:
+            inscripciones = []
+    
+        try:
+            # Cargar torneos
+            with open("base_de_datos/torneos.json", "r") as archivo:
+                torneos = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            torneos = []
+    
+        # Crear un diccionario de torneos para buscar por ID
+        torneos_dict = {torneo["id"]: torneo["nombre"] for torneo in torneos}
+    
+        inscripciones_list.controls.clear()
+        for inscripcion in inscripciones:
+            torneo_nombre = torneos_dict.get(inscripcion["torneo_id"], "Torneo no encontrado")
+            inscripciones_list.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f"Usuario: {inscripcion['usuario']}"),
+                    subtitle=ft.Text(f"Torneo: {torneo_nombre}"),
+                )
+            )
+        page.update()
+
+    
 
     def agregar_torneo(e):
         nuevo_torneo = Torneo(id=Torneo.nuevo_id(), nombre="Nuevo Torneo", fecha="2025-01-01")
@@ -323,6 +386,22 @@ def main(page: ft.Page):
         icon=ft.icons.ADD, on_click=agregar_torneo, tooltip="Añadir Torneo"
     )
 
+    inscripciones_list = ft.Column([])
+
+    inscripciones_view = ft.Container(
+        ft.Column(
+            [
+                ft.Text("Inscripciones", size=24, weight=ft.FontWeight.BOLD),
+                ft.Divider(height=10, thickness=2),
+                inscripciones_list,
+            ],
+            spacing=20,
+            alignment=ft.MainAxisAlignment.START,
+        ),
+        expand=True,
+        padding=20,
+    )
+
     torneos_view = ft.Row(
         [
             ft.Container(
@@ -354,12 +433,15 @@ def main(page: ft.Page):
                 expand=True,
                 padding=20,
             ),
+            ft.VerticalDivider(width=1),
+            inscripciones_view,  # Nueva vista
         ],
         expand=True,
     )
 
+
     actualizar_torneos()
-    
+
 
     # Informes
     def generar_informes(anio, mes):
