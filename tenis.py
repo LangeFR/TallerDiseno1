@@ -346,10 +346,6 @@ def main(page: ft.Page):
         # Actualizar la página
         page.update()
 
-
-
-    
-
     def agregar_torneo(e):
         nuevo_torneo = Torneo(id=Torneo.nuevo_id(), nombre="Nuevo Torneo", fecha="2025-01-01")
         nuevo_torneo.guardar()
@@ -454,213 +450,246 @@ def main(page: ft.Page):
         expand=True,
     )
 
-
     actualizar_torneos()
 
-    # ------------------------- INFORMES -------------------------
-    def informes_view():
-        # Campo de texto para ingresar el año
-        input_anio = ft.TextField(
-            label="Ingresar Año",
-            width=100,
-            hint_text="2025",
-            keyboard_type=ft.KeyboardType.NUMBER,
-        )
-
-        # Campo de texto para ingresar el mes
-        input_mes = ft.TextField(
-            label="Ingresar Mes",
-            width=50,
-            hint_text="01",
-            keyboard_type=ft.KeyboardType.NUMBER,
-        )
-
-        # Botón para generar informes
-        generar_informe_button = ft.ElevatedButton(
-            "Generar Informes",
-            on_click=lambda e: generar_informes(input_anio.value, input_mes.value)
-        )
-
-        # Contenedor para mostrar los informes
-        informe_container = ft.Column([], expand=True, spacing=10)
-
-        # Función para crear informes
-        def crear_informes(anio, mes):
-            print("Generando informes...")
-            # Validar entradas
-            if not anio.isdigit() or not mes.isdigit():
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Año y mes deben ser números."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open()
-                page.update()
-                return
-            anio = int(anio)
-            mes = int(mes)
-            if not (1 <= mes <= 12):
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Mes debe estar entre 1 y 12."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open()
-                page.update()
-                return
-
-            # Formatear mes con dos dígitos
-            mes_formateado = str(mes).zfill(2)
-
-            # Cargar los datos de los usuarios desde el archivo JSON
-            try:
-                with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
-                    usuarios = json.load(archivo_usuarios)
-            except FileNotFoundError:
-                print("El archivo de usuarios no se encuentra.")
-                print(os.getcwd())
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Archivo de usuarios no encontrado."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open()
-                page.update()
-                return
-            except json.JSONDecodeError:
-                print("El archivo de usuarios no está en el formato correcto.")
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Error en el formato del archivo de usuarios."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open()
-                page.update()
-                return
-
-            # Filtrar usuarios con estado 'matriculado'
-            usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
-
-            # Generar un informe para cada miembro matriculado
-            for usuario in usuarios_matriculados:
-                Informe.crear_informe(usuario['id'], mes_formateado, anio)
-
-            print(f"Informes generados para el mes {mes} del año {anio}")
+    #Entrenamientos
+    def inscribir_a_entrenamiento(e):
+        if not dropdown_usuarios.value or not dropdown_entrenamientos.value:
             page.snack_bar = ft.SnackBar(
-                ft.Text(f"Informes generados para el mes {mes} del año {anio}."),
-                bgcolor=ft.colors.GREEN
+                ft.Text("Debe seleccionar un usuario y un entrenamiento."),
+                bgcolor=ft.colors.ERROR,
             )
             page.snack_bar.open()
+            return
+
+        # Buscar el entrenamiento seleccionado
+        try:
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos = json.load(archivo)
+                entrenamiento = next(
+                    (t for t in entrenamientos if t["fecha"] == dropdown_entrenamientos.value), None
+                )
+        except (FileNotFoundError, json.JSONDecodeError):
+            entrenamiento = None
+
+        if not entrenamiento:
+            page.snack_bar = ft.SnackBar(
+                ft.Text("El entrenamiento seleccionado no existe."),
+                bgcolor=ft.colors.ERROR,
+            )
+            page.snack_bar.open()
+            return
+
+        # Buscar el usuario seleccionado
+        try:
+            with open("base_de_datos/usuarios.json", "r") as archivo:
+                usuarios = json.load(archivo)
+                usuario = next(
+                    (u for u in usuarios if u["nombre"] == dropdown_usuarios.value), None
+                )
+        except (FileNotFoundError, json.JSONDecodeError):
+            usuario = None
+
+        if not usuario:
+            page.snack_bar = ft.SnackBar(
+                ft.Text("El usuario seleccionado no existe."),
+                bgcolor=ft.colors.ERROR,
+            )
+            page.snack_bar.open()
+            return
+
+        # Crear la asistencia y guardar
+        try:
+            nueva_asistencia = Asistencia_Entrenamiento(
+                id=Asistencia_Entrenamiento.nuevo_id(),
+                usuario_id=usuario["id"],
+                entrenamiento_id=entrenamiento["id"],
+                estado="pendiente",
+            )
+            nueva_asistencia.guardar()
+
+            # Mostrar mensaje de éxito
+            dialog = ft.AlertDialog(
+                title=ft.Text("Inscripción Exitosa"),
+                content=ft.Text(
+                    f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el entrenamiento del '{dropdown_entrenamientos.value}'!"
+                ),
+                actions=[
+                    ft.TextButton("Cerrar", on_click=lambda e: page.overlay.remove(dialog)),
+                ],
+            )
+            page.overlay.append(dialog)
             page.update()
 
-        # Función para cargar y mostrar informes
-        def generar_informes(anio, mes):
-            print("Entrando a generar_informes")
-            crear_informes(anio, mes)
-            informe_container.controls.clear()  # Limpiar contenedor de informes
-            try:
-                with open("base_de_datos/informes.json", "r") as file:
-                    content = file.read().strip()
-                    if not content:  # Verificar si el contenido está vacío
-                        informes = []
-                    else:
-                        informes = json.loads(content)
-                    informes_filtrados = [
-                        informe for informe in informes 
-                        if str(informe["anio"]) == str(anio) and str(informe["mes"]).zfill(2) == str(mes).zfill(2)
-                    ]
-                
-                print(f"Cantidad de informes filtrados: {len(informes_filtrados)}")
+            # Actualizar la vista de asistencias
+            actualizar_asistencias()
 
-                for informe in informes_filtrados:
-                    informe_card = ft.Card(
-                        content=ft.Text(f"Informe Usuario {informe['usuario_id']}"),
-                        width=200,
-                        height=100
-                    )
-                    informe_container.controls.append(informe_card)
-                page.update()  # Actualizar la página para mostrar los nuevos controles
-            except Exception as e:
-                print("Error al cargar informes:", e)
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Error al cargar informes."),
-                    bgcolor=ft.colors.ERROR
+        except Exception as ex:
+            page.snack_bar = ft.SnackBar(ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR)
+            page.snack_bar.open()
+
+        page.update()
+
+
+    def actualizar_entrenamientos():
+        try:
+            # Cargar entrenamientos desde el archivo JSON
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            entrenamientos = []
+    
+        if not entrenamientos:
+            print("No se encontraron entrenamientos.")
+            dropdown_entrenamientos.options = []
+            entrenamientos_list.controls.clear()
+            page.update()
+            return
+    
+        # Actualizamos las opciones del dropdown
+        dropdown_entrenamientos.options = [
+            ft.dropdown.Option(entrenamiento["fecha"]) for entrenamiento in entrenamientos
+        ]
+    
+        # Mostrar entrenamientos en la lista
+        entrenamientos_list.controls.clear()
+        for entrenamiento in entrenamientos:
+            entrenamientos_list.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f"Fecha: {entrenamiento['fecha']}"),
+                    subtitle=ft.Text(f"ID: {entrenamiento['id']}"),
                 )
-                page.snack_bar.open()
-                page.update()
-
-        # Vista general para la pestaña de informes
-        def informes_view():
-            # Campo de texto para ingresar el año
-            input_anio = ft.TextField(
-                label="Ingresar Año",
-                width=100,
-                hint_text="2025",
-                keyboard_type=ft.KeyboardType.NUMBER,
             )
+        page.update()
 
-            # Campo de texto para ingresar el mes
-            input_mes = ft.TextField(
-                label="Ingresar Mes",
-                width=50,
-                hint_text="01",
-                keyboard_type=ft.KeyboardType.NUMBER,
+
+
+    def actualizar_asistencias():
+        try:
+            # Cargar asistencias desde el archivo JSON
+            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+                asistencias = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            asistencias = []
+    
+        try:
+            # Cargar usuarios y entrenamientos para mostrar nombres en lugar de IDs
+            with open("base_de_datos/usuarios.json", "r") as archivo:
+                usuarios = json.load(archivo)
+            usuarios_dict = {usuario["id"]: usuario["nombre"] for usuario in usuarios}
+    
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos = json.load(archivo)
+            entrenamientos_dict = {entrenamiento["id"]: entrenamiento["fecha"] for entrenamiento in entrenamientos}
+        except (FileNotFoundError, json.JSONDecodeError):
+            usuarios_dict = {}
+            entrenamientos_dict = {}
+    
+        # Limpiar la lista de asistencias en la interfaz
+        asistencias_list.controls.clear()
+    
+        # Mostrar asistencias en la interfaz
+        for asistencia in asistencias:
+            usuario_nombre = usuarios_dict.get(asistencia["usuario_id"], "Usuario no encontrado")
+            entrenamiento_fecha = entrenamientos_dict.get(asistencia["entrenamiento_id"], "Entrenamiento no encontrado")
+            asistencias_list.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f"Usuario: {usuario_nombre}"),
+                    subtitle=ft.Text(f"Entrenamiento: {entrenamiento_fecha} | Estado: {asistencia['estado']}"),
+                )
             )
+    
+        # Actualizar la página
+        page.update()
 
-            # Botón para generar informes
-            generar_informe_button = ft.ElevatedButton(
-                "Generar Informes",
-                on_click=lambda e: generar_informes(input_anio.value, input_mes.value)
-            )
 
-            # Contenedor para mostrar los informes
-            informe_container = ft.Column([], expand=True, spacing=10)
 
-            # Función para crear informes
-            def crear_informes(anio, mes):
-                print("Generando informes...")
-                # Validar entradas
-                if not anio.isdigit() or not mes.isdigit():
-                    page.snack_bar = ft.SnackBar(
-                        ft.Text("Año y mes deben ser números."),
-                        bgcolor=ft.colors.ERROR
-                    )
-                    page.snack_bar.open()
-                    page.update()
-                    return
-                anio = int(anio)
-                mes = int(mes)
-                if not (1 <= mes <= 12):
-                    page.snack_bar = ft.SnackBar(
-                        ft.Text("Mes debe estar entre 1 y 12."),
-                        bgcolor=ft.colors.ERROR
-                    )
-                    page.snack_bar.open()
-                    page.update()
-                    return
+    dropdown_entrenamientos = ft.Dropdown(label="Seleccionar Entrenamiento", options=[])
 
-                # Formatear mes con dos dígitos
-                mes_formateado = str(mes).zfill(2)
+    inscribir_entrenamiento_button = ft.ElevatedButton(
+        "Inscribir en Entrenamiento",
+        icon=ft.icons.CHECK,
+        on_click=inscribir_a_entrenamiento,
+    )
 
-                # Cargar los datos de los usuarios desde el archivo JSON
-                try:
-                    with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
-                        usuarios = json.load(archivo_usuarios)
-                except FileNotFoundError:
-                    print("El archivo de usuarios no se encuentra.")
-                    print(os.getcwd())
-                    page.snack_bar = ft.SnackBar(
-                        ft.Text("Archivo de usuarios no encontrado."),
-                        bgcolor=ft.colors.ERROR
-                    )
-                    page.snack_bar.open()
-                    page.update()
-                    return
-                except json.JSONDecodeError:
-                    print("El archivo de usuarios no está en el formato correcto.")
-                    page.snack_bar = ft.SnackBar(
-                        ft.Text("Error en el formato del archivo de usuarios."),
-                        bgcolor=ft.colors.ERROR
-                    )
-                    page.snack_bar.open()
-                    page.update()
-                    return
+    entrenamientos_list = ft.Column([])
+    asistencias_list = ft.Column([])
+
+    entrenamientos_view = ft.Row(
+        [
+            # Primera columna: Dropdowns y botón para inscripción
+            ft.Container(
+                ft.Column(
+                    [
+                        dropdown_usuarios,
+                        dropdown_entrenamientos,
+                        inscribir_entrenamiento_button,
+                    ],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                width=300,
+                padding=20,
+                bgcolor=ft.colors.SURFACE_VARIANT,
+                border_radius=10,
+            ),
+            ft.VerticalDivider(width=1),
+            # Segunda columna: Entrenamientos disponibles
+            ft.Container(
+                ft.Column(
+                    [
+                        ft.Text("Entrenamientos Disponibles", size=24, weight=ft.FontWeight.BOLD),
+                        ft.Divider(height=10, thickness=2),
+                        entrenamientos_list,
+                    ],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                expand=True,
+                padding=20,
+            ),
+            ft.VerticalDivider(width=1),
+            # Tercera columna: Asistencias registradas
+            ft.Container(
+                ft.Column(
+                    [
+                        ft.Text("Asistencias Registradas", size=24, weight=ft.FontWeight.BOLD),
+                        ft.Divider(height=10, thickness=2),
+                        asistencias_list,
+                    ],
+                    spacing=20,
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                expand=True,
+                padding=20,
+            ),
+        ],
+        expand=True,
+    )
+
+
+    actualizar_entrenamientos()
+
+
+    # Informes
+    def generar_informes(anio, mes):
+        informe_view.controls.clear()
+        informe_view.controls.append(ft.Text("Informe de Miembros", size=20, weight=ft.FontWeight.BOLD))
+        
+        # Asegurarse de que el mes tiene dos dígitos
+        mes_formateado = str(mes).zfill(2)
+        
+        # Cargar los datos de los usuarios desde el archivo JSON
+        try:
+            with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
+                usuarios = json.load(archivo_usuarios)
+        except FileNotFoundError:
+            print("El archivo de usuarios no se encuentra.")
+            print(os.getcwd())
+            return
+        except json.JSONDecodeError:
+            print("El archivo de usuarios no está en el formato correcto.")
+            return
 
                 # Filtrar usuarios con estado 'matriculado'
                 usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
@@ -669,75 +698,16 @@ def main(page: ft.Page):
                 for usuario in usuarios_matriculados:
                     Informe.crear_informe(usuario['id'], mes_formateado, anio)
 
-                print(f"Informes generados para el mes {mes} del año {anio}")
-                page.snack_bar = ft.SnackBar(
-                    ft.Text(f"Informes generados para el mes {mes} del año {anio}."),
-                    bgcolor=ft.colors.GREEN
-                )
-                page.snack_bar.open()
-                page.update()
 
-            # Función para cargar y mostrar informes
-            def generar_informes(anio, mes):
-                print("Entrando a generar_informes")
-                crear_informes(anio, mes)
-                informe_container.controls.clear()  # Limpiar contenedor de informes
-                try:
-                    with open("base_de_datos/informes.json", "r") as file:
-                        content = file.read().strip()
-                        if not content:  # Verificar si el contenido está vacío
-                            informes = []
-                        else:
-                            informes = json.loads(content)
-                        informes_filtrados = [
-                            informe for informe in informes 
-                            if str(informe["anio"]) == str(anio) and str(informe["mes"]).zfill(2) == str(mes).zfill(2)
-                        ]
-                
-                    print(f"Cantidad de informes filtrados: {len(informes_filtrados)}")
+        print(f"Informes generados para el mes {mes} del anio {anio}")
 
-                    for informe in informes_filtrados:
-                        informe_card = ft.Card(
-                            content=ft.Text(f"Informe Usuario {informe['usuario_id']}"),
-                            width=200,
-                            height=100
-                        )
-                        informe_container.controls.append(informe_card)
-                    page.update()  # Actualizar la página para mostrar los nuevos controles
-                except Exception as e:
-                    print("Error al cargar informes:", e)
-                    page.snack_bar = ft.SnackBar(
-                        ft.Text("Error al cargar informes."),
-                        bgcolor=ft.colors.ERROR
-                    )
-                    page.snack_bar.open()
-                    page.update()
+        #informe_view.update()
 
-            # Vista general para la pestaña de informes
-            return ft.Column(
-                [
-                    ft.Row([input_anio, input_mes]),
-                    generar_informe_button,
-                    informe_container  # Incluir el contenedor de informes en la vista
-                ],
-                spacing=10,
-                alignment=ft.MainAxisAlignment.START
-            )
-
-
-    informe_view = informes_view()  # Asegúrate de invocar la función para crear la vista
-
-
-
-
-
-    generar_informe_button = ft.ElevatedButton("Generar Informe") #Modificar para que sea dinamico en el front
-
-    entrenamientos_view = ft.Column([
-        ft.Text("Informes", size=20, weight=ft.FontWeight.BOLD),
-        generar_informe_button,
-        informe_view
-    ], spacing=10)
+    informe_view = ft.Column([], spacing=10)
+    #Ejemplo
+    anio = 2025
+    mes = 1
+    generar_informe_button = ft.ElevatedButton("Generar Informe", on_click=lambda e: generar_informes(anio, mes)) #Modificar para que sea dinamico en el front
 
     pagos_view = ft.Column([
         ft.Text("Infome de Pagos Mensuales", size=20, weight=ft.FontWeight.BOLD),
