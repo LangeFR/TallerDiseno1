@@ -567,8 +567,9 @@ def main(page: ft.Page):
     def actualizar_asistencias():
         try:
             # Cargar asistencias desde el archivo JSON
-            asistencias = Asistencia_Entrenamiento.cargar_datos("asistencia_entrenamientos.json")
-        except Exception:
+            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+                asistencias = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
             asistencias = []
     
         try:
@@ -584,8 +585,10 @@ def main(page: ft.Page):
             usuarios_dict = {}
             entrenamientos_dict = {}
     
-        # Actualizar la lista de asistencias en la interfaz
+        # Limpiar la lista de asistencias en la interfaz
         asistencias_list.controls.clear()
+    
+        # Mostrar asistencias en la interfaz
         for asistencia in asistencias:
             usuario_nombre = usuarios_dict.get(asistencia["usuario_id"], "Usuario no encontrado")
             entrenamiento_fecha = entrenamientos_dict.get(asistencia["entrenamiento_id"], "Entrenamiento no encontrado")
@@ -595,6 +598,8 @@ def main(page: ft.Page):
                     subtitle=ft.Text(f"Entrenamiento: {entrenamiento_fecha} | Estado: {asistencia['estado']}"),
                 )
             )
+    
+        # Actualizar la página
         page.update()
 
 
