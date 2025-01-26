@@ -205,5 +205,23 @@
         "correo": "maif@unisabana.edu.co",
         "telefono": "23232323",
         "estado": "inscrito"
+    },
+    {
+        "id": 24,
+        "nombre": "Gabis",
+        "edad": "40",
+        "num_identificacion": "1000000",
+        "correo": "gabik@fea.co",
+        "telefono": "32112222",
+        "estado": "matriculado"
+    },
+    {
+        "id": 25,
+        "nombre": "Michael Medina",
+        "edad": "19",
+        "num_identificacion": "111111",
+        "correo": "maik@med.co",
+        "telefono": "22222222",
+        "estado": "inscrito"
     }
 ]
