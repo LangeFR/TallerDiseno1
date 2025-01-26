@@ -713,11 +713,11 @@ def main(page: ft.Page):
             return
 
                 # Filtrar usuarios con estado 'matriculado'
-                usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
+        usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
 
                 # Generar un informe para cada miembro matriculado
-                for usuario in usuarios_matriculados:
-                    Informe.crear_informe(usuario['id'], mes_formateado, anio)
+        for usuario in usuarios_matriculados:
+            Informe.crear_informe(usuario['id'], mes_formateado, anio)
 
 
         print(f"Informes generados para el mes {mes} del anio {anio}")
