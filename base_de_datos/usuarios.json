@@ -223,5 +223,14 @@
         "correo": "maik@med.co",
         "telefono": "22222222",
         "estado": "matriculado"
+    },
+    {
+        "id": 26,
+        "nombre": "Mateo",
+        "edad": "44",
+        "num_identificacion": "100",
+        "correo": "a@gmail.com",
+        "telefono": "890",
+        "estado": "inscrito"
     }
 ]
