@@ -178,5 +178,45 @@
         "clases_asistidas": 0,
         "torneos_asistidos": 0,
         "top_torneos": []
+    },
+    {
+        "id": 19,
+        "usuario_id": 9,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 20,
+        "usuario_id": 17,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 21,
+        "usuario_id": 24,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 3,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 22,
+        "usuario_id": 25,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 28,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
     }
 ]

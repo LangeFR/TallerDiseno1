@@ -764,19 +764,19 @@ def main(page: ft.Page):
                 return
 
                 # Filtrar usuarios con estado 'matriculado'
-        usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
+            usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
 
-                # Generar un informe para cada miembro matriculado
-        for usuario in usuarios_matriculados:
-            Informe.crear_informe(usuario['id'], mes_formateado, anio)
+                    # Generar un informe para cada miembro matriculado
+            for usuario in usuarios_matriculados:
+                Informe.crear_informe(usuario['id'], mes_formateado, anio)
 
-            print(f"Informes generados para el mes {mes_int} del año {anio_int}")
-            page.snack_bar = ft.SnackBar(
-                ft.Text(f"Informes generados para el mes {mes_int} del año {anio_int}."),
-                bgcolor=ft.colors.GREEN
-            )
-            page.snack_bar.open = True
-            page.update()
+                print(f"Informes generados para el mes {mes_int} del año {anio_int}")
+                page.snack_bar = ft.SnackBar(
+                    ft.Text(f"Informes generados para el mes {mes_int} del año {anio_int}."),
+                    bgcolor=ft.colors.GREEN
+                )
+                page.snack_bar.open = True
+                page.update()
 
         # Función para cargar y mostrar informes
         def generar_informes(e):
