@@ -1,8 +1,9 @@
 import flet as ft
 import re
 import json
+from modelos.base_model import BaseModel  # Importar BaseModel desde base_model.py
+from modelos.usuario import Usuario  # Importar la nueva clase Usuario
 from modelos.Inscripcion import Inscripcion
-from typing import List
 from modelos.informe import Informe
 from modelos.entrenamiento import Entrenamiento
 from modelos.torneo import Torneo
@@ -11,66 +12,7 @@ from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
 from datetime import datetime
 import os
 
-# ------------------------- MODELO -------------------------
-# Clase base para persistencia de datos
-class BaseModel:
-    @staticmethod
-    def guardar_datos(nombre_archivo, datos):
-        base_path = os.path.join('base_de_datos', nombre_archivo) 
-        with open(base_path, 'w') as file:
-            json.dump(datos, file, indent=4)
 
-    @staticmethod
-    def cargar_datos(nombre_archivo):
-        base_path = os.path.join('base_de_datos', nombre_archivo)  
-        try:
-            with open(base_path, 'r') as file:
-                return json.load(file)
-        except FileNotFoundError:
-            return []
-
-# Clase Usuario
-class Usuario(BaseModel):
-    def __init__(self, id, nombre, edad, num_identificacion, correo, telefono, estado="inscrito"):
-        self.id = id 
-        self.nombre = nombre
-        self.edad = edad
-        self.num_identificacion = num_identificacion
-        self.correo = correo
-        self.telefono = telefono
-        self.estado = estado
-
-
-    def to_dict(self):
-        return {
-            "id": self.id,  # Incluimos el ID en el diccionario
-            "nombre": self.nombre,
-            "edad": self.edad,
-            "num_identificacion": self.num_identificacion,
-            "correo": self.correo,
-            "telefono": self.telefono,
-            "estado": self.estado,
-        }
-
-    @staticmethod
-    def from_dict(data):
-        # Convertimos un diccionario en una instancia de Usuario
-        return Usuario(
-            id=data["id"],  # Incluimos el ID desde el diccionario
-            nombre=data["nombre"],
-            edad=data["edad"],
-            num_identificacion=data["num_identificacion"],
-            correo=data["correo"],
-            telefono=data["telefono"],
-            estado=data["estado"]
-        )
-
-    @staticmethod
-    def nuevo_id():
-        usuarios = Usuario.cargar_datos("usuarios.json")
-        if not usuarios:
-            return 1
-        return max(usuario["id"] for usuario in usuarios) + 1
 
 # ------------------------- CONTROLADOR -------------------------
 class ClubController:
@@ -85,6 +27,7 @@ class ClubController:
 
     def guardar_usuarios(self):
         BaseModel.guardar_datos("usuarios.json", [u.to_dict() for u in self.usuarios])
+
 
     def cargar_pagos(self):
         return BaseModel.cargar_datos("pagos.json")
@@ -149,23 +92,28 @@ def main(page: ft.Page):
     )
 
     def inscribir_persona(e):
-        if not nombre_field.value or not id_field.value or not correo_field.value:
+        if not nombre_field.value or not apellidos_field.value or not id_field.value or not correo_field.value:
             page.dialog = aviso_dialog
             aviso_dialog.open = True
             page.update()
             return
 
         nuevo_usuario = Usuario(
+            id=Usuario.nuevo_id(),  # Generar un nuevo ID
             nombre=nombre_field.value,
-            edad=edad_field.value,
+            apellidos=apellidos_field.value,  # Obtener 'apellidos'
+            edad=int(edad_field.value),  # Asegurarse de convertir a int
             num_identificacion=id_field.value,
             correo=correo_field.value,
             telefono=telefono_field.value,
+            estado="inscrito"  # Estado por defecto
         )
 
         controller.agregar_usuario(nuevo_usuario)
 
+        # Limpiar los campos después de la inscripción
         nombre_field.value = ""
+        apellidos_field.value = ""  # Limpiar 'apellidos_field'
         edad_field.value = ""
         id_field.value = ""
         correo_field.value = ""
@@ -173,8 +121,9 @@ def main(page: ft.Page):
         page.snack_bar = ft.SnackBar(
             ft.Text("Usuario inscrito exitosamente", color=ft.colors.WHITE), bgcolor=ft.colors.GREEN
         )
-        page.snack_bar.open()
+        # age.snack_bar.open = True
         page.update()
+
 
     def validar_identificacion(e):
         if not e.control.value.isdigit():
@@ -192,6 +141,19 @@ def main(page: ft.Page):
         else:
             e.control.error_text = None
         e.control.update()
+    def validar_apellidos(e):
+        if not e.control.value.strip():
+            e.control.error_text = "Los apellidos son requeridos."
+        else:
+            e.control.error_text = None
+        e.control.update()
+    apellidos_field = ft.TextField(
+        label="Apellidos", 
+        width=400, 
+        border_color=ft.colors.OUTLINE, 
+        expand=True, 
+        on_change=validar_apellidos
+    )
 
     nombre_field = ft.TextField(label="Nombre", width=400, border_color=ft.colors.OUTLINE, expand=True)
     edad_field = ft.TextField(label="Edad", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion)
@@ -211,6 +173,7 @@ def main(page: ft.Page):
             ft.Text("Inscripción de Miembros", size=24, weight=ft.FontWeight.BOLD),
             ft.Divider(height=10, thickness=2),
             nombre_field,
+            apellidos_field,  # Añadido 'apellidos_field'
             edad_field,
             id_field,
             correo_field,
@@ -220,6 +183,7 @@ def main(page: ft.Page):
         spacing=20,
         alignment=ft.MainAxisAlignment.START,
     )
+
 
     def mostrar_info_usuario(usuario):
         usuario_info = ft.Column(
@@ -280,7 +244,7 @@ def main(page: ft.Page):
     def inscribir_a_torneo(e):
         if not dropdown_usuarios.value or not dropdown_torneos.value:
             page.snack_bar = ft.SnackBar(ft.Text("Debe seleccionar un usuario y un torneo"), bgcolor=ft.colors.ERROR)
-            page.snack_bar.open()
+            age.snack_bar.open = True
             return
 
         # Buscar el ID del torneo seleccionado
@@ -295,7 +259,7 @@ def main(page: ft.Page):
             page.snack_bar = ft.SnackBar(
                 ft.Text("El torneo seleccionado no existe."), bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open()
+            age.snack_bar.open = True
             return
 
         try:
@@ -321,7 +285,7 @@ def main(page: ft.Page):
         except ValueError as ex:
             # Si ya está inscrito, mostrar un mensaje de advertencia
             page.snack_bar = ft.SnackBar(ft.Text(str(ex)), bgcolor=ft.colors.WARNING)
-            page.snack_bar.open()
+            age.snack_bar.open = True
 
         page.update()
 
@@ -372,7 +336,7 @@ def main(page: ft.Page):
         nuevo_torneo.guardar()
         actualizar_torneos()
         page.snack_bar = ft.SnackBar(ft.Text("Torneo añadido"), bgcolor=ft.colors.GREEN)
-        page.snack_bar.open()
+        age.snack_bar.open = True
 
     def actualizar_torneos():
         torneos = controller.cargar_torneos()
@@ -480,7 +444,7 @@ def main(page: ft.Page):
                 ft.Text("Debe seleccionar un usuario y un entrenamiento."),
                 bgcolor=ft.colors.ERROR,
             )
-            page.snack_bar.open()
+            age.snack_bar.open = True
             return
 
         # Buscar el entrenamiento seleccionado
@@ -498,7 +462,7 @@ def main(page: ft.Page):
                 ft.Text("El entrenamiento seleccionado no existe."),
                 bgcolor=ft.colors.ERROR,
             )
-            page.snack_bar.open()
+            age.snack_bar.open = True
             return
 
         # Buscar el usuario seleccionado
@@ -516,7 +480,7 @@ def main(page: ft.Page):
                 ft.Text("El usuario seleccionado no existe."),
                 bgcolor=ft.colors.ERROR,
             )
-            page.snack_bar.open()
+            age.snack_bar.open = True
             return
 
         # Crear la asistencia y guardar
@@ -547,7 +511,7 @@ def main(page: ft.Page):
 
         except Exception as ex:
             page.snack_bar = ft.SnackBar(ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR)
-            page.snack_bar.open()
+            age.snack_bar.open = True
 
         page.update()
 
