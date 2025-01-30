@@ -12,6 +12,9 @@ from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
 from datetime import datetime
 import os
 
+from utils.validations import validar_identificacion, validar_email, validar_apellidos
+
+
 
 
 # ------------------------- CONTROLADOR -------------------------
@@ -91,42 +94,16 @@ def main(page: ft.Page):
         # age.snack_bar.open = True
         page.update()
 
-
-    def validar_identificacion(e):
-        if not e.control.value.isdigit():
-            e.control.error_text = "Solo se permiten números."
-            e.control.value = ''.join(filter(str.isdigit, e.control.value))
-        else:
-            e.control.error_text = None
-        e.control.update()
-
-    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-
-    def validar_email(e):
-        if not re.match(email_regex, e.control.value):
-            e.control.error_text = "Ingrese un correo válido."
-        else:
-            e.control.error_text = None
-        e.control.update()
-    def validar_apellidos(e):
-        if not e.control.value.strip():
-            e.control.error_text = "Los apellidos son requeridos."
-        else:
-            e.control.error_text = None
-        e.control.update()
-    apellidos_field = ft.TextField(
-        label="Apellidos", 
-        width=400, 
-        border_color=ft.colors.OUTLINE, 
-        expand=True, 
-        on_change=validar_apellidos
-    )
+    
 
     nombre_field = ft.TextField(label="Nombre", width=400, border_color=ft.colors.OUTLINE, expand=True)
-    edad_field = ft.TextField(label="Edad", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion)
-    id_field = ft.TextField(label="Número de identificación", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion)
+    edad_field = ft.TextField(label="Edad", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion,keyboard_type=ft.KeyboardType.NUMBER)
+    id_field = ft.TextField(label="Número de identificación", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion,keyboard_type=ft.KeyboardType.NUMBER)
     correo_field = ft.TextField(label="Correo", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_email)
-    telefono_field = ft.TextField(label="Teléfono", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion)
+    telefono_field = ft.TextField(label="Teléfono", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion,keyboard_type=ft.KeyboardType.NUMBER)
+    apellidos_field = ft.TextField(label="Apellidos", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_apellidos)
+
+    
     inscribir_button = ft.ElevatedButton(
         "Inscribir",
         on_click=inscribir_persona,
@@ -211,7 +188,7 @@ def main(page: ft.Page):
     def inscribir_a_torneo(e):
         if not dropdown_usuarios.value or not dropdown_torneos.value:
             page.snack_bar = ft.SnackBar(ft.Text("Debe seleccionar un usuario y un torneo"), bgcolor=ft.colors.ERROR)
-            age.snack_bar.open = True
+            page.snack_bar.open = True
             return
 
         # Buscar el ID del torneo seleccionado
@@ -226,7 +203,7 @@ def main(page: ft.Page):
             page.snack_bar = ft.SnackBar(
                 ft.Text("El torneo seleccionado no existe."), bgcolor=ft.colors.ERROR
             )
-            age.snack_bar.open = True
+            page.snack_bar.open = True
             return
 
         try:
@@ -252,7 +229,7 @@ def main(page: ft.Page):
         except ValueError as ex:
             # Si ya está inscrito, mostrar un mensaje de advertencia
             page.snack_bar = ft.SnackBar(ft.Text(str(ex)), bgcolor=ft.colors.WARNING)
-            age.snack_bar.open = True
+            page.snack_bar.open = True
 
         page.update()
 
@@ -303,7 +280,7 @@ def main(page: ft.Page):
         nuevo_torneo.guardar()
         actualizar_torneos()
         page.snack_bar = ft.SnackBar(ft.Text("Torneo añadido"), bgcolor=ft.colors.GREEN)
-        age.snack_bar.open = True
+        page.snack_bar.open = True
 
     def actualizar_torneos():
         torneos = controller.cargar_torneos()
@@ -411,7 +388,7 @@ def main(page: ft.Page):
                 ft.Text("Debe seleccionar un usuario y un entrenamiento."),
                 bgcolor=ft.colors.ERROR,
             )
-            age.snack_bar.open = True
+            page.snack_bar.open = True
             return
 
         # Buscar el entrenamiento seleccionado
@@ -429,7 +406,7 @@ def main(page: ft.Page):
                 ft.Text("El entrenamiento seleccionado no existe."),
                 bgcolor=ft.colors.ERROR,
             )
-            age.snack_bar.open = True
+            page.snack_bar.open = True
             return
 
         # Buscar el usuario seleccionado
@@ -447,7 +424,7 @@ def main(page: ft.Page):
                 ft.Text("El usuario seleccionado no existe."),
                 bgcolor=ft.colors.ERROR,
             )
-            age.snack_bar.open = True
+            page.snack_bar.open = True
             return
 
         # Crear la asistencia y guardar
@@ -478,7 +455,7 @@ def main(page: ft.Page):
 
         except Exception as ex:
             page.snack_bar = ft.SnackBar(ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR)
-            age.snack_bar.open = True
+            page.snack_bar.open = True
 
         page.update()
 
