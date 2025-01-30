@@ -46,4 +46,11 @@ class Entrenamiento:
             )
             asistencia.guardar()  # Guarda cada asistencia
 
+    @staticmethod
+    def from_dict(data):
+        """
+        Crea una instancia de Entrenamiento a partir de un diccionario.
+        """
+        return Entrenamiento(id=data["id"], fecha=data["fecha"])
+
 

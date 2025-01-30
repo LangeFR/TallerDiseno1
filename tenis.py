@@ -14,11 +14,17 @@ import os
 
 from utils.validations import validar_identificacion, validar_email, validar_apellidos
 
-
-
-
 # ------------------------- CONTROLADOR -------------------------
 from controllers.club_controller import ClubController  
+
+# ------------------------- VISTAS -------------------------
+from views.inscripcion_view import create_inscripcion_view
+from views.usuarios_view import create_usuarios_view
+from views.torneos_view import create_torneos_view
+from views.entrenamientos_view import create_entrenamientos_view
+from views.informes_view import create_informes_view
+from views.pagos_view import create_pagos_view
+
 
 
 # ------------------------- VISTA -------------------------
@@ -28,6 +34,18 @@ def main(page: ft.Page):
 
     controller = ClubController()
 
+    # Crear las vistas y recibir las referencias necesarias
+    inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(controller, validar_identificacion, validar_email, validar_apellidos)
+    usuarios_view = create_usuarios_view(controller)
+    torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
+    torneos_view, torneos_list, dropdown_torneos = create_torneos_view(controller, torneos, page)
+    entrenamientos_view, entrenamientos_list, dropdown_entrenamientos = create_entrenamientos_view(controller)
+    informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
+    pagos_view = create_pagos_view(controller, page) 
+
+    #Dropdown usuarios
+    dropdown_usuarios = controller.dropdown_usuarios_matriculados()
+    
     def change_theme(e):
         page.theme_mode = ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
         theme_icon_button.icon = ft.icons.DARK_MODE if page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.LIGHT_MODE
@@ -96,13 +114,12 @@ def main(page: ft.Page):
 
     
 
-    nombre_field = ft.TextField(label="Nombre", width=400, border_color=ft.colors.OUTLINE, expand=True)
-    edad_field = ft.TextField(label="Edad", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion,keyboard_type=ft.KeyboardType.NUMBER)
-    id_field = ft.TextField(label="Número de identificación", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion,keyboard_type=ft.KeyboardType.NUMBER)
-    correo_field = ft.TextField(label="Correo", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_email)
-    telefono_field = ft.TextField(label="Teléfono", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_identificacion,keyboard_type=ft.KeyboardType.NUMBER)
-    apellidos_field = ft.TextField(label="Apellidos", width=400, border_color=ft.colors.OUTLINE, expand=True, on_change=validar_apellidos)
-
+    inscripcion_view = create_inscripcion_view(
+        inscribir_persona=inscribir_persona, 
+        validar_identificacion=validar_identificacion, 
+        validar_email=validar_email, 
+        validar_apellidos=validar_apellidos
+    )
     
     inscribir_button = ft.ElevatedButton(
         "Inscribir",
@@ -117,7 +134,7 @@ def main(page: ft.Page):
             ft.Text("Inscripción de Miembros", size=24, weight=ft.FontWeight.BOLD),
             ft.Divider(height=10, thickness=2),
             nombre_field,
-            apellidos_field,  # Añadido 'apellidos_field'
+            apellidos_field,  
             edad_field,
             id_field,
             correo_field,
@@ -174,14 +191,7 @@ def main(page: ft.Page):
         page.update()
 
 
-    matriculados_button = ft.ElevatedButton("Mostrar Matriculados", on_click=lambda e: mostrar_usuarios_view("matriculado"))
-    inscritos_button = ft.ElevatedButton("Mostrar Inscritos", on_click=lambda e: mostrar_usuarios_view("inscrito"))
-
-    Usuarios_view = ft.Column([
-        ft.Text("Usuarios", size=20, weight=ft.FontWeight.BOLD),
-        matriculados_button,
-        inscritos_button
-    ], spacing=10)
+    Usuarios_view = create_usuarios_view(mostrar_usuarios_view)
     
 
     # Torneos
@@ -309,22 +319,7 @@ def main(page: ft.Page):
         )
         page.update()
 
-    dropdown_usuarios = ft.Dropdown(
-        label="Seleccionar Usuario",
-        options=[ft.dropdown.Option(usuario.nombre) for usuario in controller.filtrar_usuarios("matriculado")],
-    )
-
-    dropdown_torneos = ft.Dropdown(label="Seleccionar Torneo", options=[])
-
-    inscribir_button = ft.ElevatedButton(
-        "Inscribir en Torneo", icon=ft.icons.CHECK, on_click=inscribir_a_torneo
-    )
-
-    torneos_list = ft.Column([])
-
-    agregar_torneo_button = ft.FloatingActionButton(
-        icon=ft.icons.ADD, on_click=agregar_torneo, tooltip="Añadir Torneo"
-    )
+    
 
     inscripciones_list = ft.Column([])
 
@@ -342,44 +337,7 @@ def main(page: ft.Page):
         padding=20,
     )
 
-    torneos_view = ft.Row(
-        [
-            ft.Container(
-                ft.Column(
-                    [
-                        dropdown_usuarios,
-                        dropdown_torneos,
-                        inscribir_button,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                width=300,
-                padding=20,
-                bgcolor=ft.colors.SURFACE_VARIANT,
-                border_radius=10,
-            ),
-            ft.VerticalDivider(width=1),
-            ft.Container(
-                ft.Column(
-                    [
-                        ft.Text("Torneos", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=10, thickness=2),
-                        torneos_list,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                expand=True,
-                padding=20,
-            ),
-            ft.VerticalDivider(width=1),
-            inscripciones_view,  # Nueva vista
-        ],
-        expand=True,
-    )
 
-    actualizar_torneos()
 
     #Entrenamientos
     def inscribir_a_entrenamiento(e):
@@ -533,232 +491,11 @@ def main(page: ft.Page):
 
 
 
-    dropdown_entrenamientos = ft.Dropdown(label="Seleccionar Entrenamiento", options=[])
-
-    inscribir_entrenamiento_button = ft.ElevatedButton(
-        "Inscribir en Entrenamiento",
-        icon=ft.icons.CHECK,
-        on_click=inscribir_a_entrenamiento,
-    )
-
-    entrenamientos_list = ft.Column([])
     asistencias_list = ft.Column([])
 
-    entrenamientos_view = ft.Row(
-        [
-            # Primera columna: Dropdowns y botón para inscripción
-            ft.Container(
-                ft.Column(
-                    [
-                        dropdown_usuarios,
-                        dropdown_entrenamientos,
-                        inscribir_entrenamiento_button,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                width=300,
-                padding=20,
-                bgcolor=ft.colors.SURFACE_VARIANT,
-                border_radius=10,
-            ),
-            ft.VerticalDivider(width=1),
-            # Segunda columna: Entrenamientos disponibles
-            ft.Container(
-                ft.Column(
-                    [
-                        ft.Text("Entrenamientos Disponibles", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=10, thickness=2),
-                        entrenamientos_list,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                expand=True,
-                padding=20,
-            ),
-            ft.VerticalDivider(width=1),
-            # Tercera columna: Asistencias registradas
-            ft.Container(
-                ft.Column(
-                    [
-                        ft.Text("Asistencias Registradas", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=10, thickness=2),
-                        asistencias_list,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                expand=True,
-                padding=20,
-            ),
-        ],
-        expand=True,
-    )
 
 
-    actualizar_entrenamientos()
 
-
-    def informes_view():
-        # Campo de texto para ingresar el año
-        input_anio = ft.TextField(
-            label="Ingresar Año",
-            width=100,
-            hint_text="2025",
-            keyboard_type=ft.KeyboardType.NUMBER,
-        )
-
-        # Campo de texto para ingresar el mes
-        input_mes = ft.TextField(
-            label="Ingresar Mes",
-            width=50,
-            hint_text="01",
-            keyboard_type=ft.KeyboardType.NUMBER,
-        )
-
-        # Contenedor para mostrar los informes
-        informe_container = ft.Column([], expand=True, spacing=10)
-
-        # Función para crear informes
-        def crear_informes(anio, mes):
-            print("Generando informes...")
-            # Validar entradas
-            if not anio.isdigit() or not mes.isdigit():
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Año y mes deben ser números."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open = True
-                page.update()
-                return
-
-            anio_int = int(anio)
-            mes_int = int(mes)
-
-            if not (1 <= mes_int <= 12):
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Mes debe estar entre 1 y 12."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open = True
-                page.update()
-                return
-
-            # Formatear mes con dos dígitos
-            mes_formateado = str(mes_int).zfill(2)
-
-            # Cargar los datos de los usuarios
-            try:
-                with open("base_de_datos/usuarios.json", "r") as archivo_usuarios:
-                    usuarios = json.load(archivo_usuarios)
-            except FileNotFoundError:
-                print("El archivo de usuarios no se encuentra.")
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Archivo de usuarios no encontrado."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open = True
-                page.update()
-                return
-            except json.JSONDecodeError:
-                print("El archivo de usuarios no está en el formato correcto.")
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Error en el formato del archivo de usuarios."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open = True
-                page.update()
-                return
-
-                # Filtrar usuarios con estado 'matriculado'
-            usuarios_matriculados = [usuario for usuario in usuarios if usuario['estado'] == 'matriculado']
-
-                    # Generar un informe para cada miembro matriculado
-            for usuario in usuarios_matriculados:
-                Informe.crear_informe(usuario['id'], mes_formateado, anio)
-
-                print(f"Informes generados para el mes {mes_int} del año {anio_int}")
-                page.snack_bar = ft.SnackBar(
-                    ft.Text(f"Informes generados para el mes {mes_int} del año {anio_int}."),
-                    bgcolor=ft.colors.GREEN
-                )
-                page.snack_bar.open = True
-                page.update()
-
-        # Función para cargar y mostrar informes
-        def generar_informes(e):
-            anio_val = input_anio.value
-            mes_val = input_mes.value
-
-            # Primero, crear los informes en disco
-            crear_informes(anio_val, mes_val)
-
-            # Luego, limpiar el contenedor e intentar mostrar los informes creados
-            informe_container.controls.clear()
-            try:
-                with open("base_de_datos/informes.json", "r") as file:
-                    content = file.read().strip()
-                    if not content:
-                        informes = []
-                    else:
-                        informes = json.loads(content)
-
-                # Filtrar informes por año y mes
-                informes_filtrados = [
-                    inf for inf in informes
-                    if str(inf["anio"]) == str(anio_val)
-                    and str(inf["mes"]).zfill(2) == str(mes_val).zfill(2)
-                ]
-
-                print(f"Cantidad de informes filtrados: {len(informes_filtrados)}")
-
-                # Mostrar cada informe con sus datos en un Card
-                for inf in informes_filtrados:
-                    informe_card = ft.Card(
-                        content=ft.Container(
-                            ft.Column([
-                                ft.Text(f"Informe ID: {inf['id']}"),
-                                ft.Text(f"Usuario ID: {inf['usuario_id']}"),
-                                ft.Text(f"Año: {inf['anio']}  |  Mes: {inf['mes']}"),
-                                ft.Text(f"Clases del Mes: {inf['clases_mes']}"),
-                                ft.Text(f"Clases Asistidas: {inf['clases_asistidas']}"),
-                                ft.Text(f"Torneos Asistidos: {inf['torneos_asistidos']}"),
-                                ft.Text(f"Top Torneos: {inf['top_torneos']}")
-                            ]),
-                            padding=10
-                        ),
-                        width=300,
-                    )
-                    informe_container.controls.append(informe_card)
-
-                page.update()
-
-            except Exception as ex:
-                print("Error al cargar informes:", ex)
-                page.snack_bar = ft.SnackBar(
-                    ft.Text("Error al cargar informes."),
-                    bgcolor=ft.colors.ERROR
-                )
-                page.snack_bar.open = True
-                page.update()
-
-        # Botón para generar informes
-        generar_informe_button = ft.ElevatedButton(
-            "Generar Informes",
-            on_click=generar_informes
-        )
-
-        # Retornar la vista de informes
-        return ft.Column(
-            [
-                ft.Row([input_anio, input_mes]),
-                generar_informe_button,
-                informe_container
-            ],
-            spacing=10,
-            alignment=ft.MainAxisAlignment.START
-        )
 
 
 
@@ -849,61 +586,16 @@ def main(page: ft.Page):
         page.title = "Gestión de Pagos del Club"
         page.theme_mode = ft.ThemeMode.DARK
 
-    controller = ClubController()
-    
+
+
     usuarios_inscritos = [u for u in controller.usuarios if u.estado == "inscrito"]
 # Dropdown de usuarios
     # Crear un diccionario para mapear nombres de usuarios a sus IDs
     nombre_id_map = {u.nombre: u.id for u in usuarios_inscritos}
 
-# Dropdown de usuarios usando solo el argumento 'text'
-    dropdown_usuarios = ft.Dropdown(
-        label="Seleccionar Usuario",
-        options=[ft.dropdown.Option(text=u.nombre) for u in usuarios_inscritos]
-    )
 
-    # Dropdown de conceptos
-    dropdown_conceptos = ft.Dropdown(
-        label="Concepto de Pago",
-        options=[
-            ft.dropdown.Option(text="Matrícula"),
-            ft.dropdown.Option(text="Mensualidad")
-        ]
-    )
 
-    # Campos adicionales
-    fecha_field = ft.TextField(label="Fecha (YYYY-MM-DD)")
-    cantidad_field = ft.TextField(label="Cantidad")
-    pagos_list = ft.ListView(expand=True)
 
-    # Función para registrar un pago
-    def registrar_pago():
-        usuario_nombre = dropdown_usuarios.value
-        if not (usuario_nombre and dropdown_conceptos.value and fecha_field.value and cantidad_field.value):
-            mostrar_snackbar("Por favor, completa todos los campos.", "ERROR")
-            return
-
-        if usuario_nombre in nombre_id_map:
-            usuario_id = nombre_id_map[usuario_nombre]
-            nuevo_pago = {
-                "id": len(controller.cargar_pagos()) + 1,
-                "usuario_id": usuario_id,
-                "concepto": dropdown_conceptos.value,
-                "fecha": fecha_field.value,
-                "cantidad": float(cantidad_field.value),
-            }
-
-        # Guardar el nuevo pago
-            pagos = controller.cargar_pagos()
-            pagos.append(nuevo_pago)
-            BaseModel.guardar_datos("pagos.json", pagos)
-
-        # Actualizar estado del usuario
-            controller.actualizar_estado_usuario(usuario_id, "matriculado")
-            mostrar_snackbar("Pago registrado exitosamente.", "SUCCESS")
-            actualizar_vista_pagos()
-        else:
-            mostrar_snackbar("Error: Usuario no encontrado.", "ERROR")
 
 
     # Mostrar mensajes con SnackBar
@@ -912,42 +604,13 @@ def main(page: ft.Page):
         snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
         page.overlay.append(snack_bar)
         
-    registrar_button = ft.ElevatedButton(
-    "Registrar Pago",
-    icon=ft.icons.SAVE,
-    on_click=lambda e: registrar_pago()
-)
+
 
     # Actualizar la vista de pagos
-    def actualizar_vista_pagos():
-        pagos = controller.cargar_pagos()
-        pagos_list.controls.clear()
-        for pago in pagos:
-            pagos_list.controls.append(
-                ft.ListTile(
-                    title=ft.Text(f"ID Usuario: {pago['usuario_id']} - {pago['concepto']} - ${pago['cantidad']}"),
-                    subtitle=ft.Text(f"Fecha: {pago['fecha']}"),
-                    leading=ft.Icon(ft.icons.MONETIZATION_ON),
-                )
-            )
-        page.update()
+    
     # Layout principal
-    pagos_view = ft.Column(
-        [
-            ft.Text("Gestión de Pagos", size=24, weight=ft.FontWeight.BOLD),
-            dropdown_usuarios,
-            dropdown_conceptos,
-            fecha_field,
-            cantidad_field,
-            registrar_button,
-            ft.Divider(),
-            ft.Text("Historial de Pagos", size=20, weight=ft.FontWeight.BOLD), 
-            pagos_list
-        ],
-        spacing=10
-    )
 
-    actualizar_vista_pagos()
+
 
     # Cambiar vistas
     def destination_change(e):
@@ -962,7 +625,7 @@ def main(page: ft.Page):
         elif index == 3:
             content.controls.append(entrenamientos_view)
         elif index == 4:
-            content.controls.append(informes_view())
+            content.controls.append(informes_view)
         elif index == 5:
             content.controls.append(pagos_view)
         page.update()
@@ -980,7 +643,7 @@ def main(page: ft.Page):
             ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
             ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
         ],
-        on_change=destination_change,
+        on_change=lambda e: destination_change(e)
     )
 
     content = ft.Column([inscripcion_view], expand=True)
