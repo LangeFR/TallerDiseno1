@@ -5,7 +5,7 @@ import flet as ft
 EMAIL_REGEX = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
 
 # Expresión regular para validar que solo se permiten letras y espacios
-ALPHABETIC_REGEX = r'^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$'
+ALPHABETIC_REGEX = r'^[A-Za-záéíóúÁÉÍÓÚñÑ0-9 ]+$'
 
 def validar_identificacion(e: ft.ControlEvent):
     """Valida que el campo de identificación contenga solo números y no más de 10 dígitos."""
@@ -30,7 +30,7 @@ def validar_email(e: ft.ControlEvent):
 def validar_apellidos(e: ft.ControlEvent):
     """Valida que el campo de apellidos no contenga caracteres especiales."""
     if not re.match(ALPHABETIC_REGEX, e.value):
-        e.error_text = "Los apellidos solo pueden contener letras y espacios."
+        e.error_text = "Los apellidos no pueden contener carácteres especiales."
         e.update()
         return False
     e.error_text = None
@@ -40,7 +40,7 @@ def validar_apellidos(e: ft.ControlEvent):
 def validar_nombre(e: ft.ControlEvent):
     """Valida que el campo de nombre no contenga caracteres especiales."""
     if not re.match(ALPHABETIC_REGEX, e.value):
-        e.error_text = "El nombre solo puede contener letras y espacios."
+        e.error_text = "El nombre no puede contener carácteres especiales."
         e.update()
         return False
     e.error_text = None
