@@ -21,9 +21,9 @@ class ClubController:
                 usuario.estado = nuevo_estado
         self.guardar_usuarios()
 
-    def existe_usuario(self, num_identificacion, nombre):
+    def existe_usuario(self, num_identificacion):
         for usuario in self.usuarios:
-            if usuario.num_identificacion == num_identificacion and usuario.nombre == nombre:
+            if usuario.num_identificacion == num_identificacion:
                 return True
         return False
 

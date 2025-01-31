@@ -156,10 +156,10 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Verificar si ya existe una persona registrada con el mismo nombre y número de identificación
-        if controller.existe_usuario(id_field.value, nombre_field.value):
+        # Verificar si ya existe una persona registrada con el mismo número de identificación
+        if controller.existe_usuario(id_field.value):
             page.snack_bar = ft.SnackBar(
-                ft.Text("Ya existe una persona registrada con este nombre y número de identificación", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+                ft.Text("Ya existe una persona registrada con este número de identificación", color=ft.colors.WHITE), bgcolor=ft.colors.RED
             )
             page.snack_bar.open = True
             page.update()
