@@ -71,9 +71,12 @@ def create_torneos_view(controller, torneos, page):
             mostrar_snackbar("El usuario seleccionado no existe o no está matriculado.", "ERROR")
             return
 
-        # Intentamos convertir el puesto a entero
+        # Intentamos convertir el puesto a entero y validar el rango
         try:
             puesto_int = int(puesto_valor)
+            if puesto_int < 1 or puesto_int >= 1000:
+                mostrar_snackbar("El puesto debe ser un número entero entre 1 y 999.", "ERROR")
+                return
         except ValueError:
             mostrar_snackbar("El puesto debe ser un número entero.", "ERROR")
             return
