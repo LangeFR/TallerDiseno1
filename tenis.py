@@ -41,7 +41,7 @@ def main(page: ft.Page):
     torneos_view, torneos_list, dropdown_torneos = create_torneos_view(controller, torneos, page)
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
     informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
-    pagos_view = create_pagos_view(controller, page) 
+    
 
     
 
@@ -422,6 +422,7 @@ def main(page: ft.Page):
         elif index == 4:
             content.controls.append(informes_view)
         elif index == 5:
+            pagos_view = create_pagos_view(controller, page) 
             content.controls.append(pagos_view)
         page.update()
 

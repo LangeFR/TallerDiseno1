@@ -15,7 +15,7 @@ def create_pagos_view(controller, page):
     """
 
     # Obtener el Dropdown de usuarios matriculados desde el controlador
-    dropdown_usuarios = controller.dropdown_usuarios_matriculados()
+    dropdown_usuarios = controller.dropdown_usuarios()
 
     # Crear dropdown de conceptos de pago
     dropdown_conceptos = ft.Dropdown(

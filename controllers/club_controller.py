@@ -54,6 +54,16 @@ class ClubController:
             label="Seleccionar Usuario",
             options=[ft.dropdown.Option(u.nombre) for u in usuarios_matriculados],
         )
+        
+    def dropdown_usuarios(self):
+        """
+        Retorna un Dropdown con los usuarios que están matriculados en el club.
+        """
+        usuarios_matriculados = [u for u in self.usuarios]
+        return ft.Dropdown(
+            label="Seleccionar Usuario",
+            options=[ft.dropdown.Option(u.nombre) for u in usuarios_matriculados],
+        )
 
     def usuarios_matriculados_dict(self):
         """
