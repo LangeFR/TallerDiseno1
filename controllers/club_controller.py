@@ -1,5 +1,6 @@
 # club_controller.py
 import json
+import requests
 from modelos.base_model import BaseModel
 from modelos.usuario import Usuario
 from modelos.Inscripcion import Inscripcion
@@ -14,7 +15,68 @@ class ClubController:
     def __init__(self):
         self.usuarios = [Usuario.from_dict(u) for u in BaseModel.cargar_datos("usuarios.json")]
         self.entrenamientos = [Entrenamiento.from_dict(e) for e in BaseModel.cargar_datos("entrenamientos.json")]
+        
+    
+    
+    @staticmethod
+    def obtener_usuarios_pendientes():
+        
+        GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/1IMtHvmvLf4tFan7E0SJgvXMXlTRSk3HchdqJAsKnEbA/gviz/tq?tqx=out:json"
+        """
+        Obtiene la lista de usuarios preinscritos desde Google Sheets.
+        """
+        try:
+            response = requests.get(GOOGLE_SHEETS_URL)
+            raw_data = response.text.strip()  # Eliminar espacios en blanco
 
+            # Imprimir la respuesta cruda para verificar
+            print("🔹 Respuesta cruda de Google Sheets:")
+            print(raw_data[:500])  # Solo imprimimos los primeros 500 caracteres para depuración
+
+            # Limpiar la respuesta JSON eliminando los caracteres no válidos
+            if raw_data.startswith("/*O_o*/"):
+                json_str = raw_data.replace("/*O_o*/", "").replace("google.visualization.Query.setResponse(", "")[:-2]
+            else:
+                print("❌ Error: La respuesta no tiene el formato esperado de Google Sheets.")
+                return []
+
+            json_data = json.loads(json_str)  # Convertir en JSON limpio
+            filas = json_data.get("table", {}).get("rows", [])
+
+            usuarios = []
+            for fila in filas:
+                valores = [col["v"] if col and "v" in col else "" for col in fila["c"]]
+
+                # Convertir edad en entero, manejando errores
+                try:
+                    edad = int(valores[3]) if isinstance(valores[3], (int, float)) else 0
+                except ValueError:
+                    edad = 0
+
+                # Convertir número de identificación y teléfono en cadenas para evitar errores de notación científica
+                num_identificacion = str(valores[4]) if valores[4] else ""
+                telefono = str(valores[6]) if valores[6] else ""
+
+                usuario = {
+                    "id":"",
+                    "nombre": valores[1],  
+                    "apellidos": valores[2],  
+                    "edad": edad,
+                    "num_identificacion": num_identificacion,  
+                    "correo": valores[5],  
+                    "telefono": telefono,  
+                    "estado": "pendiente"
+                }
+                usuarios.append(usuario)
+
+            return usuarios
+
+        except json.JSONDecodeError as e:
+            print(f"❌ Error al decodificar JSON: {e}")
+            return []
+        except Exception as e:
+            print(f"❌ Error obteniendo inscripciones: {e}")
+            return []
     def actualizar_estado_usuario(self, usuario_id, nuevo_estado):
         for usuario in self.usuarios:
             if usuario.id == usuario_id:
