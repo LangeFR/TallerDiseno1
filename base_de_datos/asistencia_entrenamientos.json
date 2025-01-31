@@ -1,279 +1,99 @@
 [
     {
         "id": 1,
-        "usuario_id": 1,
+        "usuario_id": 9,
         "entrenamiento_id": 1,
         "estado": "presente"
     },
     {
         "id": 2,
-        "usuario_id": 1,
+        "usuario_id": 9,
         "entrenamiento_id": 2,
         "estado": "presente"
     },
     {
         "id": 3,
-        "usuario_id": 1,
+        "usuario_id": 9,
         "entrenamiento_id": 3,
         "estado": "presente"
     },
     {
         "id": 4,
-        "usuario_id": 1,
+        "usuario_id": 9,
         "entrenamiento_id": 4,
         "estado": "presente"
     },
     {
-        "id": 5,
-        "usuario_id": 1,
-        "entrenamiento_id": 5,
-        "estado": "presente"
-    },
-    {
         "id": 6,
-        "usuario_id": 2,
+        "usuario_id": 17,
         "entrenamiento_id": 1,
         "estado": "ausente"
     },
     {
         "id": 7,
-        "usuario_id": 2,
+        "usuario_id": 17,
         "entrenamiento_id": 2,
         "estado": "ausente"
     },
     {
         "id": 8,
-        "usuario_id": 2,
+        "usuario_id": 17,
         "entrenamiento_id": 3,
         "estado": "ausente"
     },
     {
         "id": 9,
-        "usuario_id": 2,
+        "usuario_id": 17,
         "entrenamiento_id": 4,
         "estado": "presente"
     },
     {
-        "id": 10,
-        "usuario_id": 2,
-        "entrenamiento_id": 5,
-        "estado": "presente"
-    },
-    {
         "id": 11,
-        "usuario_id": 3,
+        "usuario_id": 24,
         "entrenamiento_id": 1,
         "estado": "ausente"
     },
     {
         "id": 12,
-        "usuario_id": 3,
+        "usuario_id": 24,
         "entrenamiento_id": 2,
         "estado": "ausente"
     },
     {
         "id": 13,
-        "usuario_id": 3,
+        "usuario_id": 24,
         "entrenamiento_id": 3,
         "estado": "presente"
     },
     {
         "id": 14,
-        "usuario_id": 3,
+        "usuario_id": 24,
         "entrenamiento_id": 4,
         "estado": "presente"
     },
     {
-        "id": 15,
-        "usuario_id": 3,
-        "entrenamiento_id": 5,
-        "estado": "ausente"
-    },
-    {
         "id": 16,
-        "usuario_id": 4,
+        "usuario_id": 25,
         "entrenamiento_id": 1,
         "estado": "presente"
     },
     {
         "id": 17,
-        "usuario_id": 4,
+        "usuario_id": 25,
         "entrenamiento_id": 2,
         "estado": "presente"
     },
     {
         "id": 18,
-        "usuario_id": 4,
+        "usuario_id": 25,
         "entrenamiento_id": 3,
         "estado": "presente"
     },
     {
         "id": 19,
-        "usuario_id": 4,
-        "entrenamiento_id": 4,
-        "estado": "presente"
-    },
-    {
-        "id": 20,
-        "usuario_id": 4,
-        "entrenamiento_id": 5,
-        "estado": "presente"
-    },
-    {
-        "id": 21,
-        "usuario_id": 1,
-        "entrenamiento_id": 26,
-        "estado": "pendiente"
-    },
-    {
-        "id": 22,
-        "usuario_id": 2,
-        "entrenamiento_id": 26,
-        "estado": "pendiente"
-    },
-    {
-        "id": 23,
-        "usuario_id": 3,
-        "entrenamiento_id": 26,
-        "estado": "pendiente"
-    },
-    {
-        "id": 24,
-        "usuario_id": 4,
-        "entrenamiento_id": 26,
-        "estado": "pendiente"
-    },
-    {
-        "id": 26,
         "usuario_id": 25,
         "entrenamiento_id": 4,
-        "estado": "pendiente"
-    },
-    {
-        "id": 34,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 35,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 36,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 37,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 38,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 39,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 40,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 41,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 42,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 43,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 44,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 45,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 46,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 47,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 48,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 49,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 50,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 51,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 52,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 53,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 54,
-        "usuario_id": 25,
-        "entrenamiento_id": 5,
-        "estado": "pendiente"
+        "estado": "presente"
     },
     {
         "id": 56,

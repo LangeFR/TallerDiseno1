@@ -124,15 +124,20 @@ def create_torneos_view(controller, torneos, page):
     )
     
     # Lista de torneos como ListTile con manejo de clics basado en IDs
-    torneos_list = ft.Column()
-    for torneo in torneos:
-        torneos_list.controls.append(
+    # Lista de torneos con desplazamiento independiente
+    torneos_list = ft.ListView(
+        controls=[
             ft.ListTile(
                 title=ft.Text(torneo.nombre),
                 on_click=lambda e, t=torneo.id: on_torneo_click(t),
                 data=torneo.id  # Almacenar torneo.id en data
             )
+            for torneo in torneos
+        ],
+        expand=True,  # Permite que use todo el espacio disponible sin afectar otros elementos
+        auto_scroll=False
         )
+
     
     # Botón para inscribir en torneo
     inscribir_button = ft.ElevatedButton(
