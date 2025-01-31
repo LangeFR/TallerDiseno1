@@ -30,7 +30,7 @@ from views.pagos_view import create_pagos_view
 
 # ------------------------- VISTA -------------------------
 def main(page: ft.Page):
-    page.title = "Club de Tenis"
+    page.title = "TopSpinTracker"
     page.theme_mode = ft.ThemeMode.DARK
 
     controller = ClubController()
@@ -64,7 +64,7 @@ def main(page: ft.Page):
         on_click=change_theme,
     )
 
-    titulo = ft.Text("Club de Tenis", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
+    titulo = ft.Text("TopSpinTracker", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
 
     app_bar = ft.AppBar(
         title=titulo,
@@ -175,7 +175,7 @@ def main(page: ft.Page):
         page.snack_bar = ft.SnackBar(
             ft.Text("Usuario inscrito exitosamente", color=ft.colors.WHITE), bgcolor=ft.colors.GREEN
         )
-        # age.snack_bar.open = True
+        page.snack_bar.open = True
         page.update()
 
     
