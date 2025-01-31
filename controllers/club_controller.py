@@ -49,7 +49,7 @@ class ClubController:
         """
         Retorna un Dropdown con los usuarios que están matriculados en el club.
         """
-        usuarios_matriculados = [u for u in self.usuarios]
+        usuarios_matriculados = [u for u in self.usuarios if u.get("estado") == "matriculado"]
         return ft.Dropdown(
             label="Seleccionar Usuario",
             options=[ft.dropdown.Option(u.nombre) for u in usuarios_matriculados],
@@ -59,10 +59,10 @@ class ClubController:
         """
         Retorna un Dropdown con los usuarios que están matriculados en el club.
         """
-        usuarios_matriculados = [u for u in self.usuarios]
+        usuarios_incritos = [u for u in self.usuarios]
         return ft.Dropdown(
             label="Seleccionar Usuario",
-            options=[ft.dropdown.Option(u.nombre) for u in usuarios_matriculados],
+            options=[ft.dropdown.Option(u.nombre) for u in usuarios_incritos],
         )
 
     def usuarios_matriculados_dict(self):
@@ -87,3 +87,22 @@ class ClubController:
         """
         inscripciones = self.cargar_inscripciones()
         return [insc for insc in inscripciones if insc['torneo_id'] == torneo_id]
+
+    def get_user_by_id(self, user_id):
+        """
+        Retorna el objeto Usuario con el ID especificado o None si no existe.
+        """
+        for u in self.usuarios:
+            if u.id == user_id:
+                return u
+        return None
+
+    def get_asistencias_by_torneo(self, torneo_id):
+        """
+        Carga de 'asistencia_torneos.json' y filtra las que tengan el 'torneo_id' especificado.
+        """
+        try:
+            asistencias = BaseModel.cargar_datos("asistencia_torneos.json")
+        except:
+            asistencias = []
+        return [a for a in asistencias if a["torneo_id"] == torneo_id]
