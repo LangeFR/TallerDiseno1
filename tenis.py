@@ -35,7 +35,16 @@ def main(page: ft.Page):
     controller = ClubController()
 
     # Crear las vistas y recibir las referencias necesarias
-    inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(controller, validar_identificacion, validar_email, validar_apellidos, validar_nombre, validar_telefono, validar_edad)
+    # Crear las vistas y recibir las referencias necesarias
+    inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(
+        controller, 
+        validar_identificacion, 
+        validar_email, 
+        validar_apellidos, 
+        validar_nombre, 
+        validar_telefono, 
+        validar_edad
+    )
     usuarios_view = create_usuarios_view(controller)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
