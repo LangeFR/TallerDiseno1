@@ -114,7 +114,7 @@ def create_entrenamientos_view(controller, page):
     )
 
     # Contenedor donde se mostrarán los usuarios y su asistencia
-    asistencia_detalles_list = ft.Column(scroll="auto")
+    asistencia_detalles_list = ft.ListView(expand=True, spacing=10)
 
     def mostrar_asistencia_entrenamiento(fecha_entrenamiento):
         """
@@ -217,7 +217,7 @@ def create_entrenamientos_view(controller, page):
     #   3. VISTA DE ASISTENCIAS REGISTRADAS (GLOBAL)
     # ----------------------------------------------------------------
 
-    asistencias_list = ft.Column(scroll="auto")
+    asistencias_list = ft.ListView(expand=True, spacing=10)
 
     def actualizar_asistencias_global():
         """
@@ -295,7 +295,7 @@ def create_entrenamientos_view(controller, page):
     )
 
     # Lista donde se mostrarán los entrenamientos filtrados
-    entrenamientos_list = ft.Column(scroll="auto")
+    entrenamientos_list = ft.ListView(expand=True, spacing=10)
 
     def filtrar_entrenamientos(e):
         """Filtra la lista de entrenamientos por el año y mes seleccionados."""
@@ -400,7 +400,7 @@ def create_entrenamientos_view(controller, page):
                 dropdown_entrenamientos,
                 ft.Divider(height=2, thickness=1),
                 ft.Text("Usuarios en este entrenamiento:", size=14),
-                ft.Container(asistencia_detalles_list, expand=True, scroll="auto"),
+                ft.Container(asistencia_detalles_list, expand=True),
             ],
             spacing=20,
             alignment=ft.MainAxisAlignment.START,
@@ -427,7 +427,7 @@ def create_entrenamientos_view(controller, page):
                     alignment=ft.MainAxisAlignment.START,
                 ),
                 ft.Divider(),
-                ft.Container(entrenamientos_list, expand=True, scroll="auto"),
+                ft.Container(entrenamientos_list, expand=True),
             ],
             spacing=10,
             alignment=ft.MainAxisAlignment.START,
@@ -444,7 +444,7 @@ def create_entrenamientos_view(controller, page):
                 ft.Text("Asistencias Registradas (Global)", size=18, weight=ft.FontWeight.BOLD),
                 ft.Divider(),
                 actualizar_asistencias_button,
-                ft.Container(asistencias_list, expand=True, scroll="auto"),
+                ft.Container(asistencia_detalles_list, expand=True),
             ],
             spacing=20,
             alignment=ft.MainAxisAlignment.START,
