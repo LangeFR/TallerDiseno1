@@ -17,12 +17,19 @@ def validar_identificacion(e: ft.ControlEvent):
     e.update()
     return True
 
+
 def validar_email(e: ft.ControlEvent):
-    """Valida que el campo de correo electrónico tenga un formato válido."""
+    """Valida que el campo de correo electrónico tenga un formato válido, o que se marque como 'NO aplica'."""
+    if e.value == "NA":
+        e.error_text = None
+        e.update()
+        return True
+    
     if not re.match(EMAIL_REGEX, e.value):
         e.error_text = "Ingrese un correo válido."
         e.update()
         return False
+    
     e.error_text = None
     e.update()
     return True
