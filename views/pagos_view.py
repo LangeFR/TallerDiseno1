@@ -76,13 +76,13 @@ def create_pagos_view(controller, page):
         cantidad = cantidad_field.value
 
         # Utilizar la función formatear_fecha desde fecha.py
-        fecha_formateada, error_message = formatear_fecha(fecha)
+        fecha, error_message = formatear_fecha(fecha)
         if error_message:
             mostrar_snackbar(error_message, "ERROR")
             return
         
         # Actualizamos el valor del input de fecha con el formato correcto
-        fecha_field.value = fecha_formateada
+        fecha_field.value = fecha
         
 
         # Validación de fecha

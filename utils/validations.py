@@ -55,6 +55,7 @@ def validar_fecha(fecha_input):
         fecha_input (ft.TextField): Campo de entrada de la fecha.
     """
     fecha = fecha_input.value
+    print(fecha)
     try:
         partes = fecha.split('-')
         if len(partes) != 3:

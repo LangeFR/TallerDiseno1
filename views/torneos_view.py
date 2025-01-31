@@ -7,6 +7,7 @@ from modelos.base_model import BaseModel
 from modelos.asistencia_torneos import Asistencia_Torneo  # Asegúrate de que exista el import correcto
 from modelos.torneo import Torneo  # Asegúrate de importar la clase Torneo
 from utils.validations import validar_fecha
+from utils.fecha import formatear_fecha
 
 def crear_asistencia_torneo(torneo_id, usuario_id, puesto):
     """
@@ -96,52 +97,44 @@ def create_torneos_view(controller, torneos, page):
         # Abrir un diálogo para ingresar nombre y fecha del torneo
         nombre_input = ft.TextField(label="Nombre del Torneo", autofocus=True)
         fecha_input = ft.TextField(label="Fecha del Torneo", hint_text="YYYY-MM-DD")
+        fecha=fecha_input.value
+        print(fecha)
+
         agregar_dialog = ft.AlertDialog(
             modal=True,
             title=ft.Text("Agregar Torneo"),
             content=ft.Column([nombre_input, fecha_input], spacing=10),
             actions=[
                 ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo()),
-                ft.TextButton("Agregar", on_click=lambda e: agregar_torneo_confirm(nombre_input.value, fecha_input.value, fecha_input)),
+                # Aquí simplemente pasamos los valores como strings, no los objetos TextField.
+                ft.TextButton("Agregar", on_click=lambda e: agregar_torneo_confirm(nombre_input.value, fecha)),
             ]
         )
         page.dialog = agregar_dialog
         agregar_dialog.open = True
         page.update()
 
-
     # Confirmar agregar torneo
-    def agregar_torneo_confirm(nombre, fecha, fecha_input):
-        # Formatear la fecha para asegurarse de que el día y el mes son de dos dígitos
-        try:
-            partes = fecha.split('-')
-            if len(partes) == 3:
-                año, mes, dia = partes
-                mes = f"{int(mes):02}"  # Asegura que el mes tenga dos dígitos
-                dia = f"{int(dia):02}"  # Asegura que el día tenga dos dígitos
-                fecha_formateada = f"{año}-{mes}-{dia}"
-            else:
-                mostrar_snackbar("Formato de fecha incorrecto. Use YYYY-MM-DD", "ERROR")
-                return
-        except ValueError:
-            mostrar_snackbar("Fecha inválida. Asegúrese de que el año, mes y día sean números.", "ERROR")
+    def agregar_torneo_confirm(nombre, fecha):
+        # Utilizar formatear_fecha de utils
+        fecha_formateada, error_message = formatear_fecha(fecha)
+        if error_message:
+            mostrar_snackbar(error_message, "ERROR")
             return
-        
-        # Actualizamos el valor del input de fecha con el formato correcto
-        fecha_input.value = fecha_formateada
+        print(fecha_formateada)
 
         # Validación de fecha
-        validar_fecha(fecha_input)  # Utilizamos la función de validación de fecha aquí
-        if fecha_input.error_text:
-            mostrar_snackbar(fecha_input.error_text, "ERROR")
+        if not validar_fecha(fecha_formateada):  # Asumiendo que validar_fecha devuelve True o False.
+            mostrar_snackbar("Fecha no válida.", "ERROR")
             return
+
         if not nombre:
             mostrar_snackbar("Por favor, complete todos los campos.", "ERROR")
             return
-        
+
         # Crear el torneo como una instancia de Torneo
         nuevo_id = max([t.id for t in torneos], default=0) + 1
-        nuevo_torneo = Torneo(id=nuevo_id, nombre=nombre, fecha=fecha)
+        nuevo_torneo = Torneo(id=nuevo_id, nombre=nombre, fecha=fecha_formateada)
         torneos.append(nuevo_torneo)
         # Convertir todos los torneos a dicts antes de guardar
         torneos_dicts = [asdict(torneo) for torneo in torneos]
@@ -160,11 +153,11 @@ def create_torneos_view(controller, torneos, page):
         dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
         # Actualizar las opciones en el dropdown de usuarios
         dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()]
+        
         mostrar_snackbar(f"Torneo '{nombre}' agregado exitosamente.", "SUCCESS")
         # Cerrar el diálogo correctamente
         page.dialog.open = False
         page.update()
-
 
     # Función para mostrar asistencias al hacer clic en un torneo
     def on_torneo_click(torneo_id):

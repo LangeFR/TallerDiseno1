@@ -8,9 +8,10 @@ def formatear_fecha(fecha):
         partes = fecha.split('-')
         if len(partes) == 3:
             año, mes, dia = partes
-            mes = f"{int(mes):02}"  # Asegura que el mes tenga dos dígitos
-            dia = f"{int(dia):02}"  # Asegura que el día tenga dos dígitos
+            mes = f"{int(mes):02d}"  # Asegura que el mes tenga dos dígitos
+            dia = f"{int(dia):02d}"  # Asegura que el día tenga dos dígitos
             fecha_formateada = f"{año}-{mes}-{dia}"
+            print(fecha_formateada)
             return fecha_formateada, None
         else:
             return None, "Formato de fecha incorrecto. Use YYYY-MM-DD"
