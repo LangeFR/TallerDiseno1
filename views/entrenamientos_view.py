@@ -68,6 +68,16 @@ def create_entrenamientos_view(controller, page):
             else:
                 mostrar_snackbar("Formato de fecha inválido. Debe ser AAAA-MM-DD.", "ERROR")
                 return
+            
+             # Cargar entrenamientos existentes para verificar duplicados
+            try:
+                with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                    entrenamientos_data = json.load(archivo)
+                if any(ent['fecha'] == fecha for ent in entrenamientos_data):
+                    mostrar_snackbar("Ya existe un entrenamiento para esta fecha.", "ERROR")
+                    return
+            except (FileNotFoundError, json.JSONDecodeError):
+                entrenamientos_data = []
 
             # Crear nuevo Entrenamiento y proceder como antes
             nuevo_id = Entrenamiento.nuevo_id()
