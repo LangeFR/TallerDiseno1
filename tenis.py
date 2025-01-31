@@ -51,11 +51,6 @@ def main(page: ft.Page):
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
     informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     
-
-    
-
-    #Dropdown usuarios
-    dropdown_usuarios = controller.dropdown_usuarios_matriculados()
     
     def change_theme(e):
         page.theme_mode = ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
@@ -158,9 +153,6 @@ def main(page: ft.Page):
         )
 
 
-
-
-
         controller.agregar_usuario(nuevo_usuario)
 
         # Limpiar los campos después de la inscripción
@@ -259,80 +251,7 @@ def main(page: ft.Page):
 
 
     Usuarios_view = create_usuarios_view(mostrar_usuarios_view)
-    
 
-    
-
-    def actualizar_inscripciones():
-        try:
-            # Cargar inscripciones
-            inscripciones = Inscripcion.cargar_inscripciones()
-        except Exception:
-            inscripciones = []
-
-        try:
-            # Cargar torneos
-            with open("base_de_datos/torneos.json", "r") as archivo:
-                torneos = json.load(archivo)
-        except (FileNotFoundError, json.JSONDecodeError):
-            torneos = []
-
-        # Crear un diccionario de torneos para buscar por ID
-        torneos_dict = {torneo["id"]: torneo["nombre"] for torneo in torneos}
-
-        # Limpiar la lista de inscripciones
-        inscripciones_list.controls.clear()
-
-        # Agregar los elementos scrolleables al ListView
-        inscripciones_list.controls.append(
-            ft.Container(
-                content=ft.ListView(
-                    controls=[
-                        ft.ListTile(
-                            title=ft.Text(f"Usuario: {inscripcion['usuario']}"),
-                            subtitle=ft.Text(f"Torneo: {torneos_dict.get(inscripcion['torneo_id'], 'Torneo no encontrado')}"),
-                        )
-                        for inscripcion in inscripciones
-                    ],
-                    spacing=10,  # Espaciado entre elementos
-                ),
-                expand=True,  # Permitir que el contenedor ocupe el espacio disponible
-                height=500,   # Fijar altura para permitir scroll si el contenido excede
-            )
-        )
-
-        # Actualizar la página
-        page.update()
-
-
-    def actualizar_torneos():
-        torneos = controller.cargar_torneos()
-
-        # Actualizamos las opciones del dropdown
-        dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
-
-        # Limpiamos y reconstruimos la lista de torneos
-        torneos_list.controls.clear()
-        torneos_list.controls.append(
-            ft.Container(  # Agregamos un contenedor para definir el tamaño y permitir scroll
-                content=ft.ListView(
-                    [
-                        ft.ListTile(
-                            title=ft.Text(torneo.nombre),
-                            subtitle=ft.Text(torneo.fecha),
-                        ) for torneo in torneos
-                    ],
-                    spacing=10,  # Espaciado entre los elementos
-                ),
-                expand=True,  # El contenedor ocupará el espacio disponible
-                height=500,   # Altura fija para habilitar el scroll si es necesario
-                bgcolor=ft.colors.SURFACE_VARIANT,  # Color de fondo opcional
-                padding=10,  # Opcional: Espaciado interno
-            )
-        )
-        page.update()
-
-    
 
     inscripciones_list = ft.Column([])
 
@@ -349,28 +268,6 @@ def main(page: ft.Page):
         expand=True,
         padding=20,
     )
-
-
-
-    asistencias_list = ft.Column([])
-
-
-
-
-
-
-   # Mostrar mensajes con SnackBar
-    def mostrar_snackbar(mensaje, tipo):
-        color = ft.colors.GREEN if tipo == "SUCCESS" else ft.colors.RED
-        snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
-        page.overlay.append(snack_bar)
-        
-
-
-    # Actualizar la vista de pagos
-    
-    # Layout principal
-
 
 
     # Cambiar vistas

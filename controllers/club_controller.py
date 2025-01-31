@@ -124,3 +124,21 @@ class ClubController:
         Retorna una lista de usuarios matriculados en el club.
         """
         return [usuario for usuario in self.usuarios if usuario.estado == "matriculado"]
+    
+    def usuario_esta_matriculado(self, usuario_id):
+        """
+        Verifica si el usuario está matriculado.
+
+        Parámetros:
+            usuario_id (int): El ID del usuario a verificar.
+
+        Retorna:
+            bool: True si el usuario está matriculado, False en caso contrario.
+        """
+        # Buscamos al usuario por su ID
+        usuario = self.get_user_by_id(usuario_id)
+        if usuario is not None:
+            # Verificamos el estado del usuario
+            return usuario.estado == "matriculado"
+        # Si no encontramos el usuario, retornamos False
+        return False
