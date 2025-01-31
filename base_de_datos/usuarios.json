@@ -218,5 +218,15 @@
         "correo": "correo@gmail.com",
         "telefono": "12345678",
         "estado": "inscrito"
+    },
+    {
+        "id": 28,
+        "nombre": "Mateo",
+        "apellidos": "Vanegas",
+        "edad": 1,
+        "num_identificacion": "12345678",
+        "correo": "correo@gmail.com",
+        "telefono": "12345678",
+        "estado": "inscrito"
     }
 ]

@@ -1,50 +1,5 @@
 [
     {
-        "id": 27,
-        "usuario_id": 9,
-        "mes": "01",
-        "anio": "2025",
-        "clases_mes": 4,
-        "clases_asistidas": 4,
-        "torneos_asistidos": 0,
-        "top_torneos": []
-    },
-    {
-        "id": 28,
-        "usuario_id": 17,
-        "mes": "01",
-        "anio": "2025",
-        "clases_mes": 4,
-        "clases_asistidas": 1,
-        "torneos_asistidos": 1,
-        "top_torneos": [
-            [
-                "Torneo Enero",
-                1
-            ]
-        ]
-    },
-    {
-        "id": 29,
-        "usuario_id": 24,
-        "mes": "01",
-        "anio": "2025",
-        "clases_mes": 4,
-        "clases_asistidas": 2,
-        "torneos_asistidos": 0,
-        "top_torneos": []
-    },
-    {
-        "id": 30,
-        "usuario_id": 25,
-        "mes": "01",
-        "anio": "2025",
-        "clases_mes": 4,
-        "clases_asistidas": 4,
-        "torneos_asistidos": 0,
-        "top_torneos": []
-    },
-    {
         "id": 31,
         "usuario_id": 9,
         "mes": "03",
@@ -133,5 +88,70 @@
                 4
             ]
         ]
+    },
+    {
+        "id": 39,
+        "usuario_id": 7,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 40,
+        "usuario_id": 9,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 4,
+        "clases_asistidas": 4,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 41,
+        "usuario_id": 16,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 0,
+        "clases_asistidas": 0,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 42,
+        "usuario_id": 17,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 4,
+        "clases_asistidas": 1,
+        "torneos_asistidos": 1,
+        "top_torneos": [
+            [
+                "Torneo Enero",
+                1
+            ]
+        ]
+    },
+    {
+        "id": 43,
+        "usuario_id": 24,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 4,
+        "clases_asistidas": 2,
+        "torneos_asistidos": 0,
+        "top_torneos": []
+    },
+    {
+        "id": 44,
+        "usuario_id": 25,
+        "mes": "01",
+        "anio": "2025",
+        "clases_mes": 4,
+        "clases_asistidas": 4,
+        "torneos_asistidos": 0,
+        "top_torneos": []
     }
 ]
