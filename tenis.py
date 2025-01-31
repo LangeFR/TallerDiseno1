@@ -279,30 +279,67 @@ def main(page: ft.Page):
         padding=20,
     )
 
-    #obtener usuarios
+    #Obtener usuario pendiente
     def mostrar_lista_usuarios_pendientes():
         usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
         print(json.dumps(usuarios_pendientes, indent=4))
 
-        usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
         usuarios_view.controls.clear()
 
         for usuario in usuarios_pendientes:
             usuarios_view.controls.append(
                 ft.Row([
                     ft.Text(f"{usuario['nombre']} - {usuario['correo']}"),
-                    ft.ElevatedButton("Inscribir", 
-                        on_click=lambda e, u=usuario: inscribir_persona(u))
+                    ft.ElevatedButton(
+                        "Ir a Inscripción",
+                        icon=ft.icons.ARROW_FORWARD,
+                        on_click=lambda e, u=usuario: (
+                            llenar_campos_inscripcion(
+                                u, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field
+                            ),  # Llenar los campos de inscripción
+                            destination_change(ft.ControlEvent(selected_index=0))  # Cambiar a la pestaña de inscripción
+                        )
+                    )
                 ])
             )
 
-    page.update()
-    # Cambiar vistas
+        page.update()
+
+    def llenar_campos_inscripcion(usuario, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field):
+        """
+        Llena los campos de inscripción con los datos del usuario seleccionado.
+        """
+        # Llenar los campos con la información del usuario
+        nombre_field.value = usuario.get("nombre", "")
+        apellidos_field.value = usuario.get("apellidos", "")
+        edad_field.value = str(usuario.get("edad", ""))
+        id_field.value = usuario.get("num_identificacion", "")
+        correo_field.value = usuario.get("correo", "")
+        telefono_field.value = usuario.get("telefono", "")
+    
+        # Actualizar los campos para reflejar los cambios en la interfaz
+        nombre_field.update()
+        apellidos_field.update()
+        edad_field.update()
+        id_field.update()
+        correo_field.update()
+        telefono_field.update()
+    
+        # Cambiar a la vista de inscripción automáticamente
+        destination_change(ft.ControlEvent(selected_index=0))  # 0 es la pestaña de inscripción
+    
+        # Actualizar la página
+        page.update()
+
+
+
+
     def destination_change(e):
-        index = e.control.selected_index
+        index = e.control.selected_index if hasattr(e, 'control') else e.selected_index  # Soporta llamado manual
+
         content.controls.clear()
         if index == 0:
-            content.controls.append(inscripcion_view)
+            content.controls.append(inscripcion_view)  # Mostrar vista de inscripción
         elif index == 1:
             content.controls.append(Usuarios_view)
         elif index == 2:
@@ -311,18 +348,20 @@ def main(page: ft.Page):
             actualizar_data_torneos()
         elif index == 3:
             content.controls.append(entrenamientos_view)
-            page.update()  # Actualizar la página para agregar entrenamientos_view primero
-            actualizar_entrenamientos()  # Luego actualizar el ListView
-            return  # Salir para evitar llamar a page.update() nuevamente
+            page.update()
+            actualizar_entrenamientos()
+            return
         elif index == 4:
             content.controls.append(informes_view)
         elif index == 5:
-            pagos_view = create_pagos_view(controller, page) 
+            pagos_view = create_pagos_view(controller, page)
             content.controls.append(pagos_view)
         elif index == 6:
             content.controls.append(usuarios_view)
             mostrar_lista_usuarios_pendientes()
+
         page.update()
+
 
     rail = ft.NavigationRail(
         selected_index=0,
