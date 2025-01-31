@@ -50,16 +50,6 @@
         "estado": "inscrito"
     },
     {
-        "id": 6,
-        "nombre": "Ana",
-        "apellidos": "",
-        "edad": 31,
-        "num_identificacion": "299857080",
-        "correo": "ana.perez@example.com",
-        "telefono": "990727819",
-        "estado": "inscrito"
-    },
-    {
         "id": 7,
         "nombre": "Patricia",
         "apellidos": "",
@@ -140,16 +130,6 @@
         "estado": "inscrito"
     },
     {
-        "id": 15,
-        "nombre": "Ana",
-        "apellidos": "",
-        "edad": 24,
-        "num_identificacion": "732212340",
-        "correo": "ana.lopez@example.com",
-        "telefono": "985249641",
-        "estado": "inscrito"
-    },
-    {
         "id": 16,
         "nombre": "Ana",
         "apellidos": "",
@@ -200,36 +180,6 @@
         "estado": "inscrito"
     },
     {
-        "id": 21,
-        "nombre": "carlitos",
-        "apellidos": "",
-        "edad": 11,
-        "num_identificacion": "11",
-        "correo": "fa@gmail.com",
-        "telefono": "666",
-        "estado": "inscrito"
-    },
-    {
-        "id": 22,
-        "nombre": "holaa",
-        "apellidos": "",
-        "edad": "11",
-        "num_identificacion": "112",
-        "correo": "hola@gmail.com",
-        "telefono": "2222",
-        "estado": "inscrito"
-    },
-    {
-        "id": 23,
-        "nombre": "hola",
-        "apellidos": "",
-        "edad": "34",
-        "num_identificacion": "1014478484",
-        "correo": "maif@unisabana.edu.co",
-        "telefono": "23232323",
-        "estado": "inscrito"
-    },
-    {
         "id": 24,
         "nombre": "Gabis",
         "apellidos": "",
@@ -260,13 +210,13 @@
         "estado": "inscrito"
     },
     {
-        "id": 27,
-        "nombre": "iris",
-        "apellidos": "hola",
-        "edad": 132,
-        "num_identificacion": "1231231",
-        "correo": "123@gmail.com",
-        "telefono": "131231",
+        "id": 28,
+        "nombre": "Mateo",
+        "apellidos": "Vanegas",
+        "edad": 10,
+        "num_identificacion": "12345678",
+        "correo": "correo@gmail.com",
+        "telefono": "12345678",
         "estado": "inscrito"
     }
 ]
