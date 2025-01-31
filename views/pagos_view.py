@@ -21,7 +21,7 @@ def create_pagos_view(controller, page):
     dropdown_conceptos = ft.Dropdown(
         label="Concepto de Pago",
         options=[
-            ft.dropdown.Option("Inscripción"),
+            ft.dropdown.Option("Inscripcion"),
             ft.dropdown.Option("Mensualidad"),
             ft.dropdown.Option("Otro"),
         ]
@@ -69,10 +69,10 @@ def create_pagos_view(controller, page):
             mostrar_snackbar("Por favor, completa todos los campos.", "ERROR")
             return
 
-        usuarios_matriculados_dict = controller.usuarios_matriculados_dict()
+        usuarios_inscritos_dict = controller.usuarios_inscritos_dict()
 
-        if usuario_nombre in usuarios_matriculados_dict:
-            usuario_id = usuarios_matriculados_dict[usuario_nombre]
+        if usuario_nombre in usuarios_inscritos_dict:
+            usuario_id = usuarios_inscritos_dict[usuario_nombre]
             nuevo_pago = {
                 "id": len(controller.cargar_pagos()) + 1,
                 "usuario_id": usuario_id,
@@ -87,7 +87,7 @@ def create_pagos_view(controller, page):
             BaseModel.guardar_datos("pagos.json", pagos)
 
             # Actualizar estado del usuario si es un pago de inscripción
-            if concepto == "Inscripción":
+            if concepto == "Inscripcion":
                 controller.actualizar_estado_usuario(usuario_id, "matriculado")
 
             mostrar_snackbar("Pago registrado exitosamente.", "SUCCESS")

@@ -67,7 +67,7 @@
         "num_identificacion": "507868793",
         "correo": "patricia.mart\u00c3\u00adnez@example.com",
         "telefono": "974150108",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 8,
@@ -157,7 +157,7 @@
         "num_identificacion": "202563662",
         "correo": "ana.g\u00c3\u00b3mez@example.com",
         "telefono": "957666132",
-        "estado": "inscrito"
+        "estado": "matriculado"
     },
     {
         "id": 17,

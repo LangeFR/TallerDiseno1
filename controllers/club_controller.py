@@ -65,6 +65,11 @@ class ClubController:
             options=[ft.dropdown.Option(u.nombre) for u in usuarios_incritos],
         )
 
+    def usuarios_inscritos_dict(self):
+        """
+        Retorna un diccionario de usuarios matriculados con {nombre: id}.
+        """
+        return {u.nombre: u.id for u in self.usuarios}
     def usuarios_matriculados_dict(self):
         """
         Retorna un diccionario de usuarios matriculados con {nombre: id}.

@@ -12,5 +12,12 @@
         "concepto": "Matr\u00edcula",
         "fecha": "1111",
         "cantidad": 11111.0
+    },
+    {
+        "id": 3,
+        "usuario_id": 7,
+        "concepto": "Inscripcion",
+        "fecha": "2025-01-01",
+        "cantidad": 100.0
     }
 ]
