@@ -292,7 +292,7 @@ def main(page: ft.Page):
                 ft.Row([
                     ft.Text(f"{usuario['nombre']} - {usuario['correo']}"),
                     ft.ElevatedButton(
-                        "Ir a Inscripción",
+                        "Rellenar datos",
                         icon=ft.icons.ARROW_FORWARD,
                         on_click=lambda e, u=usuario: (
                             llenar_campos_inscripcion(
