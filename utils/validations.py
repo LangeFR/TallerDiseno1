@@ -66,11 +66,9 @@ def validar_telefono(e: ft.ControlEvent):
 
 def validar_edad(edad):
     """Valida que la edad esté en un rango aceptable (por ejemplo, entre 0 y 116 años)."""
-    if edad < 0 or edad > 116:
+    if edad < 3 or edad > 116:
         return False
     return True
-
-
 
 def validar_fecha(fecha_input):
     """Valida que la fecha ingresada tenga un formato correcto 'YYYY-MM-DD' y que el mes y día sean válidos."""
