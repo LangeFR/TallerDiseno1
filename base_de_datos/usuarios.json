@@ -60,6 +60,7 @@
         "estado": "inscrito"
     },
     {
+
         "id": 7,
         "nombre": "Patricia",
         "apellidos": "Gonzalez",
@@ -80,6 +81,7 @@
         "estado": "inscrito"
     },
     {
+
         "id": 9,
         "nombre": "Carlos",
         "apellidos": "Fernandez",
@@ -150,6 +152,7 @@
         "estado": "inscrito"
     },
     {
+
         "id": 16,
         "nombre": "Ana",
         "apellidos": "Bernal",
@@ -190,13 +193,13 @@
         "estado": "inscrito"
     },
     {
-        "id": 21,
-        "nombre": "carlitos",
-        "apellidos": "perez",
-        "edad": 11,
-        "num_identificacion": "11",
-        "correo": "fa@gmail.com",
-        "telefono": "666",
+        "id": 19,
+        "nombre": "Laura",
+        "apellidos": "",
+        "edad": 33,
+        "num_identificacion": "416218862",
+        "correo": "laura.martinez@example.com",
+        "telefono": "929122952",
         "estado": "inscrito"
     },
     {
@@ -220,7 +223,7 @@
         "estado": "matriculado"
     },
     {
-        "id": 26,
+        "id": 28,
         "nombre": "Mateo",
         "apellidos": "Vanegas",
         "edad": "44",
