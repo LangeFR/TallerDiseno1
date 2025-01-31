@@ -69,6 +69,7 @@ def create_pagos_view(controller, page):
         page.update()
 
     # Función para registrar un pago
+
     def registrar_pago(e):
         usuario_nombre = dropdown_usuarios.value
         concepto = dropdown_conceptos.value
@@ -84,13 +85,11 @@ def create_pagos_view(controller, page):
         # Actualizamos el valor del input de fecha con el formato correcto
         fecha_field.value = fecha
         
-
         # Validación de fecha
         validar_fecha(fecha_field)  # Utilizamos la función de validación de fecha aquí
         if fecha_field.error_text:
             mostrar_snackbar(fecha_field.error_text, "ERROR")
             return
-        #if concepto == "Inscripcion" and 
 
         if not (usuario_nombre and concepto and fecha and cantidad):
             mostrar_snackbar("Por favor, completa todos los campos.", "ERROR")
@@ -100,6 +99,12 @@ def create_pagos_view(controller, page):
 
         if usuario_nombre in usuarios_inscritos_dict:
             usuario_id = usuarios_inscritos_dict[usuario_nombre]
+            
+            # Verificar si el usuario ya está matriculado y el pago es de inscripción
+            if controller.usuario_esta_matriculado(usuario_id) and concepto == "Inscripcion":
+                mostrar_snackbar("Error: El usuario ya está matriculado y no puede pagar la inscripción nuevamente.", "ERROR")
+                return
+            
             nuevo_pago = {
                 "id": len(controller.cargar_pagos()) + 1,
                 "usuario_id": usuario_id,
