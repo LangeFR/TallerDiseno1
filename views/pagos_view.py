@@ -104,8 +104,8 @@ def create_pagos_view(controller, page):
             if controller.usuario_esta_matriculado(usuario_id) and concepto == "Inscripcion":
                 mostrar_snackbar("Error: El usuario ya está matriculado y no puede pagar la inscripción nuevamente.", "ERROR")
                 return
-            if not controller.usuario_esta_matriculado(usuario_id) and concepto == "Mensualidad":
-                mostrar_snackbar("Error: El usuario debe estar matriculado para pagar mensualidad.", "ERROR")
+            if not controller.usuario_esta_matriculado(usuario_id) and not concepto == "Inscripcion":
+                mostrar_snackbar("Error: El usuario debe estar matriculado antes de realizar otros pagos.", "ERROR")
                 return
             
             nuevo_pago = {
