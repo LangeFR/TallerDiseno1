@@ -110,13 +110,13 @@ def create_entrenamientos_view(controller, page):
         on_change=lambda e: mostrar_asistencia_entrenamiento(e.control.value),
     )
 
-    # Contenedor donde se mostrarán los usuarios y su asistencia
+    # Contenedor donde se mostrarán los usuarios y su asistencia (columna izquierda)
     asistencia_detalles_list = ft.ListView(expand=True, spacing=10)
 
     def mostrar_asistencia_entrenamiento(fecha_entrenamiento):
         """
-        Cuando se selecciona un entrenamiento en el dropdown, 
-        se listan los usuarios (pendientes, ausentes o presentes) 
+        Cuando se selecciona un entrenamiento en el dropdown (columna izquierda),
+        se listan los usuarios (pendientes, ausentes o presentes)
         y se permite cambiar el estado de asistencia.
         """
         if not fecha_entrenamiento:
@@ -191,7 +191,7 @@ def create_entrenamientos_view(controller, page):
 
     def actualizar_estado_asistencia(e, asistencia_id):
         """
-        Actualiza el estado (ausente, presente, pendiente) de la asistencia 
+        Actualiza el estado (ausente, presente, pendiente) de la asistencia
         en el archivo JSON correspondiente.
         """
         nuevo_estado = e.control.value
@@ -211,15 +211,33 @@ def create_entrenamientos_view(controller, page):
         page.update()
 
     # ----------------------------------------------------------------
-    #   3. VISTA DE ASISTENCIAS REGISTRADAS (GLOBAL)
+    #   3. ASISTENCIAS POR ENTRENAMIENTO (columna derecha)
+    #       * Inicialmente vacía *
+    #       * Solo se llena al hacer clic en un entrenamiento del centro *
     # ----------------------------------------------------------------
 
-    asistencias_list = ft.ListView(expand=True, spacing=10)
+    asistencias_por_entrenamiento_list = ft.ListView(expand=True, spacing=10)
 
-    def actualizar_asistencias_global():
+    def mostrar_asistencia_entrenamiento_derecha(entrenamiento_id):
         """
-        Muestra todas las asistencias existentes con la fecha y nombre de usuario.
+        Muestra las asistencias de un entrenamiento específico (columna derecha),
+        usando la misma lógica de carga, pero filtrado por ID de entrenamiento.
         """
+        # Cargar entrenamientos
+        try:
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos_data = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            entrenamientos_data = []
+
+        ent_obj = next((e for e in entrenamientos_data if e["id"] == entrenamiento_id), None)
+        if not ent_obj:
+            mostrar_snackbar("Entrenamiento no encontrado.", "ERROR")
+            return
+
+        fecha_entrenamiento = ent_obj["fecha"]
+
+        # Cargar asistencias y usuarios
         try:
             with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
                 asistencias_data = json.load(archivo)
@@ -233,34 +251,50 @@ def create_entrenamientos_view(controller, page):
         except (FileNotFoundError, json.JSONDecodeError):
             usuarios_dict = {}
 
-        try:
-            with open("base_de_datos/entrenamientos.json", "r") as archivo:
-                entrenamientos_data = json.load(archivo)
-            entrenamientos_dict = {e["id"]: e["fecha"] for e in entrenamientos_data}
-        except (FileNotFoundError, json.JSONDecodeError):
-            entrenamientos_dict = {}
+        # Filtrar solo las asistencias del entrenamiento seleccionado
+        asistencia_entrenamiento = [
+            a for a in asistencias_data if a["entrenamiento_id"] == entrenamiento_id
+        ]
 
-        asistencias_list.controls.clear()
-        if not asistencias_data:
-            asistencias_list.controls.append(ft.Text("No hay asistencias registradas."))
+        # Limpiar la vista antes de llenar
+        asistencias_por_entrenamiento_list.controls.clear()
+
+        if not asistencia_entrenamiento:
+            asistencias_por_entrenamiento_list.controls.append(
+                ft.Text("No hay asistencias registradas para este entrenamiento.")
+            )
         else:
-            for a in asistencias_data:
-                usuario_nombre = usuarios_dict.get(a["usuario_id"], "Desconocido")
-                fecha_entrenamiento = entrenamientos_dict.get(a["entrenamiento_id"], "Desconocida")
-                estado = a["estado"]
-                asistencias_list.controls.append(
-                    ft.ListTile(
-                        title=ft.Text(f"Usuario: {usuario_nombre}"),
-                        subtitle=ft.Text(f"Fecha: {fecha_entrenamiento} | Estado: {estado}")
+            for a in asistencia_entrenamiento:
+                usuario_id = a["usuario_id"]
+                estado_actual = a["estado"]
+                usuario_nombre = usuarios_dict.get(usuario_id, "Usuario no encontrado")
+
+                # Mismo dropdown para permitir cambiar el estado
+                estado_dropdown = ft.Dropdown(
+                    width=100,
+                    options=[
+                        ft.dropdown.Option("pendiente"),
+                        ft.dropdown.Option("ausente"),
+                        ft.dropdown.Option("presente"),
+                    ],
+                    value=estado_actual,
+                    on_change=lambda e, asistencia_id=a["id"]: actualizar_estado_asistencia(e, asistencia_id),
+                )
+
+                asistencias_por_entrenamiento_list.controls.append(
+                    ft.Row(
+                        [
+                            ft.Text(f"{usuario_nombre}"),
+                            estado_dropdown,
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     )
                 )
+
         page.update()
 
-    # Cargar y mostrar inicialmente
-    actualizar_asistencias_global()
-
     # ----------------------------------------------------------------
-    #   4. FILTRAR ENTRENAMIENTOS POR AÑO Y MES
+    #   4. FILTRAR ENTRENAMIENTOS POR AÑO Y MES (columna central)
     # ----------------------------------------------------------------
 
     # Dropdowns para año y mes
@@ -291,7 +325,7 @@ def create_entrenamientos_view(controller, page):
         width=80,
     )
 
-    # Lista donde se mostrarán los entrenamientos filtrados
+    # Lista donde se mostrarán los entrenamientos filtrados (columna central)
     entrenamientos_list = ft.ListView(expand=True, spacing=10)
 
     def filtrar_entrenamientos(e):
@@ -319,21 +353,11 @@ def create_entrenamientos_view(controller, page):
         entrenamientos_list.update()
 
     def click_entrenamiento_central(entrenamiento_id):
-        """Al hacer clic en un entrenamiento de la lista central, mostrar la asistencia correspondiente."""
-        # Buscar la fecha en entrenamientos.json
-        try:
-            with open("base_de_datos/entrenamientos.json", "r") as archivo:
-                entrenamientos_data = json.load(archivo)
-        except (FileNotFoundError, json.JSONDecodeError):
-            entrenamientos_data = []
-
-        # Buscar la fecha
-        ent_obj = next((e for e in entrenamientos_data if e["id"] == entrenamiento_id), None)
-        if ent_obj:
-            fecha_entrenamiento = ent_obj["fecha"]
-            mostrar_asistencia_entrenamiento(fecha_entrenamiento)
-        else:
-            mostrar_snackbar("Entrenamiento no encontrado.", "ERROR")
+        """
+        Al hacer clic en un entrenamiento de la lista central,
+        mostrar la asistencia correspondiente en la columna derecha.
+        """
+        mostrar_asistencia_entrenamiento_derecha(entrenamiento_id)
 
     # Botón para aplicar el filtro
     btn_filtrar = ft.ElevatedButton(
@@ -365,13 +389,6 @@ def create_entrenamientos_view(controller, page):
         text="Crear Entrenamiento",
         icon=ft.icons.ADD,
         on_click=crear_entrenamiento_dialog
-    )
-
-    # BOTÓN PARA ACTUALIZAR ASISTENCIAS GLOBALES
-    actualizar_asistencias_button = ft.ElevatedButton(
-        text="Refrescar Asistencias Globales",
-        icon=ft.icons.REFRESH,
-        on_click=lambda e: actualizar_asistencias_global()
     )
 
     # BOTÓN PARA REFRESCAR TODA LA LISTA DE ENTRENAMIENTOS (sin filtro)
@@ -431,14 +448,13 @@ def create_entrenamientos_view(controller, page):
         padding=20,
     )
 
-    # Columna derecha: Asistencias globales
+    # Columna derecha: Asistencias por Entrenamiento (inicialmente vacía)
     asistencias_view = ft.Container(
         ft.Column(
             [
-                ft.Text("Asistencias Registradas (Global)", size=18, weight=ft.FontWeight.BOLD),
+                ft.Text("Asistencias por Entrenamiento", size=18, weight=ft.FontWeight.BOLD),
                 ft.Divider(),
-                actualizar_asistencias_button,
-                ft.Container(asistencias_list, expand=True),
+                ft.Container(asistencias_por_entrenamiento_list, expand=True),
             ],
             spacing=20,
             alignment=ft.MainAxisAlignment.START,
@@ -458,6 +474,9 @@ def create_entrenamientos_view(controller, page):
         ],
         expand=True,
     )
+
+    # Cargamos inicialmente la lista de entrenamientos
+    #actualizar_entrenamientos()
 
     # Devolver la vista y elementos clave, incluyendo actualizar_entrenamientos
     return entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos

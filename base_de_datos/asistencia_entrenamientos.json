@@ -328,5 +328,29 @@
         "usuario_id": 25,
         "entrenamiento_id": 4,
         "estado": "pendiente"
+    },
+    {
+        "id": 56,
+        "usuario_id": 9,
+        "entrenamiento_id": 27,
+        "estado": "ausente"
+    },
+    {
+        "id": 57,
+        "usuario_id": 17,
+        "entrenamiento_id": 27,
+        "estado": "presente"
+    },
+    {
+        "id": 58,
+        "usuario_id": 24,
+        "entrenamiento_id": 27,
+        "estado": "presente"
+    },
+    {
+        "id": 59,
+        "usuario_id": 25,
+        "entrenamiento_id": 27,
+        "estado": "presente"
     }
 ]
