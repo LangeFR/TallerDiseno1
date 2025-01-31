@@ -38,5 +38,9 @@
     {
         "usuario": "Michael Medina",
         "torneo_id": 6
+    },
+    {
+        "usuario": "Carlos",
+        "torneo_id": 4
     }
 ]

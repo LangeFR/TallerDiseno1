@@ -39,7 +39,7 @@ def main(page: ft.Page):
     usuarios_view = create_usuarios_view(controller)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     torneos_view, torneos_list, dropdown_torneos = create_torneos_view(controller, torneos, page)
-    entrenamientos_view, entrenamientos_list, dropdown_entrenamientos = create_entrenamientos_view(controller)
+    entrenamientos_view, entrenamientos_list, dropdown_entrenamientos = create_entrenamientos_view(controller, page)
     informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     pagos_view = create_pagos_view(controller, page) 
 
@@ -451,43 +451,43 @@ def main(page: ft.Page):
 
 
 
-    def actualizar_asistencias():
-        try:
-            # Cargar asistencias desde el archivo JSON
-            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
-                asistencias = json.load(archivo)
-        except (FileNotFoundError, json.JSONDecodeError):
-            asistencias = []
+    # def actualizar_asistencias():
+    #     try:
+    #         # Cargar asistencias desde el archivo JSON
+    #         with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+    #             asistencias = json.load(archivo)
+    #     except (FileNotFoundError, json.JSONDecodeError):
+    #         asistencias = []
     
-        try:
-            # Cargar usuarios y entrenamientos para mostrar nombres en lugar de IDs
-            with open("base_de_datos/usuarios.json", "r") as archivo:
-                usuarios = json.load(archivo)
-            usuarios_dict = {usuario["id"]: usuario["nombre"] for usuario in usuarios}
+    #     try:
+    #         # Cargar usuarios y entrenamientos para mostrar nombres en lugar de IDs
+    #         with open("base_de_datos/usuarios.json", "r") as archivo:
+    #             usuarios = json.load(archivo)
+    #         usuarios_dict = {usuario["id"]: usuario["nombre"] for usuario in usuarios}
     
-            with open("base_de_datos/entrenamientos.json", "r") as archivo:
-                entrenamientos = json.load(archivo)
-            entrenamientos_dict = {entrenamiento["id"]: entrenamiento["fecha"] for entrenamiento in entrenamientos}
-        except (FileNotFoundError, json.JSONDecodeError):
-            usuarios_dict = {}
-            entrenamientos_dict = {}
+    #         with open("base_de_datos/entrenamientos.json", "r") as archivo:
+    #             entrenamientos = json.load(archivo)
+    #         entrenamientos_dict = {entrenamiento["id"]: entrenamiento["fecha"] for entrenamiento in entrenamientos}
+    #     except (FileNotFoundError, json.JSONDecodeError):
+    #         usuarios_dict = {}
+    #         entrenamientos_dict = {}
     
-        # Limpiar la lista de asistencias en la interfaz
-        asistencias_list.controls.clear()
+    #     # Limpiar la lista de asistencias en la interfaz
+    #     asistencias_list.controls.clear()
     
-        # Mostrar asistencias en la interfaz
-        for asistencia in asistencias:
-            usuario_nombre = usuarios_dict.get(asistencia["usuario_id"], "Usuario no encontrado")
-            entrenamiento_fecha = entrenamientos_dict.get(asistencia["entrenamiento_id"], "Entrenamiento no encontrado")
-            asistencias_list.controls.append(
-                ft.ListTile(
-                    title=ft.Text(f"Usuario: {usuario_nombre}"),
-                    subtitle=ft.Text(f"Entrenamiento: {entrenamiento_fecha} | Estado: {asistencia['estado']}"),
-                )
-            )
+    #     # Mostrar asistencias en la interfaz
+    #     for asistencia in asistencias:
+    #         usuario_nombre = usuarios_dict.get(asistencia["usuario_id"], "Usuario no encontrado")
+    #         entrenamiento_fecha = entrenamientos_dict.get(asistencia["entrenamiento_id"], "Entrenamiento no encontrado")
+    #         asistencias_list.controls.append(
+    #             ft.ListTile(
+    #                 title=ft.Text(f"Usuario: {usuario_nombre}"),
+    #                 subtitle=ft.Text(f"Entrenamiento: {entrenamiento_fecha} | Estado: {asistencia['estado']}"),
+    #             )
+    #         )
     
-        # Actualizar la página
-        page.update()
+    #     # Actualizar la página
+    #     page.update()
 
 
 

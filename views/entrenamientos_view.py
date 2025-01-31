@@ -1,96 +1,458 @@
 import flet as ft
+import json
+from modelos.entrenamiento import Entrenamiento
+from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
+from modelos.base_model import BaseModel
 
-def create_entrenamientos_view(controller):
+
+def create_entrenamientos_view(controller, page):
     """
     Crea y retorna la vista de gestión de entrenamientos, incluyendo los componentes internos.
     
     Parámetros:
         controller (ClubController): Controlador que maneja la lógica de negocio.
+        page (ft.Page): Página principal de Flet.
     
     Retorna:
-        tuple: Contiene la vista de entrenamientos y los componentes necesarios como objetos de Flet.
+        tuple: (entrenamientos_view, entrenamientos_list, dropdown_entrenamientos)
     """
-    # Crear dropdown para seleccionar usuarios
-    dropdown_usuarios = ft.Dropdown(
-        label="Seleccione un Usuario",
-        options=[ft.dropdown.Option(user.nombre) for user in controller.usuarios]
-    )
-    
-    # Crear dropdown para seleccionar entrenamientos
-    entrenamientos = controller.cargar_entrenamientos()
+
+    # ----------------------------------------------------------------
+    #   Utilidades
+    # ----------------------------------------------------------------
+
+    def mostrar_snackbar(mensaje, tipo="INFO"):
+        """Muestra un SnackBar con un mensaje y color dependiendo del tipo."""
+        color = (
+            ft.colors.GREEN
+            if tipo == "SUCCESS" else
+            ft.colors.RED
+            if tipo == "ERROR" else
+            ft.colors.BLUE_GREY
+        )
+        snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
+        page.snack_bar = snack_bar
+        snack_bar.open = True
+        page.update()
+
+    # ----------------------------------------------------------------
+    #   1. CREAR ENTRENAMIENTO
+    # ----------------------------------------------------------------
+
+    def crear_entrenamiento_dialog(e):
+        """Abre un diálogo para que el usuario ingrese la fecha del entrenamiento."""
+        fecha_input = ft.TextField(label="Fecha del Entrenamiento (YYYY-MM-DD)", autofocus=True)
+
+        def confirmar_creacion_entrenamiento(ev):
+            """Confirma la creación del entrenamiento al presionar el botón 'Crear'."""
+            fecha = fecha_input.value.strip()
+            if not fecha:
+                mostrar_snackbar("Por favor, ingresa la fecha del entrenamiento.", "ERROR")
+                return
+
+            # Crear nuevo Entrenamiento
+            nuevo_id = Entrenamiento.nuevo_id()
+            nuevo_entrenamiento = Entrenamiento(id=nuevo_id, fecha=fecha)
+            nuevo_entrenamiento.guardar()
+
+            # Para cada usuario MATRICULADO, crear asistencia con estado "pendiente"
+            usuarios_matriculados = controller.filtrar_usuarios("matriculado")
+            for u in usuarios_matriculados:
+                nueva_asistencia = Asistencia_Entrenamiento(
+                    id=Asistencia_Entrenamiento.nuevo_id(),
+                    usuario_id=u.id,
+                    entrenamiento_id=nuevo_id,
+                    estado="pendiente"
+                )
+                nueva_asistencia.guardar()
+
+            mostrar_snackbar(f"Entrenamiento '{fecha}' creado exitosamente.", "SUCCESS")
+            page.dialog.open = False
+            page.update()
+
+            # Actualizar la lista y el dropdown de entrenamientos
+            actualizar_entrenamientos()
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Crear Nuevo Entrenamiento"),
+            content=fecha_input,
+            actions=[
+                ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo_crear()),
+                ft.TextButton("Crear", on_click=confirmar_creacion_entrenamiento),
+            ],
+        )
+        page.dialog = dialog
+        dialog.open = True
+        page.update()
+
+    def cerrar_dialogo_crear():
+        page.dialog.open = False
+        page.update()
+
+    # ----------------------------------------------------------------
+    #   2. TOMAR ASISTENCIA (seleccionando un entrenamiento en un dropdown)
+    # ----------------------------------------------------------------
+
+    entrenamientos_iniciales = controller.cargar_entrenamientos()  # Lista de objetos Entrenamiento
+
     dropdown_entrenamientos = ft.Dropdown(
-        label="Seleccione un entrenamiento",
-        options=[ft.dropdown.Option(ent.fecha) for ent in entrenamientos]
+        label="Seleccionar Entrenamiento para tomar asistencia",
+        width=300,
+        options=[ft.dropdown.Option(ent.fecha) for ent in entrenamientos_iniciales],
+        on_change=lambda e: mostrar_asistencia_entrenamiento(e.control.value),
     )
-    
-    # Crear botón para inscribir a entrenamiento
-    def inscribir_a_entrenamiento(e):
-        print("Inscripción a entrenamiento iniciada")
-    
-    # Lista para mostrar entrenamientos disponibles
-    entrenamientos_list = ft.Column(
-        [ft.Text(ent.fecha) for ent in entrenamientos]
+
+    # Contenedor donde se mostrarán los usuarios y su asistencia
+    asistencia_detalles_list = ft.Column(scroll="auto")
+
+    def mostrar_asistencia_entrenamiento(fecha_entrenamiento):
+        """
+        Cuando se selecciona un entrenamiento en el dropdown, 
+        se listan los usuarios (pendientes, ausentes o presentes) 
+        y se permite cambiar el estado de asistencia.
+        """
+        if not fecha_entrenamiento:
+            return
+        
+        # Encontrar el objeto Entrenamiento según la fecha
+        try:
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos_data = json.load(archivo)
+            entrenamiento_data = next((t for t in entrenamientos_data if t["fecha"] == fecha_entrenamiento), None)
+        except (FileNotFoundError, json.JSONDecodeError):
+            entrenamiento_data = None
+
+        if not entrenamiento_data:
+            mostrar_snackbar("No se encontró el entrenamiento seleccionado.", "ERROR")
+            return
+
+        entrenamiento_id = entrenamiento_data["id"]
+
+        # Cargar asistencias y usuarios
+        try:
+            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+                asistencias = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            asistencias = []
+
+        try:
+            with open("base_de_datos/usuarios.json", "r") as archivo:
+                usuarios = json.load(archivo)
+            usuarios_dict = {u["id"]: u["nombre"] for u in usuarios}
+        except (FileNotFoundError, json.JSONDecodeError):
+            usuarios_dict = {}
+        
+        # Filtrar la asistencia del entrenamiento seleccionado
+        asistencia_entrenamiento = [a for a in asistencias if a["entrenamiento_id"] == entrenamiento_id]
+
+        asistencia_detalles_list.controls.clear()
+
+        if not asistencia_entrenamiento:
+            asistencia_detalles_list.controls.append(
+                ft.Text("No hay asistencias registradas para este entrenamiento.")
+            )
+        else:
+            for a in asistencia_entrenamiento:
+                usuario_id = a["usuario_id"]
+                estado_actual = a["estado"]
+                usuario_nombre = usuarios_dict.get(usuario_id, "Usuario no encontrado")
+
+                # Dropdown para cambiar el estado (ausente, presente, pendiente)
+                estado_dropdown = ft.Dropdown(
+                    width=100,
+                    options=[
+                        ft.dropdown.Option("pendiente"),
+                        ft.dropdown.Option("ausente"),
+                        ft.dropdown.Option("presente"),
+                    ],
+                    value=estado_actual,
+                    on_change=lambda e, asistencia_id=a["id"]: actualizar_estado_asistencia(e, asistencia_id),
+                )
+
+                asistencia_detalles_list.controls.append(
+                    ft.Row(
+                        [
+                            ft.Text(usuario_nombre, width=200),
+                            estado_dropdown,
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    )
+                )
+
+        page.update()
+
+    def actualizar_estado_asistencia(e, asistencia_id):
+        """
+        Actualiza el estado (ausente, presente, pendiente) de la asistencia 
+        en el archivo JSON correspondiente.
+        """
+        nuevo_estado = e.control.value
+        try:
+            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+                asistencias = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            asistencias = []
+
+        for a in asistencias:
+            if a["id"] == asistencia_id:
+                a["estado"] = nuevo_estado
+                break
+        
+        BaseModel.guardar_datos("asistencia_entrenamientos.json", asistencias)
+        mostrar_snackbar(f"Estado de la asistencia actualizado a '{nuevo_estado}'.", "SUCCESS")
+
+        page.update()
+
+    # ----------------------------------------------------------------
+    #   3. VISTA DE ASISTENCIAS REGISTRADAS (GLOBAL)
+    # ----------------------------------------------------------------
+
+    asistencias_list = ft.Column(scroll="auto")
+
+    def actualizar_asistencias_global():
+        """
+        Muestra todas las asistencias existentes con la fecha y nombre de usuario.
+        """
+        try:
+            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
+                asistencias_data = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            asistencias_data = []
+        
+        try:
+            with open("base_de_datos/usuarios.json", "r") as archivo:
+                usuarios_data = json.load(archivo)
+            usuarios_dict = {u["id"]: u["nombre"] for u in usuarios_data}
+        except (FileNotFoundError, json.JSONDecodeError):
+            usuarios_dict = {}
+
+        try:
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos_data = json.load(archivo)
+            entrenamientos_dict = {e["id"]: e["fecha"] for e in entrenamientos_data}
+        except (FileNotFoundError, json.JSONDecodeError):
+            entrenamientos_dict = {}
+        
+        asistencias_list.controls.clear()
+        if not asistencias_data:
+            asistencias_list.controls.append(ft.Text("No hay asistencias registradas."))
+        else:
+            for a in asistencias_data:
+                usuario_nombre = usuarios_dict.get(a["usuario_id"], "Desconocido")
+                fecha_entrenamiento = entrenamientos_dict.get(a["entrenamiento_id"], "Desconocida")
+                estado = a["estado"]
+                asistencias_list.controls.append(
+                    ft.ListTile(
+                        title=ft.Text(f"Usuario: {usuario_nombre}"),
+                        subtitle=ft.Text(f"Fecha: {fecha_entrenamiento} | Estado: {estado}")
+                    )
+                )
+        page.update()
+
+    # Cargar y mostrar inicialmente
+    actualizar_asistencias_global()
+
+    # ----------------------------------------------------------------
+    #   4. FILTRAR ENTRENAMIENTOS POR AÑO Y MES
+    # ----------------------------------------------------------------
+
+    # Dropdowns para año y mes
+    anios_disponibles = set()
+    meses_disponibles = set()
+
+    # Extraer año y mes de cada entrenamiento
+    for ent in controller.cargar_entrenamientos():
+        fecha_partes = ent.fecha.split("-")  # asumiendo formato YYYY-MM-DD
+        if len(fecha_partes) == 3:
+            anio, mes, _ = fecha_partes
+            anios_disponibles.add(anio)
+            meses_disponibles.add(mes)
+
+    # Convertir a listas ordenadas
+    anios_ordenados = sorted(list(anios_disponibles))
+    meses_ordenados = sorted(list(meses_disponibles))
+
+    dropdown_anio = ft.Dropdown(
+        label="Filtrar por Año",
+        options=[ft.dropdown.Option(a) for a in anios_ordenados],
+        width=120,
     )
-    
-    inscribir_entrenamiento_button = ft.ElevatedButton(
-        "Inscribir en Entrenamiento",
-        icon=ft.icons.CHECK,
-        on_click=inscribir_a_entrenamiento
+
+    dropdown_mes = ft.Dropdown(
+        label="Filtrar por Mes",
+        options=[ft.dropdown.Option(m) for m in meses_ordenados],
+        width=80,
     )
-    
-    # Vista para asistencias registradas
-    asistencias_list = ft.Column([])
-    
-    asistencias_view = ft.Container(
+
+    # Lista donde se mostrarán los entrenamientos filtrados
+    entrenamientos_list = ft.Column(scroll="auto")
+
+    def filtrar_entrenamientos(e):
+        """Filtra la lista de entrenamientos por el año y mes seleccionados."""
+        anio = dropdown_anio.value
+        mes = dropdown_mes.value
+
+        entrenamientos_filtrados = []
+        for ent in controller.cargar_entrenamientos():
+            partes = ent.fecha.split("-")
+            if len(partes) == 3:
+                y, m, _ = partes
+                if (not anio or y == anio) and (not mes or m == mes):
+                    entrenamientos_filtrados.append(ent)
+
+        # Actualizamos la lista
+        entrenamientos_list.controls.clear()
+        for ent in entrenamientos_filtrados:
+            entrenamientos_list.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f"ID: {ent.id} - Fecha: {ent.fecha}"),
+                    on_click=lambda _, this_id=ent.id: click_entrenamiento_central(this_id),
+                )
+            )
+        entrenamientos_list.update()
+
+    def click_entrenamiento_central(entrenamiento_id):
+        """Al hacer clic en un entrenamiento de la lista central, mostrar la asistencia correspondiente."""
+        # Buscar la fecha en entrenamientos.json
+        try:
+            with open("base_de_datos/entrenamientos.json", "r") as archivo:
+                entrenamientos_data = json.load(archivo)
+        except (FileNotFoundError, json.JSONDecodeError):
+            entrenamientos_data = []
+        
+        # Buscar la fecha
+        ent_obj = next((e for e in entrenamientos_data if e["id"] == entrenamiento_id), None)
+        if ent_obj:
+            fecha_entrenamiento = ent_obj["fecha"]
+            mostrar_asistencia_entrenamiento(fecha_entrenamiento)
+
+    # Botón para aplicar el filtro
+    btn_filtrar = ft.ElevatedButton(
+        text="Aplicar Filtro",
+        icon=ft.icons.SEARCH,
+        on_click=filtrar_entrenamientos
+    )
+
+    def actualizar_entrenamientos():
+        """
+        Refresca la lista de entrenamientos sin filtro.
+        """
+        entrenamientos_list.controls.clear()
+        for ent in controller.cargar_entrenamientos():
+            entrenamientos_list.controls.append(
+                ft.ListTile(
+                    title=ft.Text(f"ID: {ent.id} - Fecha: {ent.fecha}"),
+                    on_click=lambda _, this_id=ent.id: click_entrenamiento_central(this_id),
+                )
+            )
+        entrenamientos_list.update()
+
+    # Inicialmente mostrará todos los entrenamientos
+    actualizar_entrenamientos()
+
+    # ----------------------------------------------------------------
+    #   5. CONSTRUCCIÓN DE LA VISTA PRINCIPAL
+    # ----------------------------------------------------------------
+
+    # BOTÓN PARA CREAR ENTRENAMIENTO
+    crear_entrenamiento_button = ft.ElevatedButton(
+        text="Crear Entrenamiento",
+        icon=ft.icons.ADD,
+        on_click=crear_entrenamiento_dialog
+    )
+
+    # BOTÓN PARA ACTUALIZAR ASISTENCIAS GLOBALES
+    actualizar_asistencias_button = ft.ElevatedButton(
+        text="Refrescar Asistencias Globales",
+        icon=ft.icons.REFRESH,
+        on_click=lambda e: actualizar_asistencias_global()
+    )
+
+    # BOTÓN PARA REFRESCAR TODA LA LISTA DE ENTRENAMIENTOS (sin filtro)
+    refrescar_entrenamientos_button = ft.ElevatedButton(
+        text="Refrescar Entrenamientos",
+        icon=ft.icons.REFRESH,
+        on_click=lambda e: actualizar_entrenamientos()
+    )
+
+    # Columna izquierda: Crear y tomar asistencia
+    izquierda = ft.Container(
         ft.Column(
             [
-                ft.Text("Asistencias Registradas", size=24, weight=ft.FontWeight.BOLD),
-                ft.Divider(height=10, thickness=2),
-                asistencias_list,
+                ft.Text("GESTIÓN DE ENTRENAMIENTOS", size=18, weight=ft.FontWeight.BOLD),
+                ft.Divider(),
+                crear_entrenamiento_button,
+                refrescar_entrenamientos_button,
+                ft.Divider(),
+                ft.Text("Tomar Asistencia (Dropdown)", size=16, weight=ft.FontWeight.BOLD),
+                dropdown_entrenamientos,
+                ft.Divider(height=2, thickness=1),
+                ft.Text("Usuarios en este entrenamiento:", size=14),
+                ft.Container(asistencia_detalles_list, expand=True, scroll="auto"),
             ],
             spacing=20,
             alignment=ft.MainAxisAlignment.START,
+            expand=True,
+        ),
+        width=350,
+        padding=20,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        border_radius=10,
+    )
+
+    # Columna central: Filtrar entrenamientos y ver lista
+    centro = ft.Container(
+        ft.Column(
+            [
+                ft.Text("Entrenamientos Disponibles", size=18, weight=ft.FontWeight.BOLD),
+                ft.Divider(),
+                ft.Row(
+                    [
+                        dropdown_anio,
+                        dropdown_mes,
+                        btn_filtrar,
+                    ],
+                    alignment=ft.MainAxisAlignment.START,
+                ),
+                ft.Divider(),
+                ft.Container(entrenamientos_list, expand=True, scroll="auto"),
+            ],
+            spacing=10,
+            alignment=ft.MainAxisAlignment.START,
+            expand=True,
         ),
         expand=True,
         padding=20,
     )
-    
-    # Vista principal de entrenamientos
+
+    # Columna derecha: Asistencias globales
+    asistencias_view = ft.Container(
+        ft.Column(
+            [
+                ft.Text("Asistencias Registradas (Global)", size=18, weight=ft.FontWeight.BOLD),
+                ft.Divider(),
+                actualizar_asistencias_button,
+                ft.Container(asistencias_list, expand=True, scroll="auto"),
+            ],
+            spacing=20,
+            alignment=ft.MainAxisAlignment.START,
+            expand=True,
+        ),
+        expand=True,
+        padding=20,
+    )
+
     entrenamientos_view = ft.Row(
         [
-            ft.Container(
-                content=ft.Column(
-                    [
-                        dropdown_usuarios,
-                        dropdown_entrenamientos,
-                        inscribir_entrenamiento_button,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                width=300,
-                padding=20,
-                bgcolor=ft.colors.SURFACE_VARIANT,
-                border_radius=10,
-            ),
+            izquierda,
             ft.VerticalDivider(width=1),
-            ft.Container(
-                content=ft.Column(
-                    [
-                        ft.Text("Entrenamientos Disponibles", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=10, thickness=2),
-                        entrenamientos_list,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                expand=True,
-                padding=20,
-            ),
+            centro,
             ft.VerticalDivider(width=1),
             asistencias_view,
         ],
         expand=True,
     )
-    
+
+    # Devolver la vista y elementos clave
     return entrenamientos_view, entrenamientos_list, dropdown_entrenamientos
