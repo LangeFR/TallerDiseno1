@@ -30,7 +30,7 @@ from views.pagos_view import create_pagos_view
 
 # ------------------------- VISTA -------------------------
 def main(page: ft.Page):
-    page.title = "Club de Tenis"
+    page.title = "TopSpinTracker"
     page.theme_mode = ft.ThemeMode.DARK
 
     controller = ClubController()
