@@ -8,9 +8,9 @@ EMAIL_REGEX = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
 ALPHABETIC_REGEX = r'^[A-Za-záéíóúÁÉÍÓÚñÑ0-9 ]+$'
 
 def validar_identificacion(e: ft.ControlEvent):
-    """Valida que el campo de identificación contenga solo números y no más de 10 dígitos."""
+    """Valida que el campo de identificación contenga solo números y tenga entre 8 y 10 dígitos."""
     if not e.value.isdigit() or len(e.value) < 8 or len(e.value) > 10:
-        e.error_text = "La identificación debe ser numérica y tener máximo 10 dígitos."
+        e.error_text = "Debe ser numérica y tener de 8 a 10 dígitos."
         e.update()
         return False
     e.error_text = None

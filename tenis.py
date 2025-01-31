@@ -113,7 +113,7 @@ def main(page: ft.Page):
 
         # Llamar a las funciones de validación
         if not (validar_nombre(nombre_field) and validar_apellidos(apellidos_field) and 
-                validar_email(correo_field) and validar_telefono(telefono_field)):
+                validar_email(correo_field) and validar_telefono(telefono_field)) and validar_identificacion(id_field):
             page.snack_bar = ft.SnackBar(
                 ft.Text("Corrija los errores en los campos", color=ft.colors.WHITE), bgcolor=ft.colors.RED
             )
@@ -122,9 +122,9 @@ def main(page: ft.Page):
             return
 
         # Validar número de identificación (máximo 10 dígitos)
-        if len(id_field.value) > 10 or not id_field.value.isdigit():
+        if len(id_field.value) > 10 or len(id_field.value) < 8 or not id_field.value.isdigit():
             page.snack_bar = ft.SnackBar(
-                ft.Text("El número de identificación debe tener máximo 10 dígitos y solo contener números", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+                ft.Text("La identificación debe ser numérica y tener entre 8 y 10 dígitos.", color=ft.colors.WHITE), bgcolor=ft.colors.RED
             )
             page.snack_bar.open = True
             page.update()
