@@ -2,7 +2,7 @@
 
 import flet as ft
 
-def create_inscripcion_view(inscribir_persona, validar_identificacion, validar_email, validar_apellidos):
+def create_inscripcion_view(inscribir_persona, validar_identificacion, validar_email, validar_apellidos, validar_nombre, validar_telefono, validar_edad):
     """
     Crea y retorna la vista de inscripción de miembros.
     
@@ -11,6 +11,8 @@ def create_inscripcion_view(inscribir_persona, validar_identificacion, validar_e
         validar_identificacion (function): Función para validar la identificación.
         validar_email (function): Función para validar el correo electrónico.
         validar_apellidos (function): Función para validar los apellidos.
+        validar_nombre(function): Función para validar nombres
+        validar_telefono(function): Función para validar los teléfonos
     
     Retorna:
         ft.Column: La vista de inscripción como un objeto Column de Flet.

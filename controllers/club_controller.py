@@ -21,6 +21,12 @@ class ClubController:
                 usuario.estado = nuevo_estado
         self.guardar_usuarios()
 
+    def existe_usuario(self, num_identificacion, nombre):
+        for usuario in self.usuarios:
+            if usuario.num_identificacion == num_identificacion and usuario.nombre == nombre:
+                return True
+        return False
+
     def guardar_usuarios(self):
         BaseModel.guardar_datos("usuarios.json", [u.to_dict() for u in self.usuarios])
 
@@ -30,6 +36,7 @@ class ClubController:
     def agregar_usuario(self, usuario: Usuario):
         self.usuarios.append(usuario)
         self.guardar_usuarios()
+
 
     def cargar_usuarios(self):
         datos = BaseModel.cargar_datos("usuarios.json")
