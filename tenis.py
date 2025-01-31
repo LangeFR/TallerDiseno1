@@ -43,6 +43,8 @@ def main(page: ft.Page):
     informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     pagos_view = create_pagos_view(controller, page) 
 
+    
+
     #Dropdown usuarios
     dropdown_usuarios = controller.dropdown_usuarios_matriculados()
     
@@ -339,158 +341,6 @@ def main(page: ft.Page):
 
 
 
-    #Entrenamientos
-    def inscribir_a_entrenamiento(e):
-        if not dropdown_usuarios.value or not dropdown_entrenamientos.value:
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Debe seleccionar un usuario y un entrenamiento."),
-                bgcolor=ft.colors.ERROR,
-            )
-            page.snack_bar.open = True
-            return
-
-        # Buscar el entrenamiento seleccionado
-        try:
-            with open("base_de_datos/entrenamientos.json", "r") as archivo:
-                entrenamientos = json.load(archivo)
-                entrenamiento = next(
-                    (t for t in entrenamientos if t["fecha"] == dropdown_entrenamientos.value), None
-                )
-        except (FileNotFoundError, json.JSONDecodeError):
-            entrenamiento = None
-
-        if not entrenamiento:
-            page.snack_bar = ft.SnackBar(
-                ft.Text("El entrenamiento seleccionado no existe."),
-                bgcolor=ft.colors.ERROR,
-            )
-            page.snack_bar.open = True
-            return
-
-        # Buscar el usuario seleccionado
-        try:
-            with open("base_de_datos/usuarios.json", "r") as archivo:
-                usuarios = json.load(archivo)
-                usuario = next(
-                    (u for u in usuarios if u["nombre"] == dropdown_usuarios.value), None
-                )
-        except (FileNotFoundError, json.JSONDecodeError):
-            usuario = None
-
-        if not usuario:
-            page.snack_bar = ft.SnackBar(
-                ft.Text("El usuario seleccionado no existe."),
-                bgcolor=ft.colors.ERROR,
-            )
-            page.snack_bar.open = True
-            return
-
-        # Crear la asistencia y guardar
-        try:
-            nueva_asistencia = Asistencia_Entrenamiento(
-                id=Asistencia_Entrenamiento.nuevo_id(),
-                usuario_id=usuario["id"],
-                entrenamiento_id=entrenamiento["id"],
-                estado="pendiente",
-            )
-            nueva_asistencia.guardar()
-
-            # Mostrar mensaje de éxito
-            dialog = ft.AlertDialog(
-                title=ft.Text("Inscripción Exitosa"),
-                content=ft.Text(
-                    f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el entrenamiento del '{dropdown_entrenamientos.value}'!"
-                ),
-                actions=[
-                    ft.TextButton("Cerrar", on_click=lambda e: page.overlay.remove(dialog)),
-                ],
-            )
-            page.overlay.append(dialog)
-            page.update()
-
-            # Actualizar la vista de asistencias
-            actualizar_asistencias()
-
-        except Exception as ex:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Error: {str(ex)}"), bgcolor=ft.colors.ERROR)
-            page.snack_bar.open = True
-
-        page.update()
-
-
-    def actualizar_entrenamientos():
-        try:
-            # Cargar entrenamientos desde el archivo JSON
-            with open("base_de_datos/entrenamientos.json", "r") as archivo:
-                entrenamientos = json.load(archivo)
-        except (FileNotFoundError, json.JSONDecodeError):
-            entrenamientos = []
-    
-        if not entrenamientos:
-            print("No se encontraron entrenamientos.")
-            dropdown_entrenamientos.options = []
-            entrenamientos_list.controls.clear()
-            page.update()
-            return
-    
-        # Actualizamos las opciones del dropdown
-        dropdown_entrenamientos.options = [
-            ft.dropdown.Option(entrenamiento["fecha"]) for entrenamiento in entrenamientos
-        ]
-    
-        # Mostrar entrenamientos en la lista
-        entrenamientos_list.controls.clear()
-        for entrenamiento in entrenamientos:
-            entrenamientos_list.controls.append(
-                ft.ListTile(
-                    title=ft.Text(f"Fecha: {entrenamiento['fecha']}"),
-                    subtitle=ft.Text(f"ID: {entrenamiento['id']}"),
-                )
-            )
-        page.update()
-
-
-
-    # def actualizar_asistencias():
-    #     try:
-    #         # Cargar asistencias desde el archivo JSON
-    #         with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
-    #             asistencias = json.load(archivo)
-    #     except (FileNotFoundError, json.JSONDecodeError):
-    #         asistencias = []
-    
-    #     try:
-    #         # Cargar usuarios y entrenamientos para mostrar nombres en lugar de IDs
-    #         with open("base_de_datos/usuarios.json", "r") as archivo:
-    #             usuarios = json.load(archivo)
-    #         usuarios_dict = {usuario["id"]: usuario["nombre"] for usuario in usuarios}
-    
-    #         with open("base_de_datos/entrenamientos.json", "r") as archivo:
-    #             entrenamientos = json.load(archivo)
-    #         entrenamientos_dict = {entrenamiento["id"]: entrenamiento["fecha"] for entrenamiento in entrenamientos}
-    #     except (FileNotFoundError, json.JSONDecodeError):
-    #         usuarios_dict = {}
-    #         entrenamientos_dict = {}
-    
-    #     # Limpiar la lista de asistencias en la interfaz
-    #     asistencias_list.controls.clear()
-    
-    #     # Mostrar asistencias en la interfaz
-    #     for asistencia in asistencias:
-    #         usuario_nombre = usuarios_dict.get(asistencia["usuario_id"], "Usuario no encontrado")
-    #         entrenamiento_fecha = entrenamientos_dict.get(asistencia["entrenamiento_id"], "Entrenamiento no encontrado")
-    #         asistencias_list.controls.append(
-    #             ft.ListTile(
-    #                 title=ft.Text(f"Usuario: {usuario_nombre}"),
-    #                 subtitle=ft.Text(f"Entrenamiento: {entrenamiento_fecha} | Estado: {asistencia['estado']}"),
-    #             )
-    #         )
-    
-    #     # Actualizar la página
-    #     page.update()
-
-
-
     asistencias_list = ft.Column([])
 
 
@@ -624,6 +474,7 @@ def main(page: ft.Page):
             content.controls.append(torneos_view)
         elif index == 3:
             content.controls.append(entrenamientos_view)
+            entrenamientos_view.actualizar_entrenamientos()
         elif index == 4:
             content.controls.append(informes_view)
         elif index == 5:

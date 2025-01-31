@@ -1,3 +1,5 @@
+# tallerdiseno1/views/entrenamientos_view.py
+
 import flet as ft
 import json
 from modelos.entrenamiento import Entrenamiento
@@ -50,6 +52,14 @@ def create_entrenamientos_view(controller, page):
                 mostrar_snackbar("Por favor, ingresa la fecha del entrenamiento.", "ERROR")
                 return
 
+            # Validar formato de fecha
+            try:
+                import datetime
+                datetime.datetime.strptime(fecha, "%Y-%m-%d")
+            except ValueError:
+                mostrar_snackbar("Formato de fecha inválido. Usa YYYY-MM-DD.", "ERROR")
+                return
+
             # Crear nuevo Entrenamiento
             nuevo_id = Entrenamiento.nuevo_id()
             nuevo_entrenamiento = Entrenamiento(id=nuevo_id, fecha=fecha)
@@ -76,7 +86,7 @@ def create_entrenamientos_view(controller, page):
         dialog = ft.AlertDialog(
             modal=True,
             title=ft.Text("Crear Nuevo Entrenamiento"),
-            content=fecha_input,
+            content=ft.Column([fecha_input], spacing=10),
             actions=[
                 ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo_crear()),
                 ft.TextButton("Crear", on_click=confirmar_creacion_entrenamiento),
@@ -114,7 +124,7 @@ def create_entrenamientos_view(controller, page):
         """
         if not fecha_entrenamiento:
             return
-        
+
         # Encontrar el objeto Entrenamiento según la fecha
         try:
             with open("base_de_datos/entrenamientos.json", "r") as archivo:
@@ -142,7 +152,7 @@ def create_entrenamientos_view(controller, page):
             usuarios_dict = {u["id"]: u["nombre"] for u in usuarios}
         except (FileNotFoundError, json.JSONDecodeError):
             usuarios_dict = {}
-        
+
         # Filtrar la asistencia del entrenamiento seleccionado
         asistencia_entrenamiento = [a for a in asistencias if a["entrenamiento_id"] == entrenamiento_id]
 
@@ -198,10 +208,9 @@ def create_entrenamientos_view(controller, page):
             if a["id"] == asistencia_id:
                 a["estado"] = nuevo_estado
                 break
-        
+
         BaseModel.guardar_datos("asistencia_entrenamientos.json", asistencias)
         mostrar_snackbar(f"Estado de la asistencia actualizado a '{nuevo_estado}'.", "SUCCESS")
-
         page.update()
 
     # ----------------------------------------------------------------
@@ -219,7 +228,7 @@ def create_entrenamientos_view(controller, page):
                 asistencias_data = json.load(archivo)
         except (FileNotFoundError, json.JSONDecodeError):
             asistencias_data = []
-        
+
         try:
             with open("base_de_datos/usuarios.json", "r") as archivo:
                 usuarios_data = json.load(archivo)
@@ -233,7 +242,7 @@ def create_entrenamientos_view(controller, page):
             entrenamientos_dict = {e["id"]: e["fecha"] for e in entrenamientos_data}
         except (FileNotFoundError, json.JSONDecodeError):
             entrenamientos_dict = {}
-        
+
         asistencias_list.controls.clear()
         if not asistencias_data:
             asistencias_list.controls.append(ft.Text("No hay asistencias registradas."))
@@ -320,12 +329,14 @@ def create_entrenamientos_view(controller, page):
                 entrenamientos_data = json.load(archivo)
         except (FileNotFoundError, json.JSONDecodeError):
             entrenamientos_data = []
-        
+
         # Buscar la fecha
         ent_obj = next((e for e in entrenamientos_data if e["id"] == entrenamiento_id), None)
         if ent_obj:
             fecha_entrenamiento = ent_obj["fecha"]
             mostrar_asistencia_entrenamiento(fecha_entrenamiento)
+        else:
+            mostrar_snackbar("Entrenamiento no encontrado.", "ERROR")
 
     # Botón para aplicar el filtro
     btn_filtrar = ft.ElevatedButton(
@@ -349,7 +360,7 @@ def create_entrenamientos_view(controller, page):
         entrenamientos_list.update()
 
     # Inicialmente mostrará todos los entrenamientos
-    actualizar_entrenamientos()
+    #actualizar_entrenamientos()
 
     # ----------------------------------------------------------------
     #   5. CONSTRUCCIÓN DE LA VISTA PRINCIPAL
@@ -385,7 +396,7 @@ def create_entrenamientos_view(controller, page):
                 crear_entrenamiento_button,
                 refrescar_entrenamientos_button,
                 ft.Divider(),
-                ft.Text("Tomar Asistencia (Dropdown)", size=16, weight=ft.FontWeight.BOLD),
+                ft.Text("Tomar Asistencia", size=16, weight=ft.FontWeight.BOLD),
                 dropdown_entrenamientos,
                 ft.Divider(height=2, thickness=1),
                 ft.Text("Usuarios en este entrenamiento:", size=14),
