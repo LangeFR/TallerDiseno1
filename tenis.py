@@ -12,7 +12,7 @@ from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
 from datetime import datetime
 import os
 
-from utils.validations import validar_identificacion, validar_email, validar_apellidos
+from utils.validations import validar_identificacion, validar_email, validar_apellidos, validar_nombre, validar_fecha, validar_telefono,es_dia_valido, validar_edad
 
 # ------------------------- CONTROLADOR -------------------------
 from controllers.club_controller import ClubController  
@@ -35,7 +35,7 @@ def main(page: ft.Page):
     controller = ClubController()
 
     # Crear las vistas y recibir las referencias necesarias
-    inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(controller, validar_identificacion, validar_email, validar_apellidos)
+    inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(controller, validar_identificacion, validar_email, validar_apellidos, validar_nombre, validar_telefono, validar_edad)
     usuarios_view = create_usuarios_view(controller)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     torneos_view, torneos_list, dropdown_torneos = create_torneos_view(controller, torneos, page)
@@ -82,22 +82,100 @@ def main(page: ft.Page):
     )
 
     def inscribir_persona(e):
+        # Validar campos vacíos
         if not nombre_field.value or not apellidos_field.value or not id_field.value or not correo_field.value:
             page.dialog = aviso_dialog
             aviso_dialog.open = True
             page.update()
             return
 
+         # Validar edad (no puede ser mayor a 116 años)
+        try:
+            edad = int(edad_field.value)
+            if edad > 116:
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("La edad no puede ser mayor a 116 años", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+                )
+                page.snack_bar.open = True
+                page.update()
+                return
+        except ValueError:
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Edad inválida", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # Validar nombre y apellidos (solo letras y espacios)
+        if not re.match("^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$", nombre_field.value):
+            page.snack_bar = ft.SnackBar(
+                ft.Text("El nombre no puede contener caracteres especiales", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        if not re.match("^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$", apellidos_field.value):
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Los apellidos no pueden contener caracteres especiales", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+        
+        # Validar correo electrónico
+        EMAIL_REGEX = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        if not re.match(EMAIL_REGEX, correo_field.value):
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Ingrese un correo electrónico válido", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # Validar número de identificación (máximo 10 dígitos)
+        if len(id_field.value) > 10 or not id_field.value.isdigit():
+            page.snack_bar = ft.SnackBar(
+                ft.Text("El número de identificación debe tener máximo 10 dígitos y solo contener números", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # Validar número de celular (de 8 a 12 dígitos)
+        if len(telefono_field.value) < 8 or len(telefono_field.value) > 12 or not telefono_field.value.isdigit():
+            page.snack_bar = ft.SnackBar(
+                ft.Text("El número de celular debe tener entre 8 y 12 dígitos y solo contener números", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # Verificar si ya existe una persona registrada con el mismo nombre y número de identificación
+        if controller.existe_usuario(id_field.value, nombre_field.value):
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Ya existe una persona registrada con este nombre y número de identificación", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+        
+        # Crear un nuevo usuario
         nuevo_usuario = Usuario(
             id=Usuario.nuevo_id(),  # Generar un nuevo ID
             nombre=nombre_field.value,
             apellidos=apellidos_field.value,  # Obtener 'apellidos'
-            edad=int(edad_field.value),  # Asegurarse de convertir a int
+            edad=edad,
             num_identificacion=id_field.value,
             correo=correo_field.value,
             telefono=telefono_field.value,
             estado="inscrito"  # Estado por defecto
         )
+
+
+
+
 
         controller.agregar_usuario(nuevo_usuario)
 
@@ -120,7 +198,10 @@ def main(page: ft.Page):
         inscribir_persona=inscribir_persona, 
         validar_identificacion=validar_identificacion, 
         validar_email=validar_email, 
-        validar_apellidos=validar_apellidos
+        validar_apellidos=validar_apellidos,
+        validar_telefono=validar_telefono,
+        validar_nombre=validar_nombre,
+        validar_edad=validar_edad
     )
     
     inscribir_button = ft.ElevatedButton(
