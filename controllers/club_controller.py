@@ -106,3 +106,9 @@ class ClubController:
         except:
             asistencias = []
         return [a for a in asistencias if a["torneo_id"] == torneo_id]
+
+    def usuarios_matriculados_list(self):
+        """
+        Retorna una lista de usuarios matriculados en el club.
+        """
+        return [usuario for usuario in self.usuarios if usuario.estado == "matriculado"]

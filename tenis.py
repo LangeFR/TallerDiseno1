@@ -317,6 +317,8 @@ def main(page: ft.Page):
         elif index == 1:
             content.controls.append(Usuarios_view)
         elif index == 2:
+            usuarios_matriculados = controller.usuarios_matriculados_list()
+            dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in usuarios_matriculados]
             content.controls.append(torneos_view)
         elif index == 3:
             content.controls.append(entrenamientos_view)
