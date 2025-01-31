@@ -82,5 +82,11 @@
         "usuario_id": 24,
         "torneo_id": 12,
         "puesto": 2
+    },
+    {
+        "id": 15,
+        "usuario_id": 25,
+        "torneo_id": 12,
+        "puesto": 4
     }
 ]
