@@ -97,8 +97,6 @@ def create_torneos_view(controller, torneos, page):
         # Abrir un diálogo para ingresar nombre y fecha del torneo
         nombre_input = ft.TextField(label="Nombre del Torneo", autofocus=True)
         fecha_input = ft.TextField(label="Fecha del Torneo", hint_text="YYYY-MM-DD")
-        fecha=fecha_input.value
-        print(fecha)
 
         agregar_dialog = ft.AlertDialog(
             modal=True,
@@ -106,26 +104,33 @@ def create_torneos_view(controller, torneos, page):
             content=ft.Column([nombre_input, fecha_input], spacing=10),
             actions=[
                 ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo()),
-                # Aquí simplemente pasamos los valores como strings, no los objetos TextField.
-                ft.TextButton("Agregar", on_click=lambda e: agregar_torneo_confirm(nombre_input.value, fecha)),
+                ft.TextButton(
+                    "Agregar",
+                    on_click=lambda e: agregar_torneo_confirm(nombre_input.value, fecha_input),
+                ),
             ]
         )
         page.dialog = agregar_dialog
         agregar_dialog.open = True
         page.update()
 
+
     # Confirmar agregar torneo
-    def agregar_torneo_confirm(nombre, fecha):
-        # Utilizar formatear_fecha de utils
-        fecha_formateada, error_message = formatear_fecha(fecha)
+    def agregar_torneo_confirm(nombre, fecha_input):
+        # Formatear la fecha utilizando formatear_fecha
+        fecha_formateada, error_message = formatear_fecha(fecha_input.value)
         if error_message:
             mostrar_snackbar(error_message, "ERROR")
             return
-        print(fecha_formateada)
 
-        # Validación de fecha
-        if not validar_fecha(fecha_formateada):  # Asumiendo que validar_fecha devuelve True o False.
-            mostrar_snackbar("Fecha no válida.", "ERROR")
+        # Actualizar el campo de fecha con el formato correcto
+        fecha_input.value = fecha_formateada
+        fecha_input.update()
+
+        # Validar la fecha utilizando validar_fecha
+        validar_fecha(fecha_input)
+        if fecha_input.error_text:
+            mostrar_snackbar(fecha_input.error_text, "ERROR")
             return
 
         if not nombre:
