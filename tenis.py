@@ -349,25 +349,6 @@ def main(page: ft.Page):
 
 
 
-    def crear_entrenamiento(anio, mes, dia):
-        # Formatear día y mes para asegurar el formato de dos dígitos
-        dia_formateado = str(dia).zfill(2)
-        mes_formateado = str(mes).zfill(2)
-        
-        # Componer la fecha en formato aaaa-mm-dd
-        fecha = f"{anio}-{mes_formateado}-{dia_formateado}"
-        
-        # Intentar crear un nuevo objeto de Entrenamiento
-        try:
-            nuevo_entrenamiento = Entrenamiento(id=Entrenamiento.nuevo_id(), fecha=fecha)
-            nuevo_entrenamiento.guardar()  # Guarda el entrenamiento en la base de datos
-            nuevo_entrenamiento.crear_asistencia_entrenamientos()  # Crea asistencias para todos los usuarios
-            print(f"Entrenamiento creado para la fecha {fecha}")
-        except Exception as e:
-            print(f"No se pudo crear el entrenamiento: {e}")
-    
-    # crear_entrenamiento_button = ft.ElevatedButton("Crear Entrenamiento", on_click=lambda e: crear_entrenamiento(anio, mes, dia)) #Modificar para que sea dinamico en el front
-    
     def crear_torneo(anio, mes, dia):
         # Formatear día y mes para asegurar el formato de dos dígitos
         dia_formateado = str(dia).zfill(2)
@@ -398,39 +379,6 @@ def main(page: ft.Page):
     #crear_asistencia_torneo_button = ft.ElevatedButton("Aceptar", on_click=lambda e: crear_asistencia_torneo(usuario_id, torneo_id, puesto)) #Modificar para que sea dinamico en el front
 
 
-
-    def tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado):
-        # Verificar que el estado sea válido
-        if estado not in ["ausente", "presente"]:
-            print("Error: Estado no válido. Debe ser 'ausente' o 'presente'.")
-            return
-        
-        # Encontrar el ID de la asistencia correspondiente
-        asistencia_id = Asistencia_Entrenamiento.find_by_user_and_entrenamiento_id(usuario_id, entrenamiento_id)
-        
-        if asistencia_id is None:
-            print("No se encontró una asistencia correspondiente con los datos proporcionados.")
-            return
-        
-        # Cargar el objeto Asistencia_Entrenamiento usando el ID encontrado
-        try:
-            with open("base_de_datos/asistencia_entrenamientos.json", "r") as archivo:
-                asistencias = json.load(archivo)
-            
-            # Encontrar el objeto asistencia específico y cambiar su estado
-            asistencia = next((item for item in asistencias if item["id"] == asistencia_id), None)
-            if asistencia:
-                asistencia_obj = Asistencia_Entrenamiento(id=asistencia['id'], usuario_id=asistencia['usuario_id'], entrenamiento_id=asistencia['entrenamiento_id'], estado=asistencia['estado'])
-                asistencia_obj.cambiar_estado(estado)
-                print(f"Estado de asistencia actualizado correctamente a {estado}.")
-            else:
-                print("No se pudo cargar la asistencia correctamente.")
-        except FileNotFoundError:
-            print("Archivo de asistencias no encontrado.")
-        except json.JSONDecodeError:
-            print("Error al decodificar el archivo de asistencias.")
-        
-    #tomar_asistencia_entrenamiento_button = ft.ElevatedButton("Aceptar", on_click=lambda e: tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado)) #Modificar para que sea dinamico en el front
 
 
 
