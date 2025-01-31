@@ -9,7 +9,7 @@ ALPHABETIC_REGEX = r'^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$'
 
 def validar_identificacion(e: ft.ControlEvent):
     """Valida que el campo de identificación contenga solo números y no más de 10 dígitos."""
-    if not e.value.isdigit() or len(e.value) > 10:
+    if not e.value.isdigit() or len(e.value) < 8 or len(e.value) > 10:
         e.error_text = "La identificación debe ser numérica y tener máximo 10 dígitos."
         e.update()
         return False
