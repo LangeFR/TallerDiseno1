@@ -130,10 +130,19 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Verificar si ya existe una persona registrada con el mismo nombre y número de identificación
-        if controller.existe_usuario(id_field.value, nombre_field.value):
+        # Validar número de celular (de 8 a 12 dígitos)
+        if len(telefono_field.value) < 8 or len(telefono_field.value) > 12 or not telefono_field.value.isdigit():
             page.snack_bar = ft.SnackBar(
-                ft.Text("Ya existe una persona registrada con este nombre y número de identificación", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+                ft.Text("El número de celular debe tener entre 8 y 12 dígitos y solo contener números", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # Verificar si ya existe una persona registrada con el mismo número de identificación
+        if controller.existe_usuario(id_field.value):
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Ya existe una persona registrada con este número de identificación", color=ft.colors.WHITE), bgcolor=ft.colors.RED
             )
             page.snack_bar.open = True
             page.update()
