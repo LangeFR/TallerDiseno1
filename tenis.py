@@ -196,55 +196,7 @@ def main(page: ft.Page):
     Usuarios_view = create_usuarios_view(mostrar_usuarios_view)
     
 
-    # Torneos
-    def inscribir_a_torneo(e):
-        if not dropdown_usuarios.value or not dropdown_torneos.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Debe seleccionar un usuario y un torneo"), bgcolor=ft.colors.ERROR)
-            page.snack_bar.open = True
-            return
-
-        # Buscar el ID del torneo seleccionado
-        try:
-            with open("base_de_datos/torneos.json", "r") as archivo:
-                torneos = json.load(archivo)
-                torneo = next((t for t in torneos if t["nombre"] == dropdown_torneos.value), None)
-        except (FileNotFoundError, json.JSONDecodeError):
-            torneo = None
-
-        if not torneo:
-            page.snack_bar = ft.SnackBar(
-                ft.Text("El torneo seleccionado no existe."), bgcolor=ft.colors.ERROR
-            )
-            page.snack_bar.open = True
-            return
-
-        try:
-            # Crear y guardar la inscripción
-            nueva_inscripcion = Inscripcion(usuario=dropdown_usuarios.value, torneo_id=torneo["id"])
-            nueva_inscripcion.guardar()
-
-            # Crear el diálogo
-            dialog = ft.AlertDialog(
-                title=ft.Text("Inscripción Exitosa"),
-                content=ft.Text(f"El usuario '{dropdown_usuarios.value}' ha sido inscrito exitosamente en el torneo '{dropdown_torneos.value}'!"),
-                actions=[
-                    ft.TextButton("Cerrar", on_click=lambda e: page.overlay.remove(dialog)),
-                ],
-            )
-            # Agregar el diálogo al overlay y actualizar la página
-            page.overlay.append(dialog)
-            page.update()
-
-            # Opcional: Actualizar la vista de inscripciones
-            actualizar_inscripciones()
-
-        except ValueError as ex:
-            # Si ya está inscrito, mostrar un mensaje de advertencia
-            page.snack_bar = ft.SnackBar(ft.Text(str(ex)), bgcolor=ft.colors.WARNING)
-            page.snack_bar.open = True
-
-        page.update()
-
+    
 
     def actualizar_inscripciones():
         try:
@@ -287,12 +239,6 @@ def main(page: ft.Page):
         # Actualizar la página
         page.update()
 
-    def agregar_torneo(e):
-        nuevo_torneo = Torneo(id=Torneo.nuevo_id(), nombre="Nuevo Torneo", fecha="2025-01-01")
-        nuevo_torneo.guardar()
-        actualizar_torneos()
-        page.snack_bar = ft.SnackBar(ft.Text("Torneo añadido"), bgcolor=ft.colors.GREEN)
-        page.snack_bar.open = True
 
     def actualizar_torneos():
         torneos = controller.cargar_torneos()
@@ -348,49 +294,7 @@ def main(page: ft.Page):
 
 
 
-
-    def crear_torneo(anio, mes, dia):
-        # Formatear día y mes para asegurar el formato de dos dígitos
-        dia_formateado = str(dia).zfill(2)
-        mes_formateado = str(mes).zfill(2)
-        
-        # Componer la fecha en formato aaaa-mm-dd
-        fecha = f"{anio}-{mes_formateado}-{dia_formateado}"
-        
-        # Intentar crear un nuevo objeto de Torneo
-        nuevo_torneo = Torneo(
-            id=Torneo.nuevo_id(),
-            nombre="Nombre del Torneo",  # Asumiendo que el nombre se proveerá o se manejará de otra manera
-            fecha=fecha
-        )
-        nuevo_torneo.guardar()
-        print(f"Torneo creado para la fecha {fecha}")
-
-    #crear_torneo_button = ft.ElevatedButton("Crear Torneo", on_click=lambda e: crear_torneo(anio, mes, dia)) #Modificar para que sea dinamico en el front
-
-    def crear_asistencia_torneo(torneo_id, miembro_id, puesto):
-        Asistencia_Torneo.crear_asistencia(
-            torneo_id=torneo_id,
-            miembro_id=miembro_id,
-            puesto=puesto
-        )
-        print(f"Asistencia para el torneo {torneo_id} creada para el miembro {miembro_id} con puesto {puesto}")
-
-    #crear_asistencia_torneo_button = ft.ElevatedButton("Aceptar", on_click=lambda e: crear_asistencia_torneo(usuario_id, torneo_id, puesto)) #Modificar para que sea dinamico en el front
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # Mostrar mensajes con SnackBar
+   # Mostrar mensajes con SnackBar
     def mostrar_snackbar(mensaje, tipo):
         color = ft.colors.GREEN if tipo == "SUCCESS" else ft.colors.RED
         snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
