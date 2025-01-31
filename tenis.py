@@ -93,10 +93,10 @@ def main(page: ft.Page):
             page.update()
             return
 
-         # Validar edad (no puede ser mayor a 116 años)
+        # Validar edad (no puede ser mayor a 116 años)
         try:
             edad = int(edad_field.value)
-            if edad > 116:
+            if not validar_edad(edad):
                 page.snack_bar = ft.SnackBar(
                     ft.Text("La edad no puede ser mayor a 116 años", color=ft.colors.WHITE), bgcolor=ft.colors.RED
                 )
@@ -111,28 +111,11 @@ def main(page: ft.Page):
             page.update()
             return
 
-        # Validar nombre y apellidos (solo letras y espacios)
-        if not re.match("^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$", nombre_field.value):
+        # Llamar a las funciones de validación
+        if not (validar_nombre(nombre_field) and validar_apellidos(apellidos_field) and 
+                validar_email(correo_field) and validar_telefono(telefono_field)):
             page.snack_bar = ft.SnackBar(
-                ft.Text("El nombre no puede contener caracteres especiales", color=ft.colors.WHITE), bgcolor=ft.colors.RED
-            )
-            page.snack_bar.open = True
-            page.update()
-            return
-
-        if not re.match("^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$", apellidos_field.value):
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Los apellidos no pueden contener caracteres especiales", color=ft.colors.WHITE), bgcolor=ft.colors.RED
-            )
-            page.snack_bar.open = True
-            page.update()
-            return
-        
-        # Validar correo electrónico
-        EMAIL_REGEX = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
-        if not re.match(EMAIL_REGEX, correo_field.value):
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Ingrese un correo electrónico válido", color=ft.colors.WHITE), bgcolor=ft.colors.RED
+                ft.Text("Corrija los errores en los campos", color=ft.colors.WHITE), bgcolor=ft.colors.RED
             )
             page.snack_bar.open = True
             page.update()
@@ -164,6 +147,7 @@ def main(page: ft.Page):
             page.snack_bar.open = True
             page.update()
             return
+
         
         # Crear un nuevo usuario
         nuevo_usuario = Usuario(
