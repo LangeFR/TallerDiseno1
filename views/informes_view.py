@@ -238,9 +238,8 @@ def create_informes_view(controller, page):
 
     def mostrar_informes_en_container(anio, mes, user_id_filter=None):
         """
-        Carga desde informes.json y muestra en 'informe_container' todos los informes
-        correspondientes a anio, mes. Si user_id_filter está definido, muestra sólo
-        los informes del usuario con ese ID.
+        Carga desde informes.json y muestra en 'informe_container' los informes según
+        las condiciones de año, mes y usuario seleccionado.
         """
         informe_container.controls.clear()
 
@@ -261,12 +260,17 @@ def create_informes_view(controller, page):
             page.update()
             return
 
-        # Filtrar por mes/año
-        informes_filtrados = [
-            inf for inf in informes
-            if str(inf["anio"]) == str(anio)
-            and str(inf["mes"]).zfill(2) == str(mes).zfill(2)
-        ]
+        # Filtrado de informes según año, mes y usuario
+        if anio and mes:
+            mes = mes.zfill(2)
+            informes_filtrados = [inf for inf in informes if str(inf["anio"]) == str(anio) and str(inf["mes"]) == str(mes)]
+            if user_id_filter:
+                informes_filtrados = [inf for inf in informes_filtrados if inf["usuario_id"] == user_id_filter]
+        elif not anio and not mes and user_id_filter:
+            informes_filtrados = [inf for inf in informes if inf["usuario_id"] == user_id_filter]
+        else:
+            informes_filtrados = []  # No mostrar nada si no hay año y mes, y no hay filtro de usuario
+
 
         # Si hay un usuario en el filtro, filtrar más
         if user_id_filter is not None:
@@ -274,7 +278,6 @@ def create_informes_view(controller, page):
                 inf for inf in informes_filtrados
                 if inf["usuario_id"] == user_id_filter
             ]
-
         # Para mostrar el nombre del usuario en lugar de ID
         # Hacemos un diccionario {id: nombre}
         dict_usuarios = {u.id: u.nombre for u in controller.usuarios}
@@ -287,25 +290,39 @@ def create_informes_view(controller, page):
                 puesto_t = titem[1]
                 top_torneos_str += f"- {nombre_t} (puesto {puesto_t})\n"
 
-            card = ft.Card(
-                content=ft.Container(
-                    ft.Column([
-                        ft.Text(f"Informe ID: {inf['id']}"),
-                        ft.Text(f"Usuario: {user_name} (ID: {inf['usuario_id']})"),
-                        ft.Text(f"Mes/Año: {inf['mes']}/{inf['anio']}"),
-                        ft.Text(f"Clases del Mes: {inf['clases_mes']}"),
-                        ft.Text(f"Clases Asistidas: {inf['clases_asistidas']}"),
-                        ft.Text(f"Torneos Asistidos: {inf['torneos_asistidos']}"),
-                        ft.Text("Top Torneos:"),
-                        ft.Text(top_torneos_str.strip() if top_torneos_str else "Ninguno"),
-                    ]),
-                    padding=10
-                ),
-                width=300,
-            )
-            informe_container.controls.append(card)
+        for inf in informes_filtrados:
+            display_informe(inf, dict_usuarios)
 
         page.update()
+    
+    def display_informe(inf, dict_usuarios):
+        user_name = dict_usuarios.get(inf["usuario_id"], f"ID {inf['usuario_id']}")
+        top_torneos_str = "\n".join([f"- {t[0]} (puesto {t[1]})" for t in inf["top_torneos"]])
+        
+        # Corrección del cálculo del porcentaje de asistencia
+        clases_del_mes = inf['clases_mes']
+        clases_asistidas = inf['clases_asistidas']
+        porcentaje_asistencia = (clases_asistidas / clases_del_mes * 100) if clases_del_mes > 0 else 0
+        
+        # Corrección en la f-string
+        card = ft.Card(
+            content=ft.Container(
+                ft.Column([
+                    ft.Text(f"Informe ID: {inf['id']}"),
+                    ft.Text(f"Usuario: {user_name} (ID: {inf['usuario_id']})"),
+                    ft.Text(f"Mes/Año: {inf['mes']}/{inf['anio']}"),
+                    ft.Text(f"Clases del Mes: {inf['clases_mes']}"),
+                    ft.Text(f"Clases Asistidas: {clases_asistidas} - {porcentaje_asistencia:.1f}%"),
+                    ft.Text(f"Torneos Asistidos: {inf['torneos_asistidos']}"),
+                    ft.Text("Top Torneos:"),
+                    ft.Text(top_torneos_str if top_torneos_str else "Ninguno"),
+                ]),
+                padding=10
+            ),
+            width=300,
+        )
+        informe_container.controls.append(card)
+
 
     # -----------------------------------------------------------
     # Callbacks UI
@@ -417,7 +434,20 @@ def create_informes_view(controller, page):
     )
     # Columna 2: Dividida en 2 verticalmente
     #   - 2.1: Selección de año y mes
-    #   - 2.2: Lista de usuarios matriculados + botón para deseleccionar
+    input_anio = ft.TextField(
+        label="Año",
+        width=100,  # Ancho ajustado a 100
+        hint_text="2025",
+        keyboard_type=ft.KeyboardType.NUMBER,
+    )
+
+    input_mes = ft.TextField(
+        label="Mes",
+        width=100,  # Ancho ajustado a 100
+        hint_text="01",
+        keyboard_type=ft.KeyboardType.NUMBER,
+    )
+
     col2_1 = ft.Column(
         controls=[
             ft.Text("Seleccionar Año y Mes", weight=ft.FontWeight.BOLD),
@@ -441,6 +471,7 @@ def create_informes_view(controller, page):
         expand=False
     )
 
+
     # Columna 3: Contenedor que muestra los informes
     col3 = ft.Container(
         content=informe_container,
@@ -448,13 +479,21 @@ def create_informes_view(controller, page):
     )
 
     # Armamos la vista final con un Row
+        # Definir el ancho fijo para la columna 1
+    col1_width = 180
+
+    # Calcular el ancho disponible para las columnas 2 y 3
+    available_width = page.width - col1_width - 2  # Asumiendo que page.width es el ancho total y 2 para los divisores
+
+    # Establecer el ancho para las columnas 2 y 3
+    col2_and_3_width = available_width / 3
     informes_view = ft.Row(
         controls=[
             ft.Container(col1, width=180, padding=10),
             ft.VerticalDivider(width=1),
-            ft.Container(col2, width=200, padding=10),
+            ft.Container(col2, width=col2_and_3_width, padding=10),
             ft.VerticalDivider(width=1),
-            ft.Container(col3, expand=True, padding=10),
+            ft.Container(col3, width=col2_and_3_width * 2, padding=10),
         ],
         expand=True
     )
