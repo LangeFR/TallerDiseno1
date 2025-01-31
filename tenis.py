@@ -175,7 +175,7 @@ def main(page: ft.Page):
         page.snack_bar = ft.SnackBar(
             ft.Text("Usuario inscrito exitosamente", color=ft.colors.WHITE), bgcolor=ft.colors.GREEN
         )
-        # age.snack_bar.open = True
+        page.snack_bar.open = True
         page.update()
 
     
