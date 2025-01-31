@@ -204,3 +204,10 @@ class ClubController:
             return usuario.estado == "matriculado"
         # Si no encontramos el usuario, retornamos False
         return False
+
+
+    def get_asistencias_by_torneo(self, torneo_id):
+        """
+        Retorna una lista de instancias de Asistencia_Torneo filtradas por torneo_id.
+        """
+        return Asistencia_Torneo.obtener_asistencias_por_torneo(torneo_id)

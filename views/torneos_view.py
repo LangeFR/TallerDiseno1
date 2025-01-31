@@ -53,24 +53,24 @@ def create_torneos_view(controller, torneos, page):
         usuario_nombre = dropdown_usuarios.value
         torneo_nombre = dropdown_torneos.value
         puesto_valor = puesto_field.value
-        
+
         if not usuario_nombre or not torneo_nombre or not puesto_valor:
             mostrar_snackbar("Debe seleccionar un usuario, un torneo y definir el puesto.", "ERROR")
             return
-        
+
         # Obtener torneo_id desde el nombre usando el mapeo
         torneo_id = torneo_id_map.get(torneo_nombre)
         if torneo_id is None:
             mostrar_snackbar("El torneo seleccionado no existe.", "ERROR")
             return
-        
+
         # Obtener el usuario_id desde el nombre (utilizamos el diccionario del controlador)
         usuario_id_dict = controller.usuarios_matriculados_dict()
         usuario_id = usuario_id_dict.get(usuario_nombre)
         if not usuario_id:
             mostrar_snackbar("El usuario seleccionado no existe o no está matriculado.", "ERROR")
             return
-        
+
         # Intentamos convertir el puesto a entero
         try:
             puesto_int = int(puesto_valor)
@@ -78,19 +78,36 @@ def create_torneos_view(controller, torneos, page):
             mostrar_snackbar("El puesto debe ser un número entero.", "ERROR")
             return
 
-        # Crear la asistencia al torneo
+        # Verificar si el usuario ya está inscrito en el torneo
         try:
-            crear_asistencia_torneo(torneo_id, usuario_id, puesto_int)
-            mostrar_snackbar(
-                f"Usuario ID={usuario_id} inscrito (asistencia) al torneo ID={torneo_id} con puesto {puesto_int}",
-                "SUCCESS"
-            )
+            # Obtener todas las asistencias para el torneo
+            asistencias = controller.get_asistencias_by_torneo(torneo_id)
+            
+            # Buscar si ya existe una asistencia para el usuario en este torneo
+            asistencia_existente = next((a for a in asistencias if a.usuario_id == usuario_id), None)
+
+            if asistencia_existente:
+                # Actualizar el puesto de la asistencia existente
+                Asistencia_Torneo.actualizar_puesto(torneo_id, usuario_id, puesto_int)
+                mostrar_snackbar(
+                    f"Usuario ID={usuario_id} ya inscrito. Puesto actualizado a {puesto_int}.",
+                    "SUCCESS"
+                )
+            else:
+                # Crear una nueva asistencia al torneo
+                crear_asistencia_torneo(torneo_id, usuario_id, puesto_int)
+                mostrar_snackbar(
+                    f"Usuario ID={usuario_id} inscrito al torneo ID={torneo_id} con puesto {puesto_int}.",
+                    "SUCCESS"
+                )
+
         except Exception as ex:
-            mostrar_snackbar(f"Error al crear la asistencia: {ex}", "ERROR")
+            mostrar_snackbar(f"Error al crear o actualizar la asistencia: {ex}", "ERROR")
 
         # Limpieza de campo puesto (opcional)
         puesto_field.value = ""
         page.update()
+
 
     # Función para agregar torneo
     def agregar_torneo(e):
@@ -164,32 +181,32 @@ def create_torneos_view(controller, torneos, page):
         page.dialog.open = False
         page.update()
 
-    # Función para mostrar asistencias al hacer clic en un torneo
     def on_torneo_click(torneo_id):
         asistencias_list.controls.clear()
         
         # Obtener las asistencias para este torneo
-        asistencias = controller.get_asistencias_by_torneo(torneo_id)  # Se asume está en el controller
-
+        asistencias = controller.get_asistencias_by_torneo(torneo_id)  # Ahora retorna instancias
+        
         if not asistencias:
             asistencias_list.controls.append(ft.Text("No hay asistencias para este torneo."))
         else:
             for asis in asistencias:
                 # Buscar el nombre del usuario a partir de su ID
-                user_obj = controller.get_user_by_id(asis["usuario_id"])
+                user_obj = controller.get_user_by_id(asis.usuario_id)
                 if user_obj:
                     nombre_usuario = user_obj.nombre
                 else:
-                    nombre_usuario = f"Usuario ID={asis['usuario_id']}"
+                    nombre_usuario = f"Usuario ID={asis.usuario_id}"
                 
                 # Mostramos nombre y puesto
                 asistencias_list.controls.append(
                     ft.ListTile(
                         leading=ft.Icon(ft.icons.PERSON),
-                        title=ft.Text(f"{nombre_usuario} (Puesto: {asis['puesto']})")
+                        title=ft.Text(f"{nombre_usuario} (Puesto: {asis.puesto})")
                     )
                 )
         page.update()
+
     
     def actualizar_data_torneos():
         """
