@@ -239,7 +239,7 @@ def main(page: ft.Page):
         usuarios_filtrados = controller.filtrar_usuarios(estado)
         usuarios_list = [
             ft.ListTile(
-                title=ft.Text(usuario.nombre, weight=ft.FontWeight.BOLD),
+                title=ft.Text(f"{usuario.nombre} {usuario.apellidos}", weight=ft.FontWeight.BOLD),
                 subtitle=ft.Text(f"Estado: {usuario.estado}"),
                 leading=ft.Icon(ft.icons.PERSON),
                 on_click=lambda e, u=usuario: mostrar_info_usuario(u),
@@ -284,8 +284,7 @@ def main(page: ft.Page):
         usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
         print(json.dumps(usuarios_pendientes, indent=4))
 
-        usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
-        usuarios_view.controls.clear()
+        usuarios_view.controls.clear()  # Limpiar la vista antes de agregar nuevos controles
 
         for usuario in usuarios_pendientes:
             usuarios_view.controls.append(
@@ -296,7 +295,15 @@ def main(page: ft.Page):
                 ])
             )
 
-    page.update()
+        page.update()
+
+    def inscribir_persona(usuario):
+        # Aquí se asume que 'inscripcion_view' es la vista que deseas cargar
+        content.controls.clear()  # Limpiar la vista actual
+        content.controls.append(inscripcion_view)  # Agregar la vista de inscripción
+
+        page.update()  # Actualizar la página para mostrar la nueva vista
+        
     # Cambiar vistas
     def destination_change(e):
         index = e.control.selected_index
