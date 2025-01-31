@@ -56,8 +56,13 @@
         "anio": "2025",
         "clases_mes": 4,
         "clases_asistidas": 1,
-        "torneos_asistidos": 0,
-        "top_torneos": []
+        "torneos_asistidos": 1,
+        "top_torneos": [
+            [
+                "Torneo Enero",
+                1
+            ]
+        ]
     },
     {
         "id": 29,

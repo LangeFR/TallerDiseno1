@@ -63,9 +63,9 @@ def create_informes_view(controller, page):
             return []
 
     def cargar_torneos():
-        """Devuelve un diccionario {torneo_id: nombre_torneo} para lookup."""
+        """Devuelve un diccionario {torneo_id: (nombre_torneo, fecha_torneo)} para lookup."""
         torneos = controller.cargar_torneos()  # Retorna lista de objetos Torneo
-        return {t.id: t.nombre for t in torneos}
+        return {t.id: (t.nombre, t.fecha) for t in torneos}
 
     def cargar_entrenamientos():
         """Devuelve un diccionario {entrenamiento_id: (fecha, nombre/opcional)} para lookup."""

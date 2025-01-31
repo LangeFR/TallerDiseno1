@@ -11,7 +11,7 @@
     },
     {
         "id": 3,
-        "nombre": "Clásico de Otoño",
+        "nombre": "Cl\u00c3\u00a1sico de Oto\u00c3\u00b1o",
         "fecha": "2025-03-02"
     },
     {
@@ -26,7 +26,7 @@
     },
     {
         "id": 6,
-        "nombre": "Desafío Nacional",
+        "nombre": "Desaf\u00c3\u00ado Nacional",
         "fecha": "2025-05-31"
     },
     {
@@ -41,12 +41,27 @@
     },
     {
         "id": 9,
-        "nombre": "Maratón de Tenis",
+        "nombre": "Marat\u00c3\u00b3n de Tenis",
         "fecha": "2025-08-29"
     },
     {
         "id": 10,
         "nombre": "Festival Deportivo",
         "fecha": "2025-09-28"
+    },
+    {
+        "id": 11,
+        "nombre": "Torneo Enero",
+        "fecha": "2025-01-01"
+    },
+    {
+        "id": 12,
+        "nombre": "Torneo Febrero",
+        "fecha": "2025-02-02"
+    },
+    {
+        "id": 13,
+        "nombre": "Torneo Marzo",
+        "fecha": "2025-03-03"
     }
 ]

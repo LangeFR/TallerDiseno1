@@ -2,9 +2,10 @@
 
 import flet as ft
 import json
+from dataclasses import asdict  # Importar asdict para convertir dataclasses a dicts
 from modelos.base_model import BaseModel
 from modelos.asistencia_torneos import Asistencia_Torneo  # Asegúrate de que exista el import correcto
-
+from modelos.torneo import Torneo  # Asegúrate de importar la clase Torneo
 
 def crear_asistencia_torneo(torneo_id, usuario_id, puesto):
     """
@@ -25,7 +26,7 @@ def create_torneos_view(controller, torneos, page):
     
     Parámetros:
         controller: El controlador de la aplicación (ClubController) que gestiona la lógica de negocio.
-        torneos: Lista de torneos disponibles.
+        torneos: Lista de torneos disponibles (instancias de Torneo).
         page: Página de Flet para actualizar UI y mostrar SnackBars.
     
     Retorna:
@@ -38,6 +39,11 @@ def create_torneos_view(controller, torneos, page):
         snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
         page.snack_bar = snack_bar
         snack_bar.open = True
+        page.update()
+
+    # Función para cerrar el diálogo
+    def cerrar_dialogo():
+        page.dialog.open = False
         page.update()
 
     # Función para inscribir (crear asistencia) a un torneo
@@ -94,7 +100,7 @@ def create_torneos_view(controller, torneos, page):
             title=ft.Text("Agregar Torneo"),
             content=ft.Column([nombre_input, fecha_input], spacing=10),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda e: page.dialog.close()),
+                ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo()),  # Cambio aquí
                 ft.TextButton("Agregar", on_click=lambda e: agregar_torneo_confirm(nombre_input.value, fecha_input.value)),
             ]
         )
@@ -107,28 +113,26 @@ def create_torneos_view(controller, torneos, page):
         if not nombre or not fecha:
             mostrar_snackbar("Por favor, complete todos los campos.", "ERROR")
             return
-        # Crear el torneo, asumiendo un dict con 'id', 'nombre', 'fecha'
-        nuevo_id = max([t['id'] for t in torneos], default=0) + 1
-        nuevo_torneo = {
-            "id": nuevo_id,
-            "nombre": nombre,
-            "fecha": fecha
-        }
-        # Guardar torneo
+        # Crear el torneo como una instancia de Torneo
+        nuevo_id = max([t.id for t in torneos], default=0) + 1
+        nuevo_torneo = Torneo(id=nuevo_id, nombre=nombre, fecha=fecha)
         torneos.append(nuevo_torneo)
-        BaseModel.guardar_datos("torneos.json", torneos)
+        # Convertir todos los torneos a dicts antes de guardar
+        torneos_dicts = [asdict(torneo) for torneo in torneos]
+        BaseModel.guardar_datos("torneos.json", torneos_dicts)
         # Actualizar el mapeo de nombres a IDs
         torneo_id_map[nombre] = nuevo_id
         # Agregar la entrada visual del nuevo torneo en la lista
         torneos_list.controls.append(
             ft.ListTile(
-                title=ft.Text(nuevo_torneo["nombre"]),
-                on_click=lambda e, t=nuevo_torneo["id"]: on_torneo_click(t),
-                data=nuevo_torneo["id"]  # Almacenar torneo.id como data
+                title=ft.Text(nuevo_torneo.nombre),
+                on_click=lambda e, t=nuevo_torneo.id: on_torneo_click(t),
+                data=nuevo_torneo.id  # Almacenar torneo.id como data
             )
         )
         mostrar_snackbar(f"Torneo '{nombre}' agregado exitosamente.", "SUCCESS")
-        page.dialog.close()
+        # Cerrar el diálogo correctamente
+        page.dialog.open = False
         page.update()
 
     # Función para mostrar asistencias al hacer clic en un torneo
@@ -179,7 +183,7 @@ def create_torneos_view(controller, torneos, page):
         controls=[
             ft.ListTile(
                 title=ft.Text(torneo.nombre),
-                on_click=lambda e, t=torneo.id: on_torneo_click(t),
+                on_click=lambda e, t=torneo.id: on_torneo_click(t),  # Corregido el acceso
                 data=torneo.id
             )
             for torneo in torneos
@@ -203,7 +207,7 @@ def create_torneos_view(controller, torneos, page):
     )
 
     # Lista para mostrar asistencias
-    asistencias_list = ft.Column([])
+    asistencias_list = ft.ListView(expand=True, spacing=10)  # Cambiado a ListView
 
     # Contenedor (columna) de asistencias
     asistencias_view = ft.Container(

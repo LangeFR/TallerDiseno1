@@ -70,5 +70,17 @@
         "usuario_id": 4,
         "torneo_id": 3,
         "puesto": 6
+    },
+    {
+        "id": 13,
+        "usuario_id": 17,
+        "torneo_id": 11,
+        "puesto": 1
+    },
+    {
+        "id": 14,
+        "usuario_id": 24,
+        "torneo_id": 12,
+        "puesto": 2
     }
 ]
