@@ -111,7 +111,6 @@ def create_torneos_view(controller, torneos, page):
 
 
     # Confirmar agregar torneo
-    # Confirmar agregar torneo
     def agregar_torneo_confirm(nombre, fecha, fecha_input):
         # Formatear la fecha para asegurarse de que el día y el mes son de dos dígitos
         try:
@@ -159,6 +158,8 @@ def create_torneos_view(controller, torneos, page):
         )
         # Actualizar las opciones en el dropdown de torneos
         dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
+        # Actualizar las opciones en el dropdown de usuarios
+        dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()]
         mostrar_snackbar(f"Torneo '{nombre}' agregado exitosamente.", "SUCCESS")
         # Cerrar el diálogo correctamente
         page.dialog.open = False
@@ -191,9 +192,48 @@ def create_torneos_view(controller, torneos, page):
                     )
                 )
         page.update()
+    
+    def actualizar_data_torneos():
+        """
+        Refresca la lista de torneos y actualiza los dropdowns de usuarios y torneos.
+        """
+        # Recargar la lista de torneos desde el controlador
+        torneos_actualizados = controller.cargar_torneos()
+        
+        # Actualizar el dropdown de torneos
+        dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos_actualizados]
+
+        # Actualizar el mapeo de nombres a IDs para torneos
+        torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos_actualizados}
+
+        # Limpiar y reconstruir la lista de torneos
+        torneos_list.controls.clear()
+        torneos_list.controls.extend([
+            ft.ListTile(
+                title=ft.Text(torneo.nombre),
+                on_click=lambda e, t=torneo.id: on_torneo_click(t),
+                data=torneo.id
+            )
+            for torneo in torneos_actualizados
+        ])
+
+        # Actualizar las opciones en el dropdown de usuarios
+        dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()]
+        
+        # Recargar la lista de usuarios matriculados y actualizar el dropdown
+        # dropdown_usuarios = controller.dropdown_usuarios_matriculados()  # Removido para evitar redefinición
+
+        # Asegurarse de actualizar la UI
+        page.update()
+
+
 
     # Dropdown de usuarios (matriculados)
-    dropdown_usuarios = controller.dropdown_usuarios_matriculados()
+    dropdown_usuarios = ft.Dropdown(
+        label="Seleccione un usuario",
+        options=[ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()],
+        value=None  # Inicialmente sin selección
+    )
 
     # Mapeo de nombres de torneos a IDs para uso interno
     torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos}
@@ -297,4 +337,4 @@ def create_torneos_view(controller, torneos, page):
         expand=True,
     )
 
-    return torneos_view, torneos_list, dropdown_torneos
+    return torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos
