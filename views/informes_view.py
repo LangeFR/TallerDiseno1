@@ -37,7 +37,7 @@ def create_informes_view(controller, page):
     )
 
     # Contenedor de informes (Columna 3)
-    informe_container = ft.Column([], expand=True, spacing=10)
+    informe_container = ft.ListView([], expand=True)
 
     # Lista de usuarios matriculados (Columna 2.2)
     usuarios_listview = ft.ListView(expand=True, spacing=5)
@@ -316,8 +316,8 @@ def create_informes_view(controller, page):
         1) Genera informes en disco (crear_informes).
         2) Muestra todos los informes en la columna 3 (sin filtro de usuario).
         """
-        anio_val = input_anio.value
-        mes_val = input_mes.value
+        anio_val = input_anio_col1.value
+        mes_val = input_mes_col1.value
         if not anio_val or not mes_val:
             page.snack_bar = ft.SnackBar(
                 ft.Text("Debe ingresar año y mes"), bgcolor=ft.colors.ERROR
@@ -326,9 +326,28 @@ def create_informes_view(controller, page):
             page.update()
             return
 
+        # Validar que el año y el mes sean numéricos y el mes esté en el rango adecuado
+        if not anio_val.isdigit() or not mes_val.isdigit():
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Año y mes deben ser números enteros."), bgcolor=ft.colors.ERROR
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        mes_val = mes_val.zfill(2)  # Asegurar que el mes tiene dos dígitos
+        if not (1 <= int(mes_val) <= 12):
+            page.snack_bar = ft.SnackBar(
+                ft.Text("Mes debe estar entre 1 y 12."), bgcolor=ft.colors.ERROR
+            )
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # Una vez validado y ajustado, llamar a crear informes y mostrarlos
         crear_informes(anio_val, mes_val)
-        # Una vez creados, se muestran
         mostrar_informes_en_container(anio_val, mes_val, user_id_filter=None)
+
 
     def on_user_click(e, user_id):
         """
@@ -374,17 +393,28 @@ def create_informes_view(controller, page):
     # -----------------------------------------------------------
 
     # Columna 1: Opción para generar informes
+    input_anio_col1 = ft.TextField(
+        label="Año",
+        width=100,
+        keyboard_type=ft.KeyboardType.NUMBER,
+    )
+    input_mes_col1 = ft.TextField(
+        label="Mes",
+        width=100,
+        keyboard_type=ft.KeyboardType.NUMBER,
+    )
     col1 = ft.Column(
         controls=[
             ft.Text("Opciones", weight=ft.FontWeight.BOLD),
             ft.Divider(),
+            input_anio_col1,  # Añadir input año
+            input_mes_col1,  # Añadir input mes
             ft.ElevatedButton("Generar Informes", on_click=on_generar_informes_click),
         ],
         alignment=ft.MainAxisAlignment.START,
         horizontal_alignment=ft.CrossAxisAlignment.START,
         expand=False
     )
-
     # Columna 2: Dividida en 2 verticalmente
     #   - 2.1: Selección de año y mes
     #   - 2.2: Lista de usuarios matriculados + botón para deseleccionar
@@ -396,13 +426,12 @@ def create_informes_view(controller, page):
         spacing=10,
     )
 
-    col2_2 = ft.Column(
+    col2_2 = ft.ListView(
         controls=[
-            ft.Text("Usuarios Matriculados", weight=ft.FontWeight.BOLD),
+            ft.ListTile(title=ft.Text("Usuarios Matriculados"), subtitle=None),
             ft.Container(usuarios_listview, expand=True, height=300),
             btn_limpiar_filtro,
         ],
-        spacing=10,
         expand=True
     )
 
