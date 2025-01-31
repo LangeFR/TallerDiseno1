@@ -144,55 +144,7 @@
         "estado": "pendiente"
     },
     {
-        "id": 25,
-        "usuario_id": 25,
-        "entrenamiento_id": 8,
-        "estado": "pendiente"
-    },
-    {
         "id": 26,
-        "usuario_id": 25,
-        "entrenamiento_id": 4,
-        "estado": "pendiente"
-    },
-    {
-        "id": 27,
-        "usuario_id": 25,
-        "entrenamiento_id": 4,
-        "estado": "pendiente"
-    },
-    {
-        "id": 28,
-        "usuario_id": 24,
-        "entrenamiento_id": 6,
-        "estado": "pendiente"
-    },
-    {
-        "id": 29,
-        "usuario_id": 24,
-        "entrenamiento_id": 6,
-        "estado": "pendiente"
-    },
-    {
-        "id": 30,
-        "usuario_id": 25,
-        "entrenamiento_id": 6,
-        "estado": "pendiente"
-    },
-    {
-        "id": 31,
-        "usuario_id": 25,
-        "entrenamiento_id": 8,
-        "estado": "pendiente"
-    },
-    {
-        "id": 32,
-        "usuario_id": 24,
-        "entrenamiento_id": 25,
-        "estado": "pendiente"
-    },
-    {
-        "id": 33,
         "usuario_id": 25,
         "entrenamiento_id": 4,
         "estado": "pendiente"
@@ -321,12 +273,6 @@
         "id": 54,
         "usuario_id": 25,
         "entrenamiento_id": 5,
-        "estado": "pendiente"
-    },
-    {
-        "id": 55,
-        "usuario_id": 25,
-        "entrenamiento_id": 4,
         "estado": "pendiente"
     },
     {

@@ -44,20 +44,32 @@ def create_entrenamientos_view(controller, page):
 
         def confirmar_creacion_entrenamiento(ev):
             """Confirma la creación del entrenamiento al presionar el botón 'Crear'."""
-            fecha = fecha_input.value.strip()
-            if not fecha:
+            fecha_input_raw = fecha_input.value.strip()
+            if not fecha_input_raw:
                 mostrar_snackbar("Por favor, ingresa la fecha del entrenamiento.", "ERROR")
                 return
 
-            # Validar formato de fecha
-            try:
-                import datetime
-                datetime.datetime.strptime(fecha, "%Y-%m-%d")
-            except ValueError:
-                mostrar_snackbar("Formato de fecha inválido. Usa YYYY-MM-DD.", "ERROR")
+            # Intentar dividir y validar la fecha ingresada
+            partes_fecha = fecha_input_raw.split('-')
+            if len(partes_fecha) == 3:
+                anio, mes, dia = partes_fecha
+                # Añadir ceros si son necesarios
+                mes = mes.zfill(2)
+                dia = dia.zfill(2)
+                fecha = f"{anio}-{mes}-{dia}"
+
+                # Validar formato de fecha
+                try:
+                    import datetime
+                    datetime.datetime.strptime(fecha, "%Y-%m-%d")
+                except ValueError:
+                    mostrar_snackbar("Formato de fecha inválido. Usa YYYY-MM-DD.", "ERROR")
+                    return
+            else:
+                mostrar_snackbar("Formato de fecha inválido. Debe ser AAAA-MM-DD.", "ERROR")
                 return
 
-            # Crear nuevo Entrenamiento
+            # Crear nuevo Entrenamiento y proceder como antes
             nuevo_id = Entrenamiento.nuevo_id()
             nuevo_entrenamiento = Entrenamiento(id=nuevo_id, fecha=fecha)
             nuevo_entrenamiento.guardar()
@@ -77,8 +89,20 @@ def create_entrenamientos_view(controller, page):
             page.dialog.open = False
             page.update()
 
+            # Actualizar sets y dropdowns inmediatamente después de guardar el nuevo entrenamiento
+            fecha_partes = fecha.split("-")
+            if len(fecha_partes) == 3:
+                anio, mes, _ = fecha_partes
+                anios_disponibles.add(anio)
+                meses_disponibles.add(mes)
+                dropdown_anio.options = [ft.dropdown.Option(a) for a in sorted(anios_disponibles)]
+                dropdown_mes.options = [ft.dropdown.Option(m) for m in sorted(meses_disponibles)]
+                dropdown_anio.update()
+                dropdown_mes.update()
+
             # Actualizar la lista y el dropdown de entrenamientos
             actualizar_entrenamientos()
+
 
         dialog = ft.AlertDialog(
             modal=True,
@@ -368,17 +392,33 @@ def create_entrenamientos_view(controller, page):
 
     def actualizar_entrenamientos():
         """
-        Refresca la lista de entrenamientos sin filtro.
+        Refresca la lista de entrenamientos sin filtro y actualiza los dropdowns de año y mes.
         """
+        # Limpia los sets para recalcular con los datos actualizados
+        anios_disponibles.clear()
+        meses_disponibles.clear()
+
         entrenamientos_list.controls.clear()
         for ent in controller.cargar_entrenamientos():
+            fecha_partes = ent.fecha.split("-")
+            if len(fecha_partes) == 3:
+                anio, mes, _ = fecha_partes
+                anios_disponibles.add(anio)
+                meses_disponibles.add(mes)
+
             entrenamientos_list.controls.append(
                 ft.ListTile(
                     title=ft.Text(f"ID: {ent.id} - Fecha: {ent.fecha}"),
                     on_click=lambda e, this_id=ent.id: click_entrenamiento_central(this_id),
                 )
             )
+
+        # Actualizar opciones del dropdown
+        dropdown_anio.options = [ft.dropdown.Option(a) for a in sorted(anios_disponibles)]
+        dropdown_mes.options = [ft.dropdown.Option(m) for m in sorted(meses_disponibles)]
+
         entrenamientos_list.update()
+
 
     # ----------------------------------------------------------------
     #   5. CONSTRUCCIÓN DE LA VISTA PRINCIPAL
