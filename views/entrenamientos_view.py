@@ -1,11 +1,8 @@
-# tallerdiseno1/views/entrenamientos_view.py
-
 import flet as ft
 import json
 from modelos.entrenamiento import Entrenamiento
 from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
 from modelos.base_model import BaseModel
-
 
 def create_entrenamientos_view(controller, page):
     """
@@ -16,7 +13,7 @@ def create_entrenamientos_view(controller, page):
         page (ft.Page): Página principal de Flet.
     
     Retorna:
-        tuple: (entrenamientos_view, entrenamientos_list, dropdown_entrenamientos)
+        tuple: (entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos)
     """
 
     # ----------------------------------------------------------------
@@ -316,7 +313,7 @@ def create_entrenamientos_view(controller, page):
             entrenamientos_list.controls.append(
                 ft.ListTile(
                     title=ft.Text(f"ID: {ent.id} - Fecha: {ent.fecha}"),
-                    on_click=lambda _, this_id=ent.id: click_entrenamiento_central(this_id),
+                    on_click=lambda e, this_id=ent.id: click_entrenamiento_central(this_id),
                 )
             )
         entrenamientos_list.update()
@@ -354,13 +351,10 @@ def create_entrenamientos_view(controller, page):
             entrenamientos_list.controls.append(
                 ft.ListTile(
                     title=ft.Text(f"ID: {ent.id} - Fecha: {ent.fecha}"),
-                    on_click=lambda _, this_id=ent.id: click_entrenamiento_central(this_id),
+                    on_click=lambda e, this_id=ent.id: click_entrenamiento_central(this_id),
                 )
             )
         entrenamientos_list.update()
-
-    # Inicialmente mostrará todos los entrenamientos
-    #actualizar_entrenamientos()
 
     # ----------------------------------------------------------------
     #   5. CONSTRUCCIÓN DE LA VISTA PRINCIPAL
@@ -444,7 +438,7 @@ def create_entrenamientos_view(controller, page):
                 ft.Text("Asistencias Registradas (Global)", size=18, weight=ft.FontWeight.BOLD),
                 ft.Divider(),
                 actualizar_asistencias_button,
-                ft.Container(asistencia_detalles_list, expand=True),
+                ft.Container(asistencias_list, expand=True),
             ],
             spacing=20,
             alignment=ft.MainAxisAlignment.START,
@@ -465,5 +459,5 @@ def create_entrenamientos_view(controller, page):
         expand=True,
     )
 
-    # Devolver la vista y elementos clave
-    return entrenamientos_view, entrenamientos_list, dropdown_entrenamientos
+    # Devolver la vista y elementos clave, incluyendo actualizar_entrenamientos
+    return entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos

@@ -39,7 +39,7 @@ def main(page: ft.Page):
     usuarios_view = create_usuarios_view(controller)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     torneos_view, torneos_list, dropdown_torneos = create_torneos_view(controller, torneos, page)
-    entrenamientos_view, entrenamientos_list, dropdown_entrenamientos = create_entrenamientos_view(controller, page)
+    entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
     informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     pagos_view = create_pagos_view(controller, page) 
 
@@ -432,16 +432,10 @@ def main(page: ft.Page):
         
     #tomar_asistencia_entrenamiento_button = ft.ElevatedButton("Aceptar", on_click=lambda e: tomar_asistencia_entrenamiento(usuario_id, entrenamiento_id, estado)) #Modificar para que sea dinamico en el front
 
-    def main(page: ft.Page):
-        page.title = "Gestión de Pagos del Club"
-        page.theme_mode = ft.ThemeMode.DARK
 
 
 
-    usuarios_inscritos = [u for u in controller.usuarios if u.estado == "inscrito"]
-# Dropdown de usuarios
-    # Crear un diccionario para mapear nombres de usuarios a sus IDs
-    nombre_id_map = {u.nombre: u.id for u in usuarios_inscritos}
+
 
 
 
@@ -474,7 +468,9 @@ def main(page: ft.Page):
             content.controls.append(torneos_view)
         elif index == 3:
             content.controls.append(entrenamientos_view)
-            entrenamientos_view.actualizar_entrenamientos()
+            page.update()  # Actualizar la página para agregar entrenamientos_view primero
+            actualizar_entrenamientos()  # Luego actualizar el ListView
+            return  # Salir para evitar llamar a page.update() nuevamente
         elif index == 4:
             content.controls.append(informes_view)
         elif index == 5:
