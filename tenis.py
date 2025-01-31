@@ -38,7 +38,7 @@ def main(page: ft.Page):
     inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(controller, validar_identificacion, validar_email, validar_apellidos, validar_nombre, validar_telefono, validar_edad)
     usuarios_view = create_usuarios_view(controller)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
-    torneos_view, torneos_list, dropdown_torneos = create_torneos_view(controller, torneos, page)
+    torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
     informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     
@@ -398,9 +398,9 @@ def main(page: ft.Page):
         elif index == 1:
             content.controls.append(Usuarios_view)
         elif index == 2:
-            usuarios_matriculados = controller.usuarios_matriculados_list()
-            dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in usuarios_matriculados]
             content.controls.append(torneos_view)
+            page.update()
+            actualizar_data_torneos()
         elif index == 3:
             content.controls.append(entrenamientos_view)
             page.update()  # Actualizar la página para agregar entrenamientos_view primero

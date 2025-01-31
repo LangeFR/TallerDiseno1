@@ -1,6 +1,8 @@
 # tallerdiseno1/views/pagos_view.py
 import flet as ft
 from modelos.base_model import BaseModel
+from utils.validations import validar_fecha
+from utils.fecha import formatear_fecha
 
 def create_pagos_view(controller, page):
     """
@@ -36,6 +38,14 @@ def create_pagos_view(controller, page):
     # Lista donde se mostrarán los pagos registrados
     pagos_list = ft.ListView(spacing=10, expand=True)
 
+    # Para garantizar el scroll, es posible que necesitemos ajustar el contenedor que alberga el ListView.
+    # Asegurémonos de que el ListView tiene espacio suficiente para expandirse y activar el scroll.
+    pagos_list_container = ft.Container(
+        content=pagos_list,
+        expand=True,
+        padding=10  # Padding opcional para mejorar la visualización
+    )
+
     # Función para mostrar mensajes con SnackBar
     def mostrar_snackbar(mensaje, tipo):
         color = ft.colors.GREEN if tipo == "SUCCESS" else ft.colors.RED
@@ -64,6 +74,23 @@ def create_pagos_view(controller, page):
         concepto = dropdown_conceptos.value
         fecha = fecha_field.value
         cantidad = cantidad_field.value
+
+        # Utilizar la función formatear_fecha desde fecha.py
+        fecha_formateada, error_message = formatear_fecha(fecha)
+        if error_message:
+            mostrar_snackbar(error_message, "ERROR")
+            return
+        
+        # Actualizamos el valor del input de fecha con el formato correcto
+        fecha_field.value = fecha_formateada
+        
+
+        # Validación de fecha
+        validar_fecha(fecha_field)  # Utilizamos la función de validación de fecha aquí
+        if fecha_field.error_text:
+            mostrar_snackbar(fecha_field.error_text, "ERROR")
+            return
+        #if concepto == "Inscripcion" and 
 
         if not (usuario_nombre and concepto and fecha and cantidad):
             mostrar_snackbar("Por favor, completa todos los campos.", "ERROR")
@@ -113,9 +140,10 @@ def create_pagos_view(controller, page):
             registrar_button,
             ft.Divider(),
             ft.Text("Historial de Pagos", size=20, weight=ft.FontWeight.BOLD),
-            pagos_list
+            pagos_list_container  # Utilizando el contenedor ajustado
         ],
-        spacing=10
+        spacing=10,
+        expand=True  # Asegurar que la columna principal pueda expandirse
     )
 
     # Cargar los pagos al iniciar la vista
