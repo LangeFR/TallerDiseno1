@@ -1,6 +1,8 @@
 # tallerdiseno1/views/pagos_view.py
 import flet as ft
 from modelos.base_model import BaseModel
+from utils.validations import validar_fecha
+from utils.fecha import formatear_fecha
 
 def create_pagos_view(controller, page):
     """
@@ -72,6 +74,23 @@ def create_pagos_view(controller, page):
         concepto = dropdown_conceptos.value
         fecha = fecha_field.value
         cantidad = cantidad_field.value
+
+        # Utilizar la función formatear_fecha desde fecha.py
+        fecha_formateada, error_message = formatear_fecha(fecha)
+        if error_message:
+            mostrar_snackbar(error_message, "ERROR")
+            return
+        
+        # Actualizamos el valor del input de fecha con el formato correcto
+        fecha_field.value = fecha_formateada
+        
+
+        # Validación de fecha
+        validar_fecha(fecha_field)  # Utilizamos la función de validación de fecha aquí
+        if fecha_field.error_text:
+            mostrar_snackbar(fecha_field.error_text, "ERROR")
+            return
+        #if concepto == "Inscripcion" and 
 
         if not (usuario_nombre and concepto and fecha and cantidad):
             mostrar_snackbar("Por favor, completa todos los campos.", "ERROR")
