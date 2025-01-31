@@ -49,7 +49,7 @@ class ClubController:
         """
         Retorna un Dropdown con los usuarios que están matriculados en el club.
         """
-        usuarios_matriculados = [u for u in self.usuarios if u.estado == "matriculado"]
+        usuarios_matriculados = [u for u in self.usuarios]
         return ft.Dropdown(
             label="Seleccionar Usuario",
             options=[ft.dropdown.Option(u.nombre) for u in usuarios_matriculados],
