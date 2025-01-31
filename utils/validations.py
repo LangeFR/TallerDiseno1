@@ -9,54 +9,61 @@ ALPHABETIC_REGEX = r'^[A-Za-záéíóúÁÉÍÓÚñÑ ]+$'
 
 def validar_identificacion(e: ft.ControlEvent):
     """Valida que el campo de identificación contenga solo números y no más de 10 dígitos."""
-    if not e.control.value.isdigit():
-        e.control.error_text = "Solo se permiten números."
-        e.control.value = ''.join(filter(str.isdigit, e.control.value))
-    elif len(e.control.value) > 10:
-        e.control.error_text = "La identificación no puede tener más de 10 dígitos."
-    else:
-        e.control.error_text = None
-    e.control.update()
+    if not e.value.isdigit() or len(e.value) > 10:
+        e.error_text = "La identificación debe ser numérica y tener máximo 10 dígitos."
+        e.update()
+        return False
+    e.error_text = None
+    e.update()
+    return True
 
 def validar_email(e: ft.ControlEvent):
     """Valida que el campo de correo electrónico tenga un formato válido."""
-    if not re.match(EMAIL_REGEX, e.control.value):
-        e.control.error_text = "Ingrese un correo válido."
-    else:
-        e.control.error_text = None
-    e.control.update()
+    if not re.match(EMAIL_REGEX, e.value):
+        e.error_text = "Ingrese un correo válido."
+        e.update()
+        return False
+    e.error_text = None
+    e.update()
+    return True
 
 def validar_apellidos(e: ft.ControlEvent):
     """Valida que el campo de apellidos no contenga caracteres especiales."""
-    if not re.match(ALPHABETIC_REGEX, e.control.value):
-        e.control.error_text = "Los apellidos solo pueden contener letras y espacios."
-    else:
-        e.control.error_text = None
-    e.control.update()
+    if not re.match(ALPHABETIC_REGEX, e.value):
+        e.error_text = "Los apellidos solo pueden contener letras y espacios."
+        e.update()
+        return False
+    e.error_text = None
+    e.update()
+    return True
 
 def validar_nombre(e: ft.ControlEvent):
     """Valida que el campo de nombre no contenga caracteres especiales."""
-    if not re.match(ALPHABETIC_REGEX, e.control.value):
-        e.control.error_text = "El nombre solo puede contener letras y espacios."
-    else:
-        e.control.error_text = None
-    e.control.update()
+    if not re.match(ALPHABETIC_REGEX, e.value):
+        e.error_text = "El nombre solo puede contener letras y espacios."
+        e.update()
+        return False
+    e.error_text = None
+    e.update()
+    return True
 
 def validar_telefono(e: ft.ControlEvent):
     """Valida que el número de celular tenga entre 8 y 12 dígitos y solo contenga números."""
-    if not e.control.value.isdigit():
-        e.control.error_text = "El número de celular solo puede contener números."
-    elif len(e.control.value) < 8 or len(e.control.value) > 12:
-        e.control.error_text = "El número de celular debe tener entre 8 y 12 dígitos."
-    else:
-        e.control.error_text = None
-    e.control.update()
+    if not e.value.isdigit() or len(e.value) < 8 or len(e.value) > 12:
+        e.error_text = "El número de celular debe tener entre 8 y 12 dígitos y solo contener números."
+        e.update()
+        return False
+    e.error_text = None
+    e.update()
+    return True
 
 def validar_edad(edad):
     """Valida que la edad esté en un rango aceptable (por ejemplo, entre 0 y 116 años)."""
     if edad < 0 or edad > 116:
         return False
     return True
+
+
 
 def validar_fecha(fecha_input):
     """Valida que la fecha ingresada tenga un formato correcto 'YYYY-MM-DD' y que el mes y día sean válidos."""
