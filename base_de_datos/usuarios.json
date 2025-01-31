@@ -40,16 +40,6 @@
         "estado": "inscrito"
     },
     {
-        "id": 5,
-        "nombre": "Laura",
-        "apellidos": "",
-        "edad": 38,
-        "num_identificacion": "799387661",
-        "correo": "laura.sanchez@example.com",
-        "telefono": "909452938",
-        "estado": "inscrito"
-    },
-    {
         "id": 7,
         "nombre": "Patricia",
         "apellidos": "",
@@ -60,16 +50,6 @@
         "estado": "matriculado"
     },
     {
-        "id": 8,
-        "nombre": "Laura",
-        "apellidos": "",
-        "edad": 47,
-        "num_identificacion": "530644707",
-        "correo": "laura.perez@example.com",
-        "telefono": "913164629",
-        "estado": "inscrito"
-    },
-    {
         "id": 9,
         "nombre": "Carlos",
         "apellidos": "",
@@ -78,16 +58,6 @@
         "correo": "carlos.gomez@example.com",
         "telefono": "998673590",
         "estado": "matriculado"
-    },
-    {
-        "id": 10,
-        "nombre": "Maria",
-        "apellidos": "",
-        "edad": 23,
-        "num_identificacion": "894751903",
-        "correo": "maria.gonzalez@example.com",
-        "telefono": "948361642",
-        "estado": "inscrito"
     },
     {
         "id": 11,
@@ -110,18 +80,8 @@
         "estado": "inscrito"
     },
     {
-        "id": 13,
-        "nombre": "Jose",
-        "apellidos": "",
-        "edad": 42,
-        "num_identificacion": "897571304",
-        "correo": "jose.gonzalez@example.com",
-        "telefono": "913166032",
-        "estado": "inscrito"
-    },
-    {
         "id": 14,
-        "nombre": "Maria",
+        "nombre": "Maria Jose",
         "apellidos": "",
         "edad": 36,
         "num_identificacion": "192518773",
@@ -150,16 +110,6 @@
         "estado": "matriculado"
     },
     {
-        "id": 18,
-        "nombre": "Jose",
-        "apellidos": "",
-        "edad": 27,
-        "num_identificacion": "535178120",
-        "correo": "jose.fernandez@example.com",
-        "telefono": "907740641",
-        "estado": "inscrito"
-    },
-    {
         "id": 19,
         "nombre": "Laura",
         "apellidos": "",
@@ -167,16 +117,6 @@
         "num_identificacion": "416218862",
         "correo": "laura.martinez@example.com",
         "telefono": "929122952",
-        "estado": "inscrito"
-    },
-    {
-        "id": 20,
-        "nombre": "Jose",
-        "apellidos": "",
-        "edad": 37,
-        "num_identificacion": "328863455",
-        "correo": "jose.perez@example.com",
-        "telefono": "951793043",
         "estado": "inscrito"
     },
     {
@@ -200,30 +140,10 @@
         "estado": "matriculado"
     },
     {
-        "id": 26,
-        "nombre": "Mateo",
-        "apellidos": "",
-        "edad": "44",
-        "num_identificacion": "100",
-        "correo": "a@gmail.com",
-        "telefono": "890",
-        "estado": "inscrito"
-    },
-    {
         "id": 28,
         "nombre": "Mateo",
         "apellidos": "Vanegas",
         "edad": 10,
-        "num_identificacion": "12345678",
-        "correo": "correo@gmail.com",
-        "telefono": "12345678",
-        "estado": "inscrito"
-    },
-    {
-        "id": 28,
-        "nombre": "Mateo",
-        "apellidos": "Vanegas",
-        "edad": 1,
         "num_identificacion": "12345678",
         "correo": "correo@gmail.com",
         "telefono": "12345678",
