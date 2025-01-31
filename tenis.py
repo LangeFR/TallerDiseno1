@@ -11,6 +11,7 @@ from modelos.asistencia_torneos import Asistencia_Torneo
 from modelos.asistencia_entrenamientos import Asistencia_Entrenamiento
 from datetime import datetime
 import os
+from controllers.club_controller import ClubController
 
 from utils.validations import validar_identificacion, validar_email, validar_apellidos, validar_nombre, validar_fecha, validar_telefono,es_dia_valido, validar_edad
 
@@ -269,7 +270,24 @@ def main(page: ft.Page):
         padding=20,
     )
 
+    #obtener usuarios
+    def mostrar_lista_usuarios_pendientes():
+        usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
+        print(json.dumps(usuarios_pendientes, indent=4))
 
+        usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
+        usuarios_view.controls.clear()
+
+        for usuario in usuarios_pendientes:
+            usuarios_view.controls.append(
+                ft.Row([
+                    ft.Text(f"{usuario['nombre']} - {usuario['correo']}"),
+                    ft.ElevatedButton("Inscribir", 
+                        on_click=lambda e, u=usuario: inscribir_persona(u))
+                ])
+            )
+
+    page.update()
     # Cambiar vistas
     def destination_change(e):
         index = e.control.selected_index
@@ -292,6 +310,9 @@ def main(page: ft.Page):
         elif index == 5:
             pagos_view = create_pagos_view(controller, page) 
             content.controls.append(pagos_view)
+        elif index == 6:
+            content.controls.append(usuarios_view)
+            mostrar_lista_usuarios_pendientes()
         page.update()
 
     rail = ft.NavigationRail(
@@ -306,6 +327,7 @@ def main(page: ft.Page):
             ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamiento"),
             ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
             ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
+            ft.NavigationRailDestination(icon=ft.icons.PERSON_SEARCH, label="Usuarios Pendientes"),  # Nueva opción
         ],
         on_change=lambda e: destination_change(e)
     )
