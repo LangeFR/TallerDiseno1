@@ -64,7 +64,7 @@ def main(page: ft.Page):
         on_click=change_theme,
     )
 
-    titulo = ft.Text("Club de Tenis", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
+    titulo = ft.Text("TopSpinTracker", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
 
     app_bar = ft.AppBar(
         title=titulo,
