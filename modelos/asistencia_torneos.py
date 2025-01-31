@@ -4,7 +4,7 @@ import json
 @dataclass
 class Asistencia_Torneo:
     id: int
-    miembro_id: int
+    usuario_id: int
     torneo_id: int
     puesto: int
 
@@ -29,10 +29,10 @@ class Asistencia_Torneo:
             json.dump(asistencias, archivo, indent=4)
 
     @staticmethod
-    def crear_asistencia(torneo_id, miembro_id, puesto):
+    def crear_asistencia(torneo_id, usuario_id, puesto):
         nueva_asistencia = Asistencia_Torneo(
             id=Asistencia_Torneo.nuevo_id(),
-            miembro_id=miembro_id,
+            usuario_id=usuario_id,
             torneo_id=torneo_id,
             puesto=puesto
         )

@@ -1,13 +1,30 @@
 # tallerdiseno1/views/torneos_view.py
+
 import flet as ft
+import json
 from modelos.base_model import BaseModel
+from modelos.asistencia_torneos import Asistencia_Torneo  # Asegúrate de que exista el import correcto
+
+
+def crear_asistencia_torneo(torneo_id, usuario_id, puesto):
+    """
+    Crea un registro de asistencia en asistencia_torneos.json.
+    """
+    Asistencia_Torneo.crear_asistencia(
+        torneo_id=torneo_id,
+        usuario_id=usuario_id,
+        puesto=puesto
+    )
+    print(f"Asistencia para el torneo {torneo_id} creada para el miembro {usuario_id} con puesto {puesto}")
+
 
 def create_torneos_view(controller, torneos, page):
     """
-    Crea y retorna la vista de gestión de torneos.
+    Crea y retorna la vista de gestión de torneos, pero ahora usando asistencia_torneos.json
+    en lugar de inscripciones.json.
     
     Parámetros:
-        controller: El controlador de la aplicación que gestiona los datos y lógica de negocio.
+        controller: El controlador de la aplicación (ClubController) que gestiona la lógica de negocio.
         torneos: Lista de torneos disponibles.
         page: Página de Flet para actualizar UI y mostrar SnackBars.
     
@@ -22,28 +39,51 @@ def create_torneos_view(controller, torneos, page):
         page.snack_bar = snack_bar
         snack_bar.open = True
         page.update()
-    
-    # Función para inscribir en torneo
+
+    # Función para inscribir (crear asistencia) a un torneo
     def inscribir_a_torneo(e):
         usuario_nombre = dropdown_usuarios.value
         torneo_nombre = dropdown_torneos.value
-        if not usuario_nombre or not torneo_nombre:
-            mostrar_snackbar("Debe seleccionar un usuario y un torneo", "ERROR")
+        puesto_valor = puesto_field.value
+        
+        if not usuario_nombre or not torneo_nombre or not puesto_valor:
+            mostrar_snackbar("Debe seleccionar un usuario, un torneo y definir el puesto.", "ERROR")
             return
+        
         # Obtener torneo_id desde el nombre usando el mapeo
         torneo_id = torneo_id_map.get(torneo_nombre)
         if torneo_id is None:
             mostrar_snackbar("El torneo seleccionado no existe.", "ERROR")
             return
-        # Agregar una nueva inscripción
-        inscripciones = controller.cargar_inscripciones()
-        inscripciones.append({
-            "usuario": usuario_nombre,
-            "torneo_id": torneo_id
-        })
-        BaseModel.guardar_datos("inscripciones.json", inscripciones)
-        mostrar_snackbar(f"Usuario {usuario_nombre} inscrito en torneo {torneo_id}", "SUCCESS")
-    
+        
+        # Obtener el usuario_id desde el nombre (utilizamos el diccionario del controlador)
+        usuario_id_dict = controller.usuarios_matriculados_dict()
+        usuario_id = usuario_id_dict.get(usuario_nombre)
+        if not usuario_id:
+            mostrar_snackbar("El usuario seleccionado no existe o no está matriculado.", "ERROR")
+            return
+        
+        # Intentamos convertir el puesto a entero
+        try:
+            puesto_int = int(puesto_valor)
+        except ValueError:
+            mostrar_snackbar("El puesto debe ser un número entero.", "ERROR")
+            return
+
+        # Crear la asistencia al torneo
+        try:
+            crear_asistencia_torneo(torneo_id, usuario_id, puesto_int)
+            mostrar_snackbar(
+                f"Usuario ID={usuario_id} inscrito (asistencia) al torneo ID={torneo_id} con puesto {puesto_int}",
+                "SUCCESS"
+            )
+        except Exception as ex:
+            mostrar_snackbar(f"Error al crear la asistencia: {ex}", "ERROR")
+
+        # Limpieza de campo puesto (opcional)
+        puesto_field.value = ""
+        page.update()
+
     # Función para agregar torneo
     def agregar_torneo(e):
         # Abrir un diálogo para ingresar nombre y fecha del torneo
@@ -61,13 +101,13 @@ def create_torneos_view(controller, torneos, page):
         page.dialog = agregar_dialog
         agregar_dialog.open = True
         page.update()
-    
+
     # Confirmar agregar torneo
     def agregar_torneo_confirm(nombre, fecha):
         if not nombre or not fecha:
             mostrar_snackbar("Por favor, complete todos los campos.", "ERROR")
             return
-        # Crear el torneo, assuming torneo es un dict con 'id', 'nombre', 'fecha'
+        # Crear el torneo, asumiendo un dict con 'id', 'nombre', 'fecha'
         nuevo_id = max([t['id'] for t in torneos], default=0) + 1
         nuevo_torneo = {
             "id": nuevo_id,
@@ -79,7 +119,7 @@ def create_torneos_view(controller, torneos, page):
         BaseModel.guardar_datos("torneos.json", torneos)
         # Actualizar el mapeo de nombres a IDs
         torneo_id_map[nombre] = nuevo_id
-        # Actualizar la lista de torneos en la UI
+        # Agregar la entrada visual del nuevo torneo en la lista
         torneos_list.controls.append(
             ft.ListTile(
                 title=ft.Text(nuevo_torneo["nombre"]),
@@ -90,79 +130,88 @@ def create_torneos_view(controller, torneos, page):
         mostrar_snackbar(f"Torneo '{nombre}' agregado exitosamente.", "SUCCESS")
         page.dialog.close()
         page.update()
-    
-    # Función para mostrar inscripciones al hacer clic en un torneo
+
+    # Función para mostrar asistencias al hacer clic en un torneo
     def on_torneo_click(torneo_id):
-        # Obtener las inscripciones para este torneo
-        inscripciones = controller.get_inscripciones_by_torneo(torneo_id)
-        print(torneo_id)
-        # Limpiar y actualizar inscripciones_list
-        inscripciones_list.controls.clear()
-        if not inscripciones:
-            inscripciones_list.controls.append(ft.Text("No hay inscripciones para este torneo."))
+        asistencias_list.controls.clear()
+        
+        # Obtener las asistencias para este torneo
+        asistencias = controller.get_asistencias_by_torneo(torneo_id)  # Se asume está en el controller
+
+        if not asistencias:
+            asistencias_list.controls.append(ft.Text("No hay asistencias para este torneo."))
         else:
-            for insc in inscripciones:
-                inscripciones_list.controls.append(
+            for asis in asistencias:
+                # Buscar el nombre del usuario a partir de su ID
+                user_obj = controller.get_user_by_id(asis["usuario_id"])
+                if user_obj:
+                    nombre_usuario = user_obj.nombre
+                else:
+                    nombre_usuario = f"Usuario ID={asis['usuario_id']}"
+                
+                # Mostramos nombre y puesto
+                asistencias_list.controls.append(
                     ft.ListTile(
-                        title=ft.Text(insc['usuario']),
                         leading=ft.Icon(ft.icons.PERSON),
+                        title=ft.Text(f"{nombre_usuario} (Puesto: {asis['puesto']})")
                     )
                 )
         page.update()
-    
-    # Dropdown de usuarios matriculados
+
+    # Dropdown de usuarios (matriculados)
     dropdown_usuarios = controller.dropdown_usuarios_matriculados()
-    
+
     # Mapeo de nombres de torneos a IDs para uso interno
     torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos}
-    
+
     # Dropdown de torneos
     dropdown_torneos = ft.Dropdown(
         label="Seleccione un torneo",
         options=[ft.dropdown.Option(torneo.nombre) for torneo in torneos],
         value=None  # Inicialmente sin selección
     )
-    
-    # Lista de torneos como ListTile con manejo de clics basado en IDs
-    # Lista de torneos con desplazamiento independiente
+
+    # Campo para el puesto
+    puesto_field = ft.TextField(label="Puesto en el Torneo", value="")
+
+    # Lista de torneos
     torneos_list = ft.ListView(
         controls=[
             ft.ListTile(
                 title=ft.Text(torneo.nombre),
                 on_click=lambda e, t=torneo.id: on_torneo_click(t),
-                data=torneo.id  # Almacenar torneo.id en data
+                data=torneo.id
             )
             for torneo in torneos
         ],
-        expand=True,  # Permite que use todo el espacio disponible sin afectar otros elementos
+        expand=True,
         auto_scroll=False
-        )
+    )
 
-    
-    # Botón para inscribir en torneo
+    # Botón para crear asistencia (antes "Inscribir")
     inscribir_button = ft.ElevatedButton(
-        "Inscribir en Torneo", 
-        icon=ft.icons.CHECK, 
+        "Crear Asistencia",
+        icon=ft.icons.CHECK,
         on_click=inscribir_a_torneo
     )
-    
+
     # Botón flotante para agregar torneo
     agregar_torneo_button = ft.FloatingActionButton(
-        icon=ft.icons.ADD, 
-        on_click=agregar_torneo, 
+        icon=ft.icons.ADD,
+        on_click=agregar_torneo,
         tooltip="Añadir Torneo"
     )
-    
-    # Lista para inscripciones
-    inscripciones_list = ft.Column([])
-    
-    # Vista de inscripciones
-    inscripciones_view = ft.Container(
+
+    # Lista para mostrar asistencias
+    asistencias_list = ft.Column([])
+
+    # Contenedor (columna) de asistencias
+    asistencias_view = ft.Container(
         ft.Column(
             [
-                ft.Text("Inscripciones", size=24, weight=ft.FontWeight.BOLD),
+                ft.Text("Asistencias", size=24, weight=ft.FontWeight.BOLD),
                 ft.Divider(height=10, thickness=2),
-                inscripciones_list,
+                asistencias_list,
             ],
             spacing=20,
             alignment=ft.MainAxisAlignment.START,
@@ -170,16 +219,17 @@ def create_torneos_view(controller, torneos, page):
         expand=True,
         padding=20,
     )
-    
+
     # Vista principal de torneos
     torneos_view = ft.Row(
         [
-            # Columna de dropdowns y botón de inscripción
+            # Columna de selección de usuario, torneo y puesto
             ft.Container(
                 ft.Column(
                     [
                         dropdown_usuarios,
                         dropdown_torneos,
+                        puesto_field,
                         inscribir_button,
                     ],
                     spacing=20,
@@ -207,10 +257,10 @@ def create_torneos_view(controller, torneos, page):
                 padding=20,
             ),
             ft.VerticalDivider(width=1),
-            # Columna de inscripciones registradas
-            inscripciones_view,
+            # Columna de asistencias registradas
+            asistencias_view,
         ],
         expand=True,
     )
-    
+
     return torneos_view, torneos_list, dropdown_torneos
