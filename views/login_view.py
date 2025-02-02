@@ -104,25 +104,16 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER
         )
 
-    # Vista de Registro: formulario de registro con nuevos campos y enlace para volver al login
+    # Vista de Registro: formulario de registro con campos y enlace para volver al login
     def get_register_view():
         return ft.Column(
             controls=[
-                ft.Text("Registro de Usuario", size=20, weight=ft.FontWeight.W_600, color=COLOR_DARK_PURPLE),
+                ft.Text("Registro", size=20, weight=ft.FontWeight.W_600, color=COLOR_DARK_PURPLE),
                 ft.TextField(label="Nombre completo", width=300),
                 ft.TextField(label="Correo electrónico", width=300),
                 ft.TextField(label="Teléfono", width=300),
                 ft.TextField(label="Contraseña", password=True, width=300),
                 ft.TextField(label="Verificar contraseña", password=True, width=300),
-                # Campo de Fecha de nacimiento: se envuelve en una columna con etiqueta y se fija el ancho mediante Container
-                ft.Column(
-                    controls=[
-                        ft.Text("Fecha de nacimiento", size=14, color=COLOR_DARK_PURPLE),
-                        ft.Container(content=ft.DatePicker(), width=300)
-                    ],
-                    spacing=5,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER
-                ),
                 ft.Dropdown(
                     label="Selecciona tu rol",
                     width=300,
