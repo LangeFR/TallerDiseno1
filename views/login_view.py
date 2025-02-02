@@ -108,7 +108,7 @@ def main(page: ft.Page):
     def get_register_view():
         return ft.Column(
             controls=[
-                ft.Text("Registro", size=20, weight=ft.FontWeight.W_600, color=COLOR_DARK_PURPLE),
+                ft.Text("Registro de Usuario", size=20, weight=ft.FontWeight.W_600, color=COLOR_DARK_PURPLE),
                 ft.TextField(label="Nombre completo", width=300),
                 ft.TextField(label="Correo electrónico", width=300),
                 ft.TextField(label="Teléfono", width=300),
@@ -149,7 +149,6 @@ def main(page: ft.Page):
     def switch_to_login():
         nonlocal view_mode
         view_mode = "login"
-        # Reiniciamos el login_form_switcher (vuelve a estar vacío)
         login_form_switcher.content = ft.Container(key="empty")
         update_main_switcher()
 
@@ -168,9 +167,21 @@ def main(page: ft.Page):
         content=get_login_view()
     )
 
-    # Contenedor "card" estilizado que envuelve la vista principal con width ajustado a 600
+    # Agregamos el logo del club (SpinTrackerLogo.png)
+    logo = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
+
+    # Contenedor "card" estilizado que envuelve la vista principal con width ajustado a 600,
+    # y que ahora incluye el logo en la parte superior.
     container = ft.Container(
-        content=main_switcher,
+        content=ft.Column(
+            controls=[
+                logo,
+                main_switcher
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=20
+        ),
         width=600,
         padding=20,
         alignment=ft.alignment.center,
