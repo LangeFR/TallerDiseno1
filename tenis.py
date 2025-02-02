@@ -20,11 +20,13 @@ from controllers.club_controller import ClubController
 
 # ------------------------- VISTAS -------------------------
 from views.inscripcion_view import create_inscripcion_view
-from views.usuarios_view import create_usuarios_view
+
 from views.torneos_view import create_torneos_view
 from views.entrenamientos_view import create_entrenamientos_view
 from views.informes_view import create_informes_view
 from views.pagos_view import create_pagos_view
+
+from views.usuarios_view import ContenedorUsuarioView, ContenedorUsuarioViewAdmin
 
 
 
@@ -36,6 +38,7 @@ def main(page: ft.Page):
     controller = ClubController()
 
     current_user = None
+    
     # Crear las vistas y recibir las referencias necesarias
     inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(
         page,
@@ -48,7 +51,7 @@ def main(page: ft.Page):
         validar_edad
     )
     content = ft.Column([], expand=True)
-    usuarios_view, mostrar_usuarios_view = create_usuarios_view(controller, page, content)
+    #usuarios_view, mostrar_usuarios_view = create_usuarios_view(controller, page, content)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
@@ -89,22 +92,21 @@ def main(page: ft.Page):
     )
 
     def update_current_user(user_id):
-        global current_user
-        # Carga la base de datos de usuarios
+        nonlocal current_user  # Usa nonlocal para modificar la variable current_user definida en el ámbito superior
         try:
             with open('base_de_datos/usuarios.json', 'r') as file:
                 users = json.load(file)
+            for user in users:
+                if user['id'] == user_id:
+                    current_user = user
+                    print("--------------------------------")
+                    break
+            else:
+                print("Usuario no encontrado.")
         except FileNotFoundError:
             print("El archivo de base de datos no fue encontrado.")
-            return
-
-        # Busca el usuario con el ID proporcionado
-        for user in users:
-            if user['id'] == user_id:
-                current_user = user
-                break
-        else:
-            print("Usuario no encontrado.")
+        except Exception as e:
+            print(f"Error al actualizar el usuario: {e}")
 
 
     #Obtener usuario pendiente
@@ -163,12 +165,21 @@ def main(page: ft.Page):
 
     def destination_change(e):
         index = e.control.selected_index if hasattr(e, 'control') else e.selected_index  # Soporta llamado manual
-
+        
         content.controls.clear()
         if index == 0:
             content.controls.append(inscripcion_view)  # Mostrar vista de inscripción
         elif index == 1:
-            content.controls.append(usuarios_view)
+            # update_current_user(1) # Testing only
+            
+            # Aquí se selecciona la clase de vista según el rol del usuario logueado
+            if current_user and current_user.get("rol") == "admin":
+                usuario_view_instance = ContenedorUsuarioViewAdmin(controller, page, content)
+                usuario_view_instance.mostrar_inicial()  
+            else:
+                usuario_view_instance = ContenedorUsuarioView(controller, page, content, current_user["id"])
+                usuario_view_instance.mostrar_usuario()
+
         elif index == 2:
             content.controls.append(torneos_view)
             page.update()

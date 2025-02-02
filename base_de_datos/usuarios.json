@@ -7,7 +7,8 @@
         "num_identificacion": "262145367",
         "correo": "juan.rodriguez@example.com",
         "telefono": "903215016",
-        "estado": "inscrito"
+        "estado": "inscrito",
+        "rol": ""
     },
     {
         "id": 2,
