@@ -25,6 +25,13 @@ def main(page: ft.Page):
         content=ft.Container(key="empty")
     )
 
+    # AnimatedSwitcher para el logo, que se mostrará solo en la vista login
+    logo_switcher = ft.AnimatedSwitcher(
+        duration=50,
+        transition=ft.AnimatedSwitcherTransition.FADE,
+        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
+    )
+
     # Función que genera el formulario de login (con el rol actualizado)
     def get_login_form():
         return ft.Container(
@@ -152,11 +159,13 @@ def main(page: ft.Page):
         login_form_switcher.content = ft.Container(key="empty")
         update_main_switcher()
 
-    # Actualiza el contenido del main_switcher según la vista actual
+    # Actualiza el contenido del main_switcher y del logo según la vista actual
     def update_main_switcher():
         if view_mode == "login":
+            logo_switcher.content = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
             main_switcher.content = get_login_view()
         else:
+            logo_switcher.content = ft.Container(key="empty")
             main_switcher.content = get_register_view()
         page.update()
 
@@ -167,15 +176,12 @@ def main(page: ft.Page):
         content=get_login_view()
     )
 
-    # Agregamos el logo del club (SpinTrackerLogo.png)
-    logo = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
-
     # Contenedor "card" estilizado que envuelve la vista principal con width ajustado a 600,
-    # y que ahora incluye el logo en la parte superior.
+    # e incluye el logo (mediante logo_switcher) en la parte superior
     container = ft.Container(
         content=ft.Column(
             controls=[
-                logo,
+                logo_switcher,
                 main_switcher
             ],
             alignment=ft.MainAxisAlignment.CENTER,
