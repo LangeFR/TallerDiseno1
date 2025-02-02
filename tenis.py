@@ -35,6 +35,7 @@ def main(page: ft.Page):
 
     controller = ClubController()
 
+    current_user = None
     # Crear las vistas y recibir las referencias necesarias
     inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(
         page,
@@ -86,6 +87,24 @@ def main(page: ft.Page):
             ft.TextButton("Cerrar", on_click=cerrar_dialogo),
         ],
     )
+
+    def update_current_user(user_id):
+        global current_user
+        # Carga la base de datos de usuarios
+        try:
+            with open('base_de_datos/usuarios.json', 'r') as file:
+                users = json.load(file)
+        except FileNotFoundError:
+            print("El archivo de base de datos no fue encontrado.")
+            return
+
+        # Busca el usuario con el ID proporcionado
+        for user in users:
+            if user['id'] == user_id:
+                current_user = user
+                break
+        else:
+            print("Usuario no encontrado.")
 
 
     #Obtener usuario pendiente
