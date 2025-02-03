@@ -369,6 +369,10 @@ class ContenedorInformeSuper:
         if anio_val and mes_val:
             self.mostrar_informes_en_container(anio_val, mes_val, user_id_filter=None)
 
+    # En ContenedorInformeView, reemplaza el método get_contenedor existente por:
+    def get_contenedor(self):
+        """Retorna el contenedor principal para integrarlo en la vista."""
+        return self.informes_view
 class ContenedorInformeView:
     def __init__(self, controller, page, user_id):
         print("ContenedorInformeView")
@@ -463,6 +467,10 @@ class ContenedorInformeView:
         if anio_seleccionado:
             informes = self.cargar_informes_del_usuario(anio_seleccionado)
             self.mostrar_informes(informes)
+    
+    def get_contenedor(self):
+        """Retorna el contenedor principal para integrarlo en la vista."""
+        return self.layout
 
 
 

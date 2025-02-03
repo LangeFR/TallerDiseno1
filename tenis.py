@@ -38,6 +38,126 @@ def main(page: ft.Page):
     controller = ClubController()
 
     current_user = None
+    content = ft.Column([], expand=True)
+    rail = ft.NavigationRail(
+        selected_index=0,
+        label_type=ft.NavigationRailLabelType.ALL,
+        min_width=100,
+        min_extended_width=200,  
+    )
+    titulo = ft.Text("TopSpinTracker", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
+    def change_theme(e):
+        page.theme_mode = ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
+        theme_icon_button.icon = ft.icons.DARK_MODE if page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.LIGHT_MODE
+        page.update()
+    theme_icon_button = ft.IconButton(
+        icon=ft.icons.LIGHT_MODE,
+        tooltip="Cambiar tema",
+        on_click=change_theme,
+    )
+    app_bar = ft.AppBar(
+        title=titulo,
+        center_title=True,
+        bgcolor=ft.colors.SURFACE_VARIANT,
+        actions=[theme_icon_button],
+    )
+    
+    page.add(app_bar, ft.Row([rail, ft.VerticalDivider(width=1), content], expand=True))
+
+    def setup_navigation(user_role):
+        global view_functions  # Declara globalmente para que sea accesible en otras funciones
+        if user_role == "admin":
+            destinations = [
+                ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
+                ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
+                ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
+                ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamiento"),
+                ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
+                ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
+                ft.NavigationRailDestination(icon=ft.icons.PERSON_SEARCH, label="Usuarios Pendientes"),
+            ]
+            view_functions = [
+                lambda: content.controls.append(inscripcion_view),
+                lambda: content.controls.append(ContenedorUsuarioAdmin(controller, page).get_contenedor()),
+                lambda: content.controls.append(ContenedorTorneosSuper(controller, torneos, page).get_contenedor()),
+                lambda: content.controls.append(entrenamientos_view),
+                lambda: content.controls.append(ContenedorInformeSuper(controller, page).get_contenedor()),
+                lambda: content.controls.append(create_pagos_view(controller, page)),
+                lambda: mostrar_lista_usuarios_pendientes(),
+            ]
+        elif user_role == "coach":
+            destinations = [
+                ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
+                ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamiento"),
+                ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
+            ]
+            view_functions = [
+                lambda: content.controls.append(ContenedorUsuario(controller, page, content, current_user["id"]).get_contenedor()),
+                lambda: content.controls.append(entrenamientos_view),
+                lambda: content.controls.append(ContenedorInformeSuper(controller, page).get_contenedor()),
+            ]
+        elif user_role == "miembro":
+            destinations = [
+                ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
+                ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
+                ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
+                ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
+            ]
+            view_functions = [
+                lambda: content.controls.append(ContenedorUsuario(controller, page, current_user["id"]).get_contenedor()),
+                lambda: content.controls.append(ContenedorTorneos(controller, torneos, page, current_user['id']).get_contenedor()),
+                lambda: content.controls.append(ContenedorInformeView(controller, page, current_user["id"]).get_contenedor()),
+                lambda: content.controls.append(create_pagos_view(controller, page)),
+            ]
+        else:
+            destinations = []  # No visible tabs if no role or unrecognized role
+            view_functions = []
+
+        rail.destinations = destinations
+        rail.update()
+
+        return view_functions
+
+    def update_current_user(user_id):
+        nonlocal current_user  # Use nonlocal to modify the variable defined in the outer scope
+        try:
+            with open('base_de_datos/usuarios.json', 'r') as file:
+                users = json.load(file)
+            for user in users:
+                if user['id'] == user_id:
+                    current_user = user
+                    setup_navigation(user.get("rol"))  # Update navigation based on role
+                    print("Navigation setup for:", user.get("rol"))
+                    break
+            else:
+                print("Usuario no encontrado.")
+        except FileNotFoundError:
+            print("El archivo de base de datos no fue encontrado.")
+        except Exception as e:
+            print(f"Error al actualizar el usuario: {e}")
+
+    def test_current_user_setup():
+        """
+        Esta función configura el entorno de prueba actualizando el usuario actual a diferentes roles.
+        Está diseñada para ser llamada antes de cada prueba para garantizar que el contexto del usuario esté correctamente configurado.
+        """
+        print("Configurando entorno de prueba...")
+
+        # Cambiar a 'admin' para la prueba
+        # update_current_user(1)  # ID de usuario para 'admin'
+        # print("Configurado como Admin para la prueba.")
+
+        # Cambiar a 'miembro' para la prueba
+        update_current_user(17)  # ID de usuario para 'jugador'
+        print("Configurado como Jugador para la prueba.")
+
+        # Cambiar a 'coach' para la prueba
+        # update_current_user(17)  # ID de usuario para 'coach'
+        # print("Configurado como Admin para la prueba.")
+
+    # Ejecutar la configuración de prueba antes de iniciar cualquier otra operación
+    print("----------------------------------------------------------------")
+    test_current_user_setup()
     
     # Crear las vistas y recibir las referencias necesarias
     inscripcion_view, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field = create_inscripcion_view(
@@ -50,7 +170,7 @@ def main(page: ft.Page):
         validar_telefono, 
         validar_edad
     )
-    content = ft.Column([], expand=True)
+    
     #usuarios_view, mostrar_usuarios_view = create_usuarios_view(controller, page, content)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     #torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
@@ -58,25 +178,13 @@ def main(page: ft.Page):
     #informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     
     
-    def change_theme(e):
-        page.theme_mode = ft.ThemeMode.LIGHT if page.theme_mode == ft.ThemeMode.DARK else ft.ThemeMode.DARK
-        theme_icon_button.icon = ft.icons.DARK_MODE if page.theme_mode == ft.ThemeMode.LIGHT else ft.icons.LIGHT_MODE
-        page.update()
+    
 
-    theme_icon_button = ft.IconButton(
-        icon=ft.icons.LIGHT_MODE,
-        tooltip="Cambiar tema",
-        on_click=change_theme,
-    )
+    
 
-    titulo = ft.Text("TopSpinTracker", size=30, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.CENTER)
+    
 
-    app_bar = ft.AppBar(
-        title=titulo,
-        center_title=True,
-        bgcolor=ft.colors.SURFACE_VARIANT,
-        actions=[theme_icon_button],
-    )
+    
 
     def cerrar_dialogo(e):
         aviso_dialog.open = False
@@ -91,161 +199,26 @@ def main(page: ft.Page):
         ],
     )
 
-    def update_current_user(user_id):
-        nonlocal current_user  # Usa nonlocal para modificar la variable current_user definida en el ámbito superior
-        try:
-            with open('base_de_datos/usuarios.json', 'r') as file:
-                users = json.load(file)
-            for user in users:
-                if user['id'] == user_id:
-                    current_user = user
-                    print("--------------------------------")
-                    break
-            else:
-                print("Usuario no encontrado.")
-        except FileNotFoundError:
-            print("El archivo de base de datos no fue encontrado.")
-        except Exception as e:
-            print(f"Error al actualizar el usuario: {e}")
-
-
-    #Obtener usuario pendiente
-    def mostrar_lista_usuarios_pendientes():
-        usuarios_pendientes = ClubController.obtener_usuarios_pendientes()
-        print(json.dumps(usuarios_pendientes, indent=4))
-
-
-        usuarios_view.controls.clear()
-
-        for usuario in usuarios_pendientes:
-            usuarios_view.controls.append(
-                ft.Row([
-                    ft.Text(f"{usuario['nombre']} - {usuario['correo']}"),
-                    ft.ElevatedButton(
-                        "Rellenar datos",
-                        icon=ft.icons.ARROW_FORWARD,
-                        on_click=lambda e, u=usuario: (
-                            llenar_campos_inscripcion(
-                                u, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field
-                            ),  # Llenar los campos de inscripción
-                            destination_change(ft.ControlEvent(selected_index=0))  # Cambiar a la pestaña de inscripción
-                        )
-                    )
-                ])
-            )
-
-        page.update()
-
-
-    def llenar_campos_inscripcion(usuario, nombre_field, apellidos_field, edad_field, id_field, correo_field, telefono_field):
-        """
-        Llena los campos de inscripción con los datos del usuario seleccionado.
-        """
-        # Llenar los campos con la información del usuario
-        nombre_field.value = usuario.get("nombre", "")
-        apellidos_field.value = usuario.get("apellidos", "")
-        edad_field.value = str(usuario.get("edad", ""))
-        id_field.value = usuario.get("num_identificacion", "")
-        correo_field.value = usuario.get("correo", "")
-        telefono_field.value = usuario.get("telefono", "")
     
-        # Actualizar los campos para reflejar los cambios en la interfaz
-        nombre_field.update()
-        apellidos_field.update()
-        edad_field.update()
-        id_field.update()
-        correo_field.update()
-        telefono_field.update()
+
+
     
-        # Cambiar a la vista de inscripción automáticamente
-        destination_change(ft.ControlEvent(selected_index=0))  # 0 es la pestaña de inscripción
+
+
     
-        # Actualizar la página
-        page.update()
+
 
     def destination_change(e):
-        index = e.control.selected_index if hasattr(e, 'control') else e.selected_index  # Soporta llamado manual
-        
+        index = e.control.selected_index
         content.controls.clear()
-        if index == 0:
-            content.controls.append(inscripcion_view)  # Mostrar vista de inscripción
-        elif index == 1:
-            # Testing only
-            #update_current_user(1) # Admin
-            #update_current_user(17) # Jugador
-            
-            # Aquí se selecciona la clase de vista según el rol del usuario logueado
-            if current_user and current_user.get("rol") == "admin":
-                usuario_view_instance = ContenedorUsuarioAdmin(controller, page, content)
-                usuario_view_instance.mostrar_inicial()  
-            else:
-                usuario_view_instance = ContenedorUsuario(controller, page, content, current_user["id"])
-                usuario_view_instance.mostrar_usuario()
-
-        elif index == 2:
-            # Testing only
-            update_current_user(1) # Admin
-            update_current_user(17) # Jugador
-            if current_user:
-                if current_user.get("rol") in ["admin", "entrenador"]:
-                    # Crea la instancia de la vista de torneos para el administrador o entrenador
-                    torneos_admin_view = ContenedorTorneosSuper(controller, torneos, page)
-                    content.controls.append(torneos_admin_view.get_contenedor())
-                elif current_user.get("rol") == "miembro":
-                    # Crea la instancia de la vista de torneos para un miembro
-                    torneos_member_view = ContenedorTorneos(controller, torneos, page, current_user['id'])
-                    content.controls.append(torneos_member_view.get_contenedor())
-                else:
-                    # Si no es admin, entrenador o miembro, no mostrar nada
-                    content.controls.append(ft.Text("No tiene permisos para acceder a esta sección.", size=18))
-            else:
-                content.controls.append(ft.Text("Por favor, inicie sesión para acceder a esta sección.", size=18))
-        elif index == 3:
-            if current_user and current_user.get("rol") == "admin" or current_user.get("rol") == "coach":
-                content.controls.append(entrenamientos_view)
-                page.update()
-                actualizar_entrenamientos()
-            return
-        elif index == 4:
-            # Testing only
-            #update_current_user(1) # Admin
-            #update_current_user(17) # Jugador
-            
-            # Aquí se selecciona la clase de vista según el rol del usuario logueado
-            if current_user and current_user.get("rol") == "admin" or current_user.get("rol") == "coach":
-                informe_view_instance = ContenedorInformeSuper(controller, page)
-                content.controls.append(informe_view_instance.informes_view) 
-            else:
-                informe_view_instance = ContenedorInformeView(controller, page, current_user["id"])
-                content.controls.append(informe_view_instance.layout)
- 
-        elif index == 5:
-            pagos_view = create_pagos_view(controller, page)
-            content.controls.append(pagos_view)
-        elif index == 6:
-            content.controls.append(usuarios_view)
-            mostrar_lista_usuarios_pendientes()
-
+        if index < len(view_functions):
+            view_functions[index]()  # Call the function associated with the current index
+        else:
+            content.controls.append(ft.Text("Esta sección no está disponible.", size=18))
         page.update()
 
+    rail.on_change = lambda e: destination_change(e)
 
-    rail = ft.NavigationRail(
-        selected_index=0,
-        label_type=ft.NavigationRailLabelType.ALL,
-        min_width=100,
-        min_extended_width=200,
-        destinations=[
-            ft.NavigationRailDestination(icon=ft.icons.PERSON_ADD, label="Inscripción"),
-            ft.NavigationRailDestination(icon=ft.icons.GROUP, label="Usuarios"),
-            ft.NavigationRailDestination(icon=ft.icons.SPORTS_TENNIS, label="Torneos"),
-            ft.NavigationRailDestination(icon=ft.icons.FITNESS_CENTER, label="Entrenamiento"),
-            ft.NavigationRailDestination(icon=ft.icons.BAR_CHART, label="Informes"),
-            ft.NavigationRailDestination(icon=ft.icons.ATTACH_MONEY, label="Pagos"),
-            ft.NavigationRailDestination(icon=ft.icons.PERSON_SEARCH, label="Usuarios Pendientes"),
-        ],
-        on_change=lambda e: destination_change(e)
-    )
-
-    page.add(app_bar, ft.Row([rail, ft.VerticalDivider(width=1), content], expand=True))
+       
 
 ft.app(target=main)

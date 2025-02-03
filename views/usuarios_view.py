@@ -1,15 +1,16 @@
 # views/usuarios_view.py
 import flet as ft
-
 class ContenedorUsuario:
-    def __init__(self, controller, page, content, usuario_id):
+    def __init__(self, controller, page, user_id):
         self.controller = controller
         self.page = page
-        self.content = content
-        self.usuario_id = usuario_id
+        self.user_id = user_id
+
+        # Creamos un contenedor (o Column) interno para evitar usar `content` del main
+        self.layout = ft.Column()
 
     def mostrar_usuario(self):
-        usuario = self.controller.get_user_by_id(self.usuario_id)
+        usuario = self.controller.get_user_by_id(self.user_id)
         usuario_info = ft.Column(
             [
                 ft.Text("Información del Usuario", size=24, weight=ft.FontWeight.BOLD),
@@ -24,19 +25,26 @@ class ContenedorUsuario:
             spacing=10,
             alignment=ft.MainAxisAlignment.START,
         )
-        self.content.controls.clear()
-        self.content.controls.append(usuario_info)
+        # Limpiamos y agregamos a nuestro layout interno
+        self.layout.controls.clear()
+        self.layout.controls.append(usuario_info)
+        # Si tuvieras que actualizar la página completa:
         self.page.update()
 
-
+    def get_contenedor(self):
+        """Retorna el contenedor principal (layout) de esta vista."""
+        # Mostramos la info de entrada (o podrías llamarlo manualmente desde fuera)
+        self.mostrar_usuario()
+        return self.layout
 class ContenedorUsuarioAdmin:
-    def __init__(self, controller, page, content):
+    def __init__(self, controller, page):
         self.controller = controller
         self.page = page
-        self.content = content
+
+        # Creamos layout interno
+        self.layout = ft.Column()
 
     def mostrar_inicial(self):
-        # Vista inicial con los dos botones para filtrar usuarios inscritos o matriculados
         vista_inicial = ft.Column(
             [
                 ft.Text("Usuarios", size=24, weight=ft.FontWeight.BOLD),
@@ -58,8 +66,8 @@ class ContenedorUsuarioAdmin:
             ],
             spacing=10
         )
-        self.content.controls.clear()
-        self.content.controls.append(vista_inicial)
+        self.layout.controls.clear()
+        self.layout.controls.append(vista_inicial)
         self.page.update()
 
     def mostrar_usuarios(self, estado="inscrito"):
@@ -82,8 +90,8 @@ class ContenedorUsuarioAdmin:
             spacing=10,
             expand=True,
         )
-        self.content.controls.clear()
-        self.content.controls.append(vista_usuarios)
+        self.layout.controls.clear()
+        self.layout.controls.append(vista_usuarios)
         self.page.update()
 
     def mostrar_info_usuario(self, usuario):
@@ -105,6 +113,12 @@ class ContenedorUsuarioAdmin:
             spacing=10,
             alignment=ft.MainAxisAlignment.START,
         )
-        self.content.controls.clear()
-        self.content.controls.append(usuario_info)
+        self.layout.controls.clear()
+        self.layout.controls.append(usuario_info)
         self.page.update()
+
+    def get_contenedor(self):
+        """Retorna el contenedor principal (layout) de esta vista."""
+        # Por defecto, cuando se llama, muestra la vista inicial
+        self.mostrar_inicial()
+        return self.layout

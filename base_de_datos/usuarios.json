@@ -236,12 +236,13 @@
     },
     {
         "id": 27,
-        "nombre": "iris",
-        "apellidos": "hola",
+        "nombre": "Iris",
+        "apellidos": "Coach",
         "edad": 132,
         "num_identificacion": "1231231",
         "correo": "123@gmail.com",
         "telefono": "131231",
-        "estado": "inscrito"
+        "estado": "inscrito",
+        "rol": "coach"
     }
 ]
