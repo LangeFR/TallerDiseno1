@@ -121,15 +121,6 @@ def main(page: ft.Page):
                 ft.TextField(label="Teléfono", width=300),
                 ft.TextField(label="Contraseña", password=True, width=300),
                 ft.TextField(label="Verificar contraseña", password=True, width=300),
-                ft.Dropdown(
-                    label="Selecciona tu rol",
-                    width=300,
-                    options=[
-                        ft.dropdown.Option("admin", "Administrador"),
-                        ft.dropdown.Option("coach", "Entrenador"),
-                        ft.dropdown.Option("user", "Usuario")
-                    ]
-                ),
                 ft.ElevatedButton(
                     text="Registrarse",
                     width=300,
