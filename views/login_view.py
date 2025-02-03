@@ -1,6 +1,6 @@
 import flet as ft
-from controllers.auth_controller import auth_controller
-from modelos import Usuario
+from modelos.usuario import Usuario
+from controllers import auth_controller
 
 def main(page: ft.Page):
     # Paleta de colores extraída de Coolors
@@ -18,17 +18,31 @@ def main(page: ft.Page):
     view_mode = "login"  # Puede ser "login" o "register"
     selected_role = ""
 
-    # Función que genera el formulario de login (se muestra cuando se selecciona un rol)
+    # AnimatedSwitcher para el formulario de login (se muestra cuando se selecciona un rol)
+    login_form_switcher = ft.AnimatedSwitcher(
+        duration=300,
+        transition=ft.AnimatedSwitcherTransition.FADE,
+        content=ft.Container(key="empty")
+    )
+
+    # AnimatedSwitcher para el logo (visible solo en la vista de login)
+    logo_switcher = ft.AnimatedSwitcher(
+        duration=300,
+        transition=ft.AnimatedSwitcherTransition.FADE,
+        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200, margin=ft.margin.only(top=20))
+    )
+
+    # Función que genera el formulario de login (usa el rol seleccionado)
     def get_login_form():
-        # Se crean los campos de correo y contraseña
-        username_field = ft.TextField(label="Correo", width=300, key="username_field")
+        # Campos para correo y contraseña (en este ejemplo se usa el correo como identificador)
+        correo_field = ft.TextField(label="Correo", width=300, key="correo_field")
         password_field = ft.TextField(label="Contraseña", password=True, width=300, key="password_field")
         login_button = ft.ElevatedButton(
             text="Ingresar",
             width=300,
             bgcolor=COLOR_DARK_PURPLE,
             color="white",
-            on_click=lambda e: on_login(username_field.value, password_field.value)
+            on_click=lambda e: on_login(correo_field.value, password_field.value)
         )
         return ft.Container(
             key="login_form",
@@ -40,7 +54,7 @@ def main(page: ft.Page):
                         weight=ft.FontWeight.W_600,
                         color=COLOR_DARK_PURPLE
                     ),
-                    username_field,
+                    correo_field,
                     password_field,
                     login_button
                 ],
@@ -50,7 +64,7 @@ def main(page: ft.Page):
             padding=ft.padding.all(10)
         )
 
-    # Función para validar el login usando auth_controller
+    # Función que se invoca al hacer login
     def on_login(correo, contrasena):
         usuario_valido = auth_controller.validar_login(correo, contrasena)
         if usuario_valido is None:
@@ -61,18 +75,18 @@ def main(page: ft.Page):
             page.snack_bar = ft.SnackBar(content=ft.Text("Login exitoso"))
             page.snack_bar.open = True
             page.update()
-            # Aquí se podría invocar la interfaz de administración (por ejemplo, tenis.py)
+            # Aquí se puede invocar la interfaz administrativa, por ejemplo:
             print("Usuario autenticado:", usuario_valido)
-            # Por ejemplo: tenis.iniciar(usuario_valido)
+            # O bien, cambiar el contenido de la página para cargar la vista de 'tenis.py'
 
-    # Cuando se selecciona un rol, se actualiza el formulario de login
+    # Función que se invoca al seleccionar un rol en la vista de login
     def on_role_click(e, role):
         nonlocal selected_role
         selected_role = role
         login_form_switcher.content = get_login_form()
         page.update()
 
-    # Función auxiliar para crear botones verticales (icono arriba y texto abajo)
+    # Función auxiliar para crear botones con icono y texto en disposición vertical
     def vertical_button(icon, label, role, bgcolor):
         return ft.ElevatedButton(
             content=ft.Column(
@@ -89,6 +103,7 @@ def main(page: ft.Page):
             width=150
         )
 
+    # Fila de botones para seleccionar el rol (vista de Login)
     roles_row = ft.Row(
         controls=[
             vertical_button(ft.Icons.ADMIN_PANEL_SETTINGS, "ADMINISTRADOR", "admin", COLOR_DARK_PURPLE),
@@ -99,7 +114,7 @@ def main(page: ft.Page):
         alignment=ft.MainAxisAlignment.CENTER
     )
 
-    # Vista de Login: muestra el formulario (si se seleccionó rol), los botones de rol y el enlace a registro
+    # Vista de Login: incluye formulario, botones de rol y enlace para registrarse
     def get_login_view():
         return ft.Column(
             controls=[
@@ -219,28 +234,14 @@ def main(page: ft.Page):
             logo_switcher.content = ft.Container(key="empty")
         page.update()
 
-    # AnimatedSwitcher para el formulario de login
-    login_form_switcher = ft.AnimatedSwitcher(
-        duration=300,
-        transition=ft.AnimatedSwitcherTransition.FADE,
-        content=ft.Container(key="empty")
-    )
-
-    # AnimatedSwitcher principal para alternar entre vistas de login y registro
+    # AnimatedSwitcher principal para alternar entre las vistas de login y registro
     main_switcher = ft.AnimatedSwitcher(
         duration=300,
         transition=ft.AnimatedSwitcherTransition.FADE,
         content=get_login_view()
     )
 
-    # AnimatedSwitcher para el logo (visible solo en la vista de login)
-    logo_switcher = ft.AnimatedSwitcher(
-        duration=300,
-        transition=ft.AnimatedSwitcherTransition.FADE,
-        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200, margin=ft.margin.only(top=20))
-    )
-
-    # Contenedor "card" que agrupa el logo y la vista principal, con width ajustado a 600
+    # Contenedor "card" que agrupa el logo (mediante logo_switcher) y la vista principal, con width ajustado a 600
     container = ft.Container(
         content=ft.Column(
             controls=[
@@ -266,6 +267,6 @@ def main(page: ft.Page):
     )
 
     page.add(container)
-    
+
 if __name__ == "__main__":
     ft.app(target=main)
