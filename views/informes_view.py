@@ -371,6 +371,7 @@ class ContenedorInformeViewSuper:
 
 class ContenedorInformeView:
     def __init__(self, controller, page, user_id):
+        print("ContenedorInformeView")
         self.controller = controller
         self.page = page
         self.user_id = user_id
@@ -385,11 +386,9 @@ class ContenedorInformeView:
         # Obtener años de los informes existentes para este usuario
         self.dropdown_anio.options = self.obtener_anios_disponibles()
 
-        # Contenedor para los informes
-        self.informes_container = ft.GridView(
-            columns=4,
-            child_aspect_ratio=1.5,
-            padding=10,
+        # Contenedor para los informes usando una Column que contendrá varias Row
+        self.informes_container = ft.Column(
+            controls=[],
             spacing=10
         )
 
@@ -409,7 +408,8 @@ class ContenedorInformeView:
             with open("base_de_datos/informes.json", "r") as file:
                 informes = json.load(file)
             anios = {str(inf["anio"]) for inf in informes if inf["usuario_id"] == self.user_id}
-            return [ft.DropdownOption(text=anio, value=anio) for anio in sorted(anios, reverse=True)]
+            # Usar ft.DropdownOption para crear las opciones
+            return [ft.dropdown.Option(text=anio) for anio in sorted(anios, reverse=True)]
         except Exception as e:
             print(f"Error al cargar los informes: {e}")
             return []
@@ -429,18 +429,26 @@ class ContenedorInformeView:
             return []
 
     def mostrar_informes(self, informes):
-        """Muestra informes en el grid."""
+        """Muestra informes en filas de 4 tarjetas cada una."""
         self.informes_container.controls.clear()
-        for informe in informes:
-            card = self.crear_informe_card(informe)
-            self.informes_container.controls.append(card)
+        chunk_size = 4  # Número de tarjetas por fila
+        for i in range(0, len(informes), chunk_size):
+            chunk = informes[i:i + chunk_size]
+            row_controls = [self.crear_informe_card(informe) for informe in chunk]
+            row = ft.Row(
+                controls=row_controls,
+                spacing=10
+            )
+            self.informes_container.controls.append(row)
         self.page.update()
 
     def crear_informe_card(self, informe):
-        """Crea una tarjeta visual para un informe."""
+        """Crea una tarjeta visual para un informe, incluyendo toda la información:
+           mes, anio, clases_mes, clases_asistidas, torneos_asistidos y top_torneos."""
         return ft.Card(
             content=ft.Column([
                 ft.Text(f"Mes: {informe['mes']}/{informe['anio']}"),
+                ft.Text(f"Clases Mes: {informe['clases_mes']}"),
                 ft.Text(f"Clases Asistidas: {informe['clases_asistidas']}"),
                 ft.Text(f"Torneos Asistidos: {informe['torneos_asistidos']}"),
                 ft.Text(f"Top Torneos: {', '.join([f'{t[0]} (Puesto {t[1]})' for t in informe['top_torneos']])}")
@@ -455,3 +463,7 @@ class ContenedorInformeView:
         if anio_seleccionado:
             informes = self.cargar_informes_del_usuario(anio_seleccionado)
             self.mostrar_informes(informes)
+
+
+
+

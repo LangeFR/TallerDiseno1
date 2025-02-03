@@ -8,7 +8,7 @@
         "correo": "juan.rodriguez@example.com",
         "telefono": "903215016",
         "estado": "inscrito",
-        "rol": ""
+        "rol": "admin"
     },
     {
         "id": 2,

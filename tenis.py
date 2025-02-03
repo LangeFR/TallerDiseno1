@@ -190,15 +190,18 @@ def main(page: ft.Page):
             actualizar_entrenamientos()
             return
         elif index == 4:
-            update_current_user(17) # Testing only
+            # Testing only
+            #update_current_user(1) # Admin
+            #update_current_user(17) # Jugador
             
             # Aquí se selecciona la clase de vista según el rol del usuario logueado
             if current_user and current_user.get("rol") == "admin" or current_user.get("rol") == "coach":
-                usuario_view_instance = ContenedorInformeViewSuper(controller, page)
-                usuario_view_instance.mostrar_inicial()  
+                informe_view_instance = ContenedorInformeViewSuper(controller, page)
+                content.controls.append(informe_view_instance.informes_view) 
             else:
-                usuario_view_instance = ContenedorInformeView(controller, page, current_user["id"])
-                usuario_view_instance.mostrar_usuario()
+                informe_view_instance = ContenedorInformeView(controller, page, current_user["id"])
+                content.controls.append(informe_view_instance.layout)
+ 
         elif index == 5:
             pagos_view = create_pagos_view(controller, page)
             content.controls.append(pagos_view)
