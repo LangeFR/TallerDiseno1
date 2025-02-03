@@ -88,7 +88,7 @@ def main(page: ft.Page):
         controls=[
             vertical_button(ft.Icons.ADMIN_PANEL_SETTINGS, "ADMINISTRADOR", "admin", COLOR_DARK_PURPLE),
             vertical_button(ft.Icons.SPORTS_TENNIS, "ENTRENADOR", "coach", COLOR_MUTED_PINK),
-            vertical_button(ft.Icons.PERSON, "USUARIO", "user", COLOR_SOFT_GREEN)
+            vertical_button(ft.Icons.PERSON, "MIEMBRO", "member", COLOR_SOFT_GREEN)
         ],
         spacing=20,
         alignment=ft.MainAxisAlignment.CENTER

@@ -6,7 +6,7 @@ class Usuario:
     id: int
     nombre: str
     apellidos: str
-    edad: int  # Se conserva la edad
+    edad: int 
     num_identificacion: str
     correo: str
     telefono: str
