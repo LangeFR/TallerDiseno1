@@ -23,10 +23,10 @@ from views.inscripcion_view import create_inscripcion_view
 
 from views.torneos_view import create_torneos_view
 from views.entrenamientos_view import create_entrenamientos_view
-from views.informes_view import create_informes_view
 from views.pagos_view import create_pagos_view
 
 from views.usuarios_view import ContenedorUsuarioView, ContenedorUsuarioViewAdmin
+from views.informes_view import ContenedorInformeViewSuper, ContenedorInformeView
 
 
 
@@ -55,7 +55,7 @@ def main(page: ft.Page):
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
     torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
-    informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
+    #informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     
     
     def change_theme(e):
@@ -190,7 +190,15 @@ def main(page: ft.Page):
             actualizar_entrenamientos()
             return
         elif index == 4:
-            content.controls.append(informes_view)
+            update_current_user(17) # Testing only
+            
+            # Aquí se selecciona la clase de vista según el rol del usuario logueado
+            if current_user and current_user.get("rol") == "admin" or current_user.get("rol") == "coach":
+                usuario_view_instance = ContenedorInformeViewSuper(controller, page)
+                usuario_view_instance.mostrar_inicial()  
+            else:
+                usuario_view_instance = ContenedorInformeView(controller, page, current_user["id"])
+                usuario_view_instance.mostrar_usuario()
         elif index == 5:
             pagos_view = create_pagos_view(controller, page)
             content.controls.append(pagos_view)

@@ -5,123 +5,175 @@ from datetime import datetime
 from modelos.informe import Informe
 from modelos.base_model import BaseModel
 
-def create_informes_view(controller, page):
-    """
-    Crea y retorna la vista de generación y visualización de informes.
+class ContenedorInformeViewSuper:
+    def __init__(self, controller, page):
+        self.controller = controller
+        self.page = page
 
-    Disposición (3 columnas):
-        Columna 1:
-            - Botón para generar informes
-        Columna 2 (dividida verticalmente):
-            2.1: Campos para seleccionar año y mes
-            2.2: Lista de usuarios matriculados + botón para deseleccionar (limpiar filtro)
-        Columna 3:
-            - Contenedor con la lista de informes para el mes/año seleccionado
-              (ya sea de todos los usuarios o sólo del usuario filtrado).
-    """
+        # -----------------------------------------------------------
+        # Elementos de UI y variables
+        # -----------------------------------------------------------
+        # Columna 1: Opciones para generar informes
+        self.input_anio_col1 = ft.TextField(
+            label="Año",
+            width=100,
+            keyboard_type=ft.KeyboardType.NUMBER,
+        )
+        self.input_mes_col1 = ft.TextField(
+            label="Mes",
+            width=100,
+            keyboard_type=ft.KeyboardType.NUMBER,
+        )
+        col1 = ft.Column(
+            controls=[
+                ft.Text("Opciones", weight=ft.FontWeight.BOLD),
+                ft.Divider(),
+                self.input_anio_col1,
+                self.input_mes_col1,
+                ft.ElevatedButton("Generar Informes", on_click=self.on_generar_informes_click),
+            ],
+            alignment=ft.MainAxisAlignment.START,
+            horizontal_alignment=ft.CrossAxisAlignment.START,
+            expand=False
+        )
+
+        # Columna 2: Selección de año y mes y filtro por usuario
+        self.input_anio = ft.TextField(
+            label="Año",
+            width=100,
+            hint_text="2025",
+            keyboard_type=ft.KeyboardType.NUMBER,
+        )
+        self.input_mes = ft.TextField(
+            label="Mes",
+            width=100,
+            hint_text="01",
+            keyboard_type=ft.KeyboardType.NUMBER,
+        )
+        col2_1 = ft.Column(
+            controls=[
+                ft.Text("Seleccionar Año y Mes", weight=ft.FontWeight.BOLD),
+                ft.Row([self.input_anio, self.input_mes]),
+            ],
+            spacing=10,
+        )
+
+        self.usuarios_listview = ft.ListView(expand=True, spacing=5)
+        # Construir la lista de usuarios matriculados
+        matriculados = self.controller.filtrar_usuarios("matriculado")
+        for u in matriculados:
+            self.usuarios_listview.controls.append(
+                ft.ListTile(
+                    title=ft.Text(u.nombre),
+                    subtitle=ft.Text(f"ID: {u.id}"),
+                    on_click=lambda e, uid=u.id: self.on_user_click(e, uid)
+                )
+            )
+        btn_limpiar_filtro = ft.ElevatedButton("Deseleccionar usuario", on_click=self.limpiar_filtro_usuario)
+        col2_2 = ft.ListView(
+            controls=[
+                ft.ListTile(title=ft.Text("Usuarios Matriculados")),
+                ft.Container(self.usuarios_listview, expand=True, height=300),
+                btn_limpiar_filtro,
+            ],
+            expand=True
+        )
+        col2 = ft.Column(
+            controls=[col2_1, col2_2],
+            spacing=20,
+            expand=False
+        )
+
+        # Columna 3: Contenedor para mostrar informes
+        self.informe_container = ft.ListView([], expand=True)
+        col3 = ft.Container(
+            content=self.informe_container,
+            expand=True
+        )
+
+        # Calcular anchos para cada columna (Columna 1 ancho fijo)
+        col1_width = 180
+        available_width = page.width - col1_width - 2  # 2 para los divisores
+        col2_and_3_width = available_width / 3
+
+        self.informes_view = ft.Row(
+            controls=[
+                ft.Container(col1, width=180, padding=10),
+                ft.VerticalDivider(width=1),
+                ft.Container(col2, width=col2_and_3_width, padding=10),
+                ft.VerticalDivider(width=1),
+                ft.Container(col3, width=col2_and_3_width * 2, padding=10),
+            ],
+            expand=True
+        )
+
+        # Variable para manejar el filtro por usuario
+        self.selected_user_id = None
 
     # -----------------------------------------------------------
-    # Variables y referencias de UI
+    # Funciones de apoyo (convertidas a métodos)
     # -----------------------------------------------------------
-    input_anio = ft.TextField(
-        label="Año",
-        width=80,
-        hint_text="2025",
-        keyboard_type=ft.KeyboardType.NUMBER,
-    )
-    input_mes = ft.TextField(
-        label="Mes",
-        width=50,
-        hint_text="01",
-        keyboard_type=ft.KeyboardType.NUMBER,
-    )
-
-    # Contenedor de informes (Columna 3)
-    informe_container = ft.ListView([], expand=True)
-
-    # Lista de usuarios matriculados (Columna 2.2)
-    usuarios_listview = ft.ListView(expand=True, spacing=5)
-    
-    # Para manejar la selección de usuario en el filtro
-    selected_user_id = None
-
-    # -----------------------------------------------------------
-    # Funciones de apoyo
-    # -----------------------------------------------------------
-    def cargar_asistencia_entrenamientos():
-        """Carga y retorna la lista de asistencia_entrenamientos desde JSON."""
+    def cargar_asistencia_entrenamientos(self):
         try:
             return BaseModel.cargar_datos("asistencia_entrenamientos.json")
         except:
             return []
 
-    def cargar_asistencia_torneos():
-        """Carga y retorna la lista de asistencia_torneos desde JSON."""
+    def cargar_asistencia_torneos(self):
         try:
             return BaseModel.cargar_datos("asistencia_torneos.json")
         except:
             return []
 
-    def cargar_torneos():
-        """Devuelve un diccionario {torneo_id: (nombre_torneo, fecha_torneo)} para lookup."""
-        torneos = controller.cargar_torneos()  # Retorna lista de objetos Torneo
+    def cargar_torneos(self):
+        torneos = self.controller.cargar_torneos()  # Retorna lista de objetos Torneo
         return {t.id: (t.nombre, t.fecha) for t in torneos}
 
-    def cargar_entrenamientos():
-        """Devuelve un diccionario {entrenamiento_id: (fecha, nombre/opcional)} para lookup."""
-        entrenamientos = controller.cargar_entrenamientos()
-        # Asumimos que cada entrenamiento tiene un atributo fecha (str "YYYY-MM-DD" o similar)
+    def cargar_entrenamientos(self):
+        entrenamientos = self.controller.cargar_entrenamientos()
         return {e.id: e.fecha for e in entrenamientos}
 
-    def extraer_mes_anio_de_fecha(fecha_str):
-        """Recibe una fecha en formato YYYY-MM-DD. Retorna (anio, mes)."""
-        # Ajusta según tu formato real. Este ejemplo asume "YYYY-MM-DD".
+    def extraer_mes_anio_de_fecha(self, fecha_str):
         if not fecha_str:
             return (None, None)
         try:
             dt = datetime.strptime(fecha_str, "%Y-%m-%d")
             return (dt.year, dt.month)
         except:
-            # Si no se puede parsear, devolvemos None
             return (None, None)
 
-    def generar_id_informe(informes_existentes):
-        """Genera un nuevo id único para el informe."""
+    def generar_id_informe(self, informes_existentes):
         if not informes_existentes:
             return 1
         else:
             max_id = max(inf["id"] for inf in informes_existentes)
             return max_id + 1
 
-    def crear_informes(anio, mes):
-        """
-        Crea/actualiza en 'informes.json' los informes del año y mes indicados
-        para todos los usuarios con estado = 'matriculado'.
-        """
+    def crear_informes(self, anio, mes):
         # Validaciones básicas
         if not anio.isdigit() or not mes.isdigit():
-            page.snack_bar = ft.SnackBar(
+            self.page.snack_bar = ft.SnackBar(
                 ft.Text("Año y mes deben ser números."), bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
             return
 
         anio_int = int(anio)
         mes_int = int(mes)
         if not (1 <= mes_int <= 12):
-            page.snack_bar = ft.SnackBar(
+            self.page.snack_bar = ft.SnackBar(
                 ft.Text("Mes debe estar entre 1 y 12."), bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
             return
 
         # Cargar datos
-        asistencia_entrenamientos = cargar_asistencia_entrenamientos()
-        asistencia_torneos = cargar_asistencia_torneos()
-        dict_torneos = cargar_torneos()
-        dict_entrenamientos = cargar_entrenamientos()
+        asistencia_entrenamientos = self.cargar_asistencia_entrenamientos()
+        asistencia_torneos = self.cargar_asistencia_torneos()
+        dict_torneos = self.cargar_torneos()
+        dict_entrenamientos = self.cargar_entrenamientos()
 
         # Cargar informes existentes
         try:
@@ -134,12 +186,11 @@ def create_informes_view(controller, page):
         except:
             informes_existentes = []
 
-        # Lista final donde guardaremos informes actualizados
+        # Remover informes existentes para este mes/año
         informes_nuevos = [inf for inf in informes_existentes
                            if not (str(inf["anio"]) == str(anio_int) and str(inf["mes"]).zfill(2) == str(mes_int).zfill(2))]
-        # ^ Con esto, removemos cualquier informe de este mes/año, para regenerarlos
 
-        usuarios_matriculados = controller.filtrar_usuarios("matriculado")
+        usuarios_matriculados = self.controller.filtrar_usuarios("matriculado")
 
         for usuario in usuarios_matriculados:
             user_id = usuario.id
@@ -151,9 +202,9 @@ def create_informes_view(controller, page):
             for a_e in asistencia_entrenamientos:
                 if a_e["usuario_id"] == user_id:
                     ent_id = a_e["entrenamiento_id"]
-                    fecha_ent = dict_entrenamientos.get(ent_id, None)  # "YYYY-MM-DD"
+                    fecha_ent = dict_entrenamientos.get(ent_id, None)
                     if fecha_ent:
-                        ent_anio, ent_mes = extraer_mes_anio_de_fecha(fecha_ent)
+                        ent_anio, ent_mes = self.extraer_mes_anio_de_fecha(fecha_ent)
                         if ent_anio == anio_int and ent_mes == mes_int:
                             clases_del_mes += 1
                             if a_e.get("estado", "") == "presente":
@@ -166,55 +217,24 @@ def create_informes_view(controller, page):
             for a_t in asistencia_torneos:
                 if a_t["usuario_id"] == user_id:
                     t_id = a_t["torneo_id"]
-                    # Necesitamos la fecha real del torneo:
-                    # Torneo viene del controller, convertimos a dict para filtrar
-                    # Usamos el dict_torneos para obtener el nombre, pero la fecha hay que cargarla
-                    # con controller.cargar_torneos() --> ya lo hicimos (dict) pero ahí sólo guardamos nombre
-                    # Podríamos recargar la lista y buscar la fecha:
-                    # Para la demo, asumimos que tenemos que hacer: get_torneo_by_id(t_id)
-                    # o algo similar. Haremos un approach rápido:
-
-                    # Buscamos la fecha en la lista de torneos
-                    # Re-cargamos la lista como objetos Torneo
-                    # y filtramos
-                    # (Para optimizar, se podría crear un diccionario id->(nombre,fecha) similar a entrenamientos).
-                    # Para simplicidad, supongamos que NO filtras por fecha en torneos (pero la solicitud indica que sí).
-                    # => Ajustamos: definimos un dict con id->(nombre, fecha).
-                    # Lo haremos rápido:
-                    # en cargar_torneos() tenemos {id: nombre}, no la fecha. Extendámoslo:
-                    # (Ver "controller.cargar_torneos()" -> Retorna [Torneo(...)], cada Torneo tiene t.fecha).
-                    # Haremos un dict análogo a dict_entrenamientos.
-
-                    # Reajustamos: cambiamos cargar_torneos a:
-                    # dict_torneos = {t.id: (t.nombre, t.fecha)}  (ya modificado en la función).
-                    # Actualizamos la variable local:
-                    # OJO: cambia la línea "return {t.id: t.nombre for t in torneos}" 
-                    # por "return {t.id: (t.nombre, t.fecha) for t in torneos}"
-                    # Revisar más abajo. 
-                    # Por ahora supongamos lo tenemos. 
                     torneo_data = dict_torneos.get(t_id, None)
                     if not torneo_data:
                         continue
-
                     torneo_nombre, torneo_fecha = torneo_data
-                    t_anio, t_mes = extraer_mes_anio_de_fecha(torneo_fecha)
+                    t_anio, t_mes = self.extraer_mes_anio_de_fecha(torneo_fecha)
                     if t_anio == anio_int and t_mes == mes_int:
                         torneos_asistidos += 1
-                        # Guardamos (puesto, nombre)
                         torneos_del_usuario.append((a_t.get("puesto", 9999), torneo_nombre))
 
-            # Ordenar por mejor puesto (menor puesto => mejor)
+            # Ordenar por mejor puesto (menor es mejor)
             torneos_del_usuario.sort(key=lambda x: x[0])
-            # Tomamos los 3 primeros
             top_torneos_data = []
             for tupla in torneos_del_usuario[:3]:
-                puesto = tupla[0]
-                nombre_t = tupla[1]
+                puesto, nombre_t = tupla
                 top_torneos_data.append([nombre_t, puesto])
 
-            # Crear un diccionario con el formato solicitado
             nuevo_informe = {
-                "id": generar_id_informe(informes_nuevos),
+                "id": self.generar_id_informe(informes_nuevos),
                 "usuario_id": user_id,
                 "mes": str(mes_int).zfill(2),
                 "anio": str(anio_int),
@@ -225,23 +245,18 @@ def create_informes_view(controller, page):
             }
             informes_nuevos.append(nuevo_informe)
 
-        # Guardar informes actualizados en disco
         with open("base_de_datos/informes.json", "w") as f:
             json.dump(informes_nuevos, f, indent=4)
 
-        page.snack_bar = ft.SnackBar(
+        self.page.snack_bar = ft.SnackBar(
             ft.Text(f"Informes generados para {mes_int:02d}/{anio_int}."),
             bgcolor=ft.colors.GREEN
         )
-        page.snack_bar.open = True
-        page.update()
+        self.page.snack_bar.open = True
+        self.page.update()
 
-    def mostrar_informes_en_container(anio, mes, user_id_filter=None):
-        """
-        Carga desde informes.json y muestra en 'informe_container' los informes según
-        las condiciones de año, mes y usuario seleccionado.
-        """
-        informe_container.controls.clear()
+    def mostrar_informes_en_container(self, anio, mes, user_id_filter=None):
+        self.informe_container.controls.clear()
 
         try:
             with open("base_de_datos/informes.json", "r") as file:
@@ -252,15 +267,14 @@ def create_informes_view(controller, page):
                     informes = json.loads(content)
         except Exception as ex:
             print("Error al cargar informes:", ex)
-            page.snack_bar = ft.SnackBar(
+            self.page.snack_bar = ft.SnackBar(
                 ft.Text(f"Error al cargar informes: {str(ex)}"), 
                 bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
             return
 
-        # Filtrado de informes según año, mes y usuario
         if anio and mes:
             mes = mes.zfill(2)
             informes_filtrados = [inf for inf in informes if str(inf["anio"]) == str(anio) and str(inf["mes"]) == str(mes)]
@@ -269,42 +283,25 @@ def create_informes_view(controller, page):
         elif not anio and not mes and user_id_filter:
             informes_filtrados = [inf for inf in informes if inf["usuario_id"] == user_id_filter]
         else:
-            informes_filtrados = []  # No mostrar nada si no hay año y mes, y no hay filtro de usuario
+            informes_filtrados = []
 
-
-        # Si hay un usuario en el filtro, filtrar más
         if user_id_filter is not None:
-            informes_filtrados = [
-                inf for inf in informes_filtrados
-                if inf["usuario_id"] == user_id_filter
-            ]
-        # Para mostrar el nombre del usuario en lugar de ID
-        # Hacemos un diccionario {id: nombre}
-        dict_usuarios = {u.id: u.nombre for u in controller.usuarios}
+            informes_filtrados = [inf for inf in informes_filtrados if inf["usuario_id"] == user_id_filter]
+
+        dict_usuarios = {u.id: u.nombre for u in self.controller.usuarios}
 
         for inf in informes_filtrados:
-            user_name = dict_usuarios.get(inf["usuario_id"], f"ID {inf['usuario_id']}")
-            top_torneos_str = ""
-            for titem in inf["top_torneos"]:
-                nombre_t = titem[0]
-                puesto_t = titem[1]
-                top_torneos_str += f"- {nombre_t} (puesto {puesto_t})\n"
+            self.display_informe(inf, dict_usuarios)
 
-        for inf in informes_filtrados:
-            display_informe(inf, dict_usuarios)
+        self.page.update()
 
-        page.update()
-    
-    def display_informe(inf, dict_usuarios):
+    def display_informe(self, inf, dict_usuarios):
         user_name = dict_usuarios.get(inf["usuario_id"], f"ID {inf['usuario_id']}")
         top_torneos_str = "\n".join([f"- {t[0]} (puesto {t[1]})" for t in inf["top_torneos"]])
-        
-        # Corrección del cálculo del porcentaje de asistencia
         clases_del_mes = inf['clases_mes']
         clases_asistidas = inf['clases_asistidas']
         porcentaje_asistencia = (clases_asistidas / clases_del_mes * 100) if clases_del_mes > 0 else 0
-        
-        # Corrección en la f-string
+
         card = ft.Card(
             content=ft.Container(
                 ft.Column([
@@ -321,181 +318,140 @@ def create_informes_view(controller, page):
             ),
             width=300,
         )
-        informe_container.controls.append(card)
-
+        self.informe_container.controls.append(card)
 
     # -----------------------------------------------------------
-    # Callbacks UI
+    # Callbacks de UI (métodos de evento)
     # -----------------------------------------------------------
-    def on_generar_informes_click(e):
-        """
-        Cuando se presiona el botón "Generar Informes" en la columna 1.
-        1) Genera informes en disco (crear_informes).
-        2) Muestra todos los informes en la columna 3 (sin filtro de usuario).
-        """
-        anio_val = input_anio_col1.value
-        mes_val = input_mes_col1.value
+    def on_generar_informes_click(self, e):
+        anio_val = self.input_anio_col1.value
+        mes_val = self.input_mes_col1.value
         if not anio_val or not mes_val:
-            page.snack_bar = ft.SnackBar(
+            self.page.snack_bar = ft.SnackBar(
                 ft.Text("Debe ingresar año y mes"), bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
             return
 
-        # Validar que el año y el mes sean numéricos y el mes esté en el rango adecuado
         if not anio_val.isdigit() or not mes_val.isdigit():
-            page.snack_bar = ft.SnackBar(
+            self.page.snack_bar = ft.SnackBar(
                 ft.Text("Año y mes deben ser números enteros."), bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
             return
 
-        mes_val = mes_val.zfill(2)  # Asegurar que el mes tiene dos dígitos
+        mes_val = mes_val.zfill(2)
         if not (1 <= int(mes_val) <= 12):
-            page.snack_bar = ft.SnackBar(
+            self.page.snack_bar = ft.SnackBar(
                 ft.Text("Mes debe estar entre 1 y 12."), bgcolor=ft.colors.ERROR
             )
-            page.snack_bar.open = True
-            page.update()
+            self.page.snack_bar.open = True
+            self.page.update()
             return
 
-        # Una vez validado y ajustado, llamar a crear informes y mostrarlos
-        crear_informes(anio_val, mes_val)
-        mostrar_informes_en_container(anio_val, mes_val, user_id_filter=None)
+        self.crear_informes(anio_val, mes_val)
+        self.mostrar_informes_en_container(anio_val, mes_val, user_id_filter=None)
 
-
-    def on_user_click(e, user_id):
-        """
-        Cuando se hace click en un usuario de la lista (Columna 2.2).
-        Mostramos informes sólo de ese usuario.
-        """
-        nonlocal selected_user_id
-        selected_user_id = user_id
-        anio_val = input_anio.value
-        mes_val = input_mes.value
+    def on_user_click(self, e, user_id):
+        self.selected_user_id = user_id
+        anio_val = self.input_anio.value
+        mes_val = self.input_mes.value
         if not anio_val or not mes_val:
-            return  # No hay selección de mes/año
-        mostrar_informes_en_container(anio_val, mes_val, user_id_filter=selected_user_id)
+            return
+        self.mostrar_informes_en_container(anio_val, mes_val, user_id_filter=self.selected_user_id)
 
-    def limpiar_filtro_usuario(e):
-        """Quita el filtro de usuario y refresca informes."""
-        nonlocal selected_user_id
-        selected_user_id = None
-        anio_val = input_anio.value
-        mes_val = input_mes.value
+    def limpiar_filtro_usuario(self, e):
+        self.selected_user_id = None
+        anio_val = self.input_anio.value
+        mes_val = self.input_mes.value
         if anio_val and mes_val:
-            mostrar_informes_en_container(anio_val, mes_val, user_id_filter=None)
+            self.mostrar_informes_en_container(anio_val, mes_val, user_id_filter=None)
 
-    # -----------------------------------------------------------
-    # Construir UI de la Columna 2.2 con la lista de usuarios
-    # -----------------------------------------------------------
-    usuarios_listview.controls.clear()
-    matriculados = controller.filtrar_usuarios("matriculado")
+class ContenedorInformeView:
+    def __init__(self, controller, page, user_id):
+        self.controller = controller
+        self.page = page
+        self.user_id = user_id
 
-    for u in matriculados:
-        usuarios_listview.controls.append(
-            ft.ListTile(
-                title=ft.Text(u.nombre),
-                subtitle=ft.Text(f"ID: {u.id}"),
-                on_click=lambda e, uid=u.id: on_user_click(e, uid)
-            )
+        # Dropdown para seleccionar el año
+        self.dropdown_anio = ft.Dropdown(
+            label="Seleccione el Año",
+            options=[],
+            on_change=self.on_anio_change
         )
 
-    btn_limpiar_filtro = ft.ElevatedButton("Deseleccionar usuario", on_click=limpiar_filtro_usuario)
+        # Obtener años de los informes existentes para este usuario
+        self.dropdown_anio.options = self.obtener_anios_disponibles()
 
-    # -----------------------------------------------------------
-    # Construimos las 3 columnas:
-    # -----------------------------------------------------------
+        # Contenedor para los informes
+        self.informes_container = ft.GridView(
+            columns=4,
+            child_aspect_ratio=1.5,
+            padding=10,
+            spacing=10
+        )
 
-    # Columna 1: Opción para generar informes
-    input_anio_col1 = ft.TextField(
-        label="Año",
-        width=100,
-        keyboard_type=ft.KeyboardType.NUMBER,
-    )
-    input_mes_col1 = ft.TextField(
-        label="Mes",
-        width=100,
-        keyboard_type=ft.KeyboardType.NUMBER,
-    )
-    col1 = ft.Column(
-        controls=[
-            ft.Text("Opciones", weight=ft.FontWeight.BOLD),
-            ft.Divider(),
-            input_anio_col1,  # Añadir input año
-            input_mes_col1,  # Añadir input mes
-            ft.ElevatedButton("Generar Informes", on_click=on_generar_informes_click),
-        ],
-        alignment=ft.MainAxisAlignment.START,
-        horizontal_alignment=ft.CrossAxisAlignment.START,
-        expand=False
-    )
-    # Columna 2: Dividida en 2 verticalmente
-    #   - 2.1: Selección de año y mes
-    input_anio = ft.TextField(
-        label="Año",
-        width=100,  # Ancho ajustado a 100
-        hint_text="2025",
-        keyboard_type=ft.KeyboardType.NUMBER,
-    )
+        # Layout principal de la vista
+        self.layout = ft.Column(
+            controls=[
+                self.dropdown_anio,
+                self.informes_container
+            ],
+            spacing=10,
+            expand=True
+        )
 
-    input_mes = ft.TextField(
-        label="Mes",
-        width=100,  # Ancho ajustado a 100
-        hint_text="01",
-        keyboard_type=ft.KeyboardType.NUMBER,
-    )
+    def obtener_anios_disponibles(self):
+        """Retorna los años disponibles para los informes de este usuario."""
+        try:
+            with open("base_de_datos/informes.json", "r") as file:
+                informes = json.load(file)
+            anios = {str(inf["anio"]) for inf in informes if inf["usuario_id"] == self.user_id}
+            return [ft.DropdownOption(text=anio, value=anio) for anio in sorted(anios, reverse=True)]
+        except Exception as e:
+            print(f"Error al cargar los informes: {e}")
+            return []
 
-    col2_1 = ft.Column(
-        controls=[
-            ft.Text("Seleccionar Año y Mes", weight=ft.FontWeight.BOLD),
-            ft.Row([input_anio, input_mes]),
-        ],
-        spacing=10,
-    )
+    def cargar_informes_del_usuario(self, anio):
+        """Carga y retorna informes del usuario específico para el año seleccionado."""
+        try:
+            with open("base_de_datos/informes.json", "r") as file:
+                informes = json.load(file)
+            informes_filtrados = [
+                inf for inf in informes
+                if inf["usuario_id"] == self.user_id and str(inf["anio"]) == anio
+            ]
+            return informes_filtrados
+        except Exception as e:
+            print(f"Error al cargar informes del usuario: {e}")
+            return []
 
-    col2_2 = ft.ListView(
-        controls=[
-            ft.ListTile(title=ft.Text("Usuarios Matriculados"), subtitle=None),
-            ft.Container(usuarios_listview, expand=True, height=300),
-            btn_limpiar_filtro,
-        ],
-        expand=True
-    )
+    def mostrar_informes(self, informes):
+        """Muestra informes en el grid."""
+        self.informes_container.controls.clear()
+        for informe in informes:
+            card = self.crear_informe_card(informe)
+            self.informes_container.controls.append(card)
+        self.page.update()
 
-    col2 = ft.Column(
-        controls=[col2_1, col2_2],
-        spacing=20,
-        expand=False
-    )
+    def crear_informe_card(self, informe):
+        """Crea una tarjeta visual para un informe."""
+        return ft.Card(
+            content=ft.Column([
+                ft.Text(f"Mes: {informe['mes']}/{informe['anio']}"),
+                ft.Text(f"Clases Asistidas: {informe['clases_asistidas']}"),
+                ft.Text(f"Torneos Asistidos: {informe['torneos_asistidos']}"),
+                ft.Text(f"Top Torneos: {', '.join([f'{t[0]} (Puesto {t[1]})' for t in informe['top_torneos']])}")
+            ]),
+            width=300,
+            height=200
+        )
 
-
-    # Columna 3: Contenedor que muestra los informes
-    col3 = ft.Container(
-        content=informe_container,
-        expand=True
-    )
-
-    # Armamos la vista final con un Row
-        # Definir el ancho fijo para la columna 1
-    col1_width = 180
-
-    # Calcular el ancho disponible para las columnas 2 y 3
-    available_width = page.width - col1_width - 2  # Asumiendo que page.width es el ancho total y 2 para los divisores
-
-    # Establecer el ancho para las columnas 2 y 3
-    col2_and_3_width = available_width / 3
-    informes_view = ft.Row(
-        controls=[
-            ft.Container(col1, width=180, padding=10),
-            ft.VerticalDivider(width=1),
-            ft.Container(col2, width=col2_and_3_width, padding=10),
-            ft.VerticalDivider(width=1),
-            ft.Container(col3, width=col2_and_3_width * 2, padding=10),
-        ],
-        expand=True
-    )
-
-    return informes_view, input_anio, input_mes, informe_container
+    def on_anio_change(self, event):
+        """Evento al cambiar el año en el dropdown."""
+        anio_seleccionado = event.control.value
+        if anio_seleccionado:
+            informes = self.cargar_informes_del_usuario(anio_seleccionado)
+            self.mostrar_informes(informes)

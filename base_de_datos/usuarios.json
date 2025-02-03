@@ -171,7 +171,8 @@
         "num_identificacion": "492223118",
         "correo": "carlos.gonzalez@example.com",
         "telefono": "974529188",
-        "estado": "matriculado"
+        "estado": "matriculado",
+        "rol": ""
     },
     {
         "id": 18,
