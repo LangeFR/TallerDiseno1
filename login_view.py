@@ -1,6 +1,7 @@
 import flet as ft
-from modelos.usuario import Usuario
+from modelos.usuario import Usuario 
 from controllers import auth_controller
+from controllers.club_controller import ClubController
 
 def main(page: ft.Page):
     # Paleta de colores extraída de Coolors
@@ -29,7 +30,7 @@ def main(page: ft.Page):
     logo_switcher = ft.AnimatedSwitcher(
         duration=300,
         transition=ft.AnimatedSwitcherTransition.FADE,
-        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200, margin=ft.margin.only(top=20))
+        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
     )
 
     # Función que genera el formulario de login (usa el rol seleccionado)
@@ -228,7 +229,7 @@ def main(page: ft.Page):
     def update_main_switcher():
         if view_mode == "login":
             main_switcher.content = get_login_view()
-            logo_switcher.content = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200, margin=ft.margin.only(top=20))
+            logo_switcher.content = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
         else:
             main_switcher.content = get_register_view()
             logo_switcher.content = ft.Container(key="empty")

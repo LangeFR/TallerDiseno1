@@ -1,6 +1,6 @@
 # auth_controller.py
 from modelos.usuario import Usuario
-from club_controller import ClubController
+from controllers.club_controller import ClubController
 
 # Instancia global de ClubController 
 club_controller = ClubController()
