@@ -1,7 +1,7 @@
 # views/usuarios_view.py
 import flet as ft
 
-class ContenedorUsuarioView:
+class ContenedorUsuario:
     def __init__(self, controller, page, content, usuario_id):
         self.controller = controller
         self.page = page
@@ -29,7 +29,7 @@ class ContenedorUsuarioView:
         self.page.update()
 
 
-class ContenedorUsuarioViewAdmin:
+class ContenedorUsuarioAdmin:
     def __init__(self, controller, page, content):
         self.controller = controller
         self.page = page

@@ -5,7 +5,7 @@ from datetime import datetime
 from modelos.informe import Informe
 from modelos.base_model import BaseModel
 
-class ContenedorInformeViewSuper:
+class ContenedorInformeSuper:
     def __init__(self, controller, page):
         self.controller = controller
         self.page = page

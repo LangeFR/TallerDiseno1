@@ -21,12 +21,12 @@ from controllers.club_controller import ClubController
 # ------------------------- VISTAS -------------------------
 from views.inscripcion_view import create_inscripcion_view
 
-from views.torneos_view import create_torneos_view
 from views.entrenamientos_view import create_entrenamientos_view
 from views.pagos_view import create_pagos_view
 
-from views.usuarios_view import ContenedorUsuarioView, ContenedorUsuarioViewAdmin
-from views.informes_view import ContenedorInformeViewSuper, ContenedorInformeView
+from views.usuarios_view import ContenedorUsuario, ContenedorUsuarioAdmin
+from views.informes_view import ContenedorInformeSuper, ContenedorInformeView
+from views.torneos_view import ContenedorTorneosSuper, ContenedorTorneos
 
 
 
@@ -53,7 +53,7 @@ def main(page: ft.Page):
     content = ft.Column([], expand=True)
     #usuarios_view, mostrar_usuarios_view = create_usuarios_view(controller, page, content)
     torneos = controller.cargar_torneos()  # Esto cargará la lista de torneos
-    torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
+    #torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
     #informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
     
@@ -170,24 +170,41 @@ def main(page: ft.Page):
         if index == 0:
             content.controls.append(inscripcion_view)  # Mostrar vista de inscripción
         elif index == 1:
-            # update_current_user(1) # Testing only
+            # Testing only
+            #update_current_user(1) # Admin
+            #update_current_user(17) # Jugador
             
             # Aquí se selecciona la clase de vista según el rol del usuario logueado
             if current_user and current_user.get("rol") == "admin":
-                usuario_view_instance = ContenedorUsuarioViewAdmin(controller, page, content)
+                usuario_view_instance = ContenedorUsuarioAdmin(controller, page, content)
                 usuario_view_instance.mostrar_inicial()  
             else:
-                usuario_view_instance = ContenedorUsuarioView(controller, page, content, current_user["id"])
+                usuario_view_instance = ContenedorUsuario(controller, page, content, current_user["id"])
                 usuario_view_instance.mostrar_usuario()
 
         elif index == 2:
-            content.controls.append(torneos_view)
-            page.update()
-            actualizar_data_torneos()
+            # Testing only
+            update_current_user(1) # Admin
+            update_current_user(17) # Jugador
+            if current_user:
+                if current_user.get("rol") in ["admin", "entrenador"]:
+                    # Crea la instancia de la vista de torneos para el administrador o entrenador
+                    torneos_admin_view = ContenedorTorneosSuper(controller, torneos, page)
+                    content.controls.append(torneos_admin_view.get_contenedor())
+                elif current_user.get("rol") == "miembro":
+                    # Crea la instancia de la vista de torneos para un miembro
+                    torneos_member_view = ContenedorTorneos(controller, torneos, page, current_user['id'])
+                    content.controls.append(torneos_member_view.get_contenedor())
+                else:
+                    # Si no es admin, entrenador o miembro, no mostrar nada
+                    content.controls.append(ft.Text("No tiene permisos para acceder a esta sección.", size=18))
+            else:
+                content.controls.append(ft.Text("Por favor, inicie sesión para acceder a esta sección.", size=18))
         elif index == 3:
-            content.controls.append(entrenamientos_view)
-            page.update()
-            actualizar_entrenamientos()
+            if current_user and current_user.get("rol") == "admin" or current_user.get("rol") == "coach":
+                content.controls.append(entrenamientos_view)
+                page.update()
+                actualizar_entrenamientos()
             return
         elif index == 4:
             # Testing only
@@ -196,7 +213,7 @@ def main(page: ft.Page):
             
             # Aquí se selecciona la clase de vista según el rol del usuario logueado
             if current_user and current_user.get("rol") == "admin" or current_user.get("rol") == "coach":
-                informe_view_instance = ContenedorInformeViewSuper(controller, page)
+                informe_view_instance = ContenedorInformeSuper(controller, page)
                 content.controls.append(informe_view_instance.informes_view) 
             else:
                 informe_view_instance = ContenedorInformeView(controller, page, current_user["id"])

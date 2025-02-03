@@ -1,120 +1,199 @@
 # tallerdiseno1/views/torneos_view.py
-
 import flet as ft
 import json
-from dataclasses import asdict  # Importar asdict para convertir dataclasses a dicts
+from dataclasses import asdict
 from modelos.base_model import BaseModel
-from modelos.asistencia_torneos import Asistencia_Torneo  # Asegúrate de que exista el import correcto
-from modelos.torneo import Torneo  # Asegúrate de importar la clase Torneo
+from modelos.asistencia_torneos import Asistencia_Torneo
+from modelos.torneo import Torneo
 from utils.validations import validar_fecha
 from utils.fecha import formatear_fecha
 
-def crear_asistencia_torneo(torneo_id, usuario_id, puesto):
-    """
-    Crea un registro de asistencia en asistencia_torneos.json.
-    """
-    Asistencia_Torneo.crear_asistencia(
-        torneo_id=torneo_id,
-        usuario_id=usuario_id,
-        puesto=puesto
-    )
-    print(f"Asistencia para el torneo {torneo_id} creada para el miembro {usuario_id} con puesto {puesto}")
+class ContenedorTorneosSuper:
+    def __init__(self, controller, torneos, page):
+        self.controller = controller
+        self.torneos = torneos
+        self.page = page
 
+        # Dropdown de usuarios (matriculados)
+        self.dropdown_usuarios = ft.Dropdown(
+            label="Seleccione un usuario",
+            options=[ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()],
+            value=None
+        )
 
-def create_torneos_view(controller, torneos, page):
-    """
-    Crea y retorna la vista de gestión de torneos, pero ahora usando asistencia_torneos.json
-    en lugar de inscripciones.json.
-    
-    Parámetros:
-        controller: El controlador de la aplicación (ClubController) que gestiona la lógica de negocio.
-        torneos: Lista de torneos disponibles (instancias de Torneo).
-        page: Página de Flet para actualizar UI y mostrar SnackBars.
-    
-    Retorna:
-        tuple: Contiene la vista de torneos y los componentes necesarios como objetos de Flet.
-    """
-    
-    # Función para mostrar SnackBar
-    def mostrar_snackbar(mensaje, tipo):
+        # Mapeo de nombres de torneos a IDs para uso interno
+        self.torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos}
+
+        # Dropdown de torneos
+        self.dropdown_torneos = ft.Dropdown(
+            label="Seleccione un torneo",
+            options=[ft.dropdown.Option(torneo.nombre) for torneo in torneos],
+            value=None
+        )
+
+        # Campo para el puesto
+        self.puesto_field = ft.TextField(label="Puesto en el Torneo", value="")
+
+        # Lista de torneos
+        self.torneos_list = ft.ListView(
+            controls=[
+                ft.ListTile(
+                    title=ft.Text(torneo.nombre),
+                    on_click=lambda e, t=torneo.id: self.on_torneo_click(t),
+                    data=torneo.id
+                )
+                for torneo in torneos
+            ],
+            expand=True,
+            auto_scroll=False
+        )
+
+        # Botón para crear asistencia
+        self.inscribir_button = ft.ElevatedButton(
+            "Crear Asistencia",
+            icon=ft.icons.CHECK,
+            on_click=self.inscribir_a_torneo
+        )
+
+        # Botón flotante para agregar torneo
+        self.agregar_torneo_button = ft.FloatingActionButton(
+            icon=ft.icons.ADD,
+            on_click=self.agregar_torneo,
+            tooltip="Añadir Torneo"
+        )
+
+        # Lista para mostrar asistencias
+        self.asistencias_list = ft.ListView(expand=True, spacing=10)
+
+        # Contenedor de asistencias
+        self.asistencias_view = ft.Container(
+            ft.Column(
+                [
+                    ft.Text("Asistencias", size=24, weight=ft.FontWeight.BOLD),
+                    ft.Divider(height=10, thickness=2),
+                    self.asistencias_list,
+                ],
+                spacing=20,
+                alignment=ft.MainAxisAlignment.START,
+            ),
+            expand=True,
+            padding=20,
+        )
+
+        # Vista principal de torneos
+        self.torneos_view = ft.Row(
+            [
+                # Columna de selección de usuario, torneo y puesto
+                ft.Container(
+                    ft.Column(
+                        [
+                            self.dropdown_usuarios,
+                            self.dropdown_torneos,
+                            self.puesto_field,
+                            self.inscribir_button,
+                        ],
+                        spacing=20,
+                        alignment=ft.MainAxisAlignment.START,
+                    ),
+                    width=300,
+                    padding=20,
+                    bgcolor=ft.colors.SURFACE_VARIANT,
+                    border_radius=10,
+                ),
+                ft.VerticalDivider(width=1),
+                # Columna de lista de torneos y botón para agregar
+                ft.Container(
+                    ft.Column(
+                        [
+                            ft.Text("Torneos", size=24, weight=ft.FontWeight.BOLD),
+                            ft.Divider(height=10, thickness=2),
+                            self.torneos_list,
+                            self.agregar_torneo_button,
+                        ],
+                        spacing=20,
+                        alignment=ft.MainAxisAlignment.START,
+                    ),
+                    expand=True,
+                    padding=20,
+                ),
+                ft.VerticalDivider(width=1),
+                # Columna de asistencias registradas
+                self.asistencias_view,
+            ],
+            expand=True,
+        )
+
+    def mostrar_snackbar(self, mensaje, tipo):
         color = ft.colors.GREEN if tipo == "SUCCESS" else ft.colors.RED
         snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
-        page.snack_bar = snack_bar
+        self.page.snack_bar = snack_bar
         snack_bar.open = True
-        page.update()
+        self.page.update()
 
-    # Función para cerrar el diálogo
-    def cerrar_dialogo():
-        page.dialog.open = False
-        page.update()
+    def cerrar_dialogo(self, e=None):
+        self.page.dialog.open = False
+        self.page.update()
 
-    # Función para inscribir (crear asistencia) a un torneo
-    def inscribir_a_torneo(e):
-        usuario_nombre = dropdown_usuarios.value
-        torneo_nombre = dropdown_torneos.value
-        puesto_valor = puesto_field.value
+    def inscribir_a_torneo(self, e):
+        usuario_nombre = self.dropdown_usuarios.value
+        torneo_nombre = self.dropdown_torneos.value
+        puesto_valor = self.puesto_field.value
 
         if not usuario_nombre or not torneo_nombre or not puesto_valor:
-            mostrar_snackbar("Debe seleccionar un usuario, un torneo y definir el puesto.", "ERROR")
+            self.mostrar_snackbar("Debe seleccionar un usuario, un torneo y definir el puesto.", "ERROR")
             return
 
-        # Obtener torneo_id desde el nombre usando el mapeo
-        torneo_id = torneo_id_map.get(torneo_nombre)
+        torneo_id = self.torneo_id_map.get(torneo_nombre)
         if torneo_id is None:
-            mostrar_snackbar("El torneo seleccionado no existe.", "ERROR")
+            self.mostrar_snackbar("El torneo seleccionado no existe.", "ERROR")
             return
 
-        # Obtener el usuario_id desde el nombre (utilizamos el diccionario del controlador)
-        usuario_id_dict = controller.usuarios_matriculados_dict()
+        usuario_id_dict = self.controller.usuarios_matriculados_dict()
         usuario_id = usuario_id_dict.get(usuario_nombre)
         if not usuario_id:
-            mostrar_snackbar("El usuario seleccionado no existe o no está matriculado.", "ERROR")
+            self.mostrar_snackbar("El usuario seleccionado no existe o no está matriculado.", "ERROR")
             return
 
-        # Intentamos convertir el puesto a entero y validar el rango
         try:
             puesto_int = int(puesto_valor)
             if puesto_int < 1 or puesto_int >= 1000:
-                mostrar_snackbar("El puesto debe ser un número entero entre 1 y 999.", "ERROR")
+                self.mostrar_snackbar("El puesto debe ser un número entero entre 1 y 999.", "ERROR")
                 return
         except ValueError:
-            mostrar_snackbar("El puesto debe ser un número entero.", "ERROR")
+            self.mostrar_snackbar("El puesto debe ser un número entero.", "ERROR")
             return
 
-        # Verificar si el usuario ya está inscrito en el torneo
         try:
-            # Obtener todas las asistencias para el torneo
-            asistencias = controller.get_asistencias_by_torneo(torneo_id)
-            
-            # Buscar si ya existe una asistencia para el usuario en este torneo
+            asistencias = self.controller.get_asistencias_by_torneo(torneo_id)
             asistencia_existente = next((a for a in asistencias if a.usuario_id == usuario_id), None)
 
             if asistencia_existente:
-                # Actualizar el puesto de la asistencia existente
                 Asistencia_Torneo.actualizar_puesto(torneo_id, usuario_id, puesto_int)
-                mostrar_snackbar(
+                self.mostrar_snackbar(
                     f"Usuario ID={usuario_id} ya inscrito. Puesto actualizado a {puesto_int}.",
                     "SUCCESS"
                 )
             else:
-                # Crear una nueva asistencia al torneo
-                crear_asistencia_torneo(torneo_id, usuario_id, puesto_int)
-                mostrar_snackbar(
+                self.crear_asistencia_torneo(torneo_id, usuario_id, puesto_int)
+                self.mostrar_snackbar(
                     f"Usuario ID={usuario_id} inscrito al torneo ID={torneo_id} con puesto {puesto_int}.",
                     "SUCCESS"
                 )
-
         except Exception as ex:
-            mostrar_snackbar(f"Error al crear o actualizar la asistencia: {ex}", "ERROR")
+            self.mostrar_snackbar(f"Error al crear o actualizar la asistencia: {ex}", "ERROR")
 
-        # Limpieza de campo puesto (opcional)
-        puesto_field.value = ""
-        page.update()
+        self.puesto_field.value = ""
+        self.page.update()
 
+    def crear_asistencia_torneo(self, torneo_id, usuario_id, puesto):
+        Asistencia_Torneo.crear_asistencia(
+            torneo_id=torneo_id,
+            usuario_id=usuario_id,
+            puesto=puesto
+        )
+        print(f"Asistencia para el torneo {torneo_id} creada para el miembro {usuario_id} con puesto {puesto}")
 
-    # Función para agregar torneo
-    def agregar_torneo(e):
-        # Abrir un diálogo para ingresar nombre y fecha del torneo
+    def agregar_torneo(self, e):
         nombre_input = ft.TextField(label="Nombre del Torneo", autofocus=True)
         fecha_input = ft.TextField(label="Fecha del Torneo", hint_text="YYYY-MM-DD")
 
@@ -123,236 +202,275 @@ def create_torneos_view(controller, torneos, page):
             title=ft.Text("Agregar Torneo"),
             content=ft.Column([nombre_input, fecha_input], spacing=10),
             actions=[
-                ft.TextButton("Cancelar", on_click=lambda e: cerrar_dialogo()),
-                ft.TextButton(
-                    "Agregar",
-                    on_click=lambda e: agregar_torneo_confirm(nombre_input.value, fecha_input),
-                ),
+                ft.TextButton("Cancelar", on_click=self.cerrar_dialogo),
+                ft.TextButton("Agregar", on_click=lambda e: self.agregar_torneo_confirm(nombre_input.value, fecha_input)),
             ]
         )
-        page.dialog = agregar_dialog
+        self.page.dialog = agregar_dialog
         agregar_dialog.open = True
-        page.update()
+        self.page.update()
 
-
-    # Confirmar agregar torneo
-    def agregar_torneo_confirm(nombre, fecha_input):
-        # Formatear la fecha utilizando formatear_fecha
+    def agregar_torneo_confirm(self, nombre, fecha_input):
         fecha_formateada, error_message = formatear_fecha(fecha_input.value)
         if error_message:
-            mostrar_snackbar(error_message, "ERROR")
+            self.mostrar_snackbar(error_message, "ERROR")
             return
 
-        # Actualizar el campo de fecha con el formato correcto
         fecha_input.value = fecha_formateada
         fecha_input.update()
 
-        # Validar la fecha utilizando validar_fecha
         validar_fecha(fecha_input)
         if fecha_input.error_text:
-            mostrar_snackbar(fecha_input.error_text, "ERROR")
+            self.mostrar_snackbar(fecha_input.error_text, "ERROR")
             return
 
         if not nombre:
-            mostrar_snackbar("Por favor, complete todos los campos.", "ERROR")
+            self.mostrar_snackbar("Por favor, complete todos los campos.", "ERROR")
             return
 
-        # Crear el torneo como una instancia de Torneo
-        nuevo_id = max([t.id for t in torneos], default=0) + 1
+        nuevo_id = max([t.id for t in self.torneos], default=0) + 1
         nuevo_torneo = Torneo(id=nuevo_id, nombre=nombre, fecha=fecha_formateada)
-        torneos.append(nuevo_torneo)
-        # Convertir todos los torneos a dicts antes de guardar
-        torneos_dicts = [asdict(torneo) for torneo in torneos]
+        self.torneos.append(nuevo_torneo)
+        torneos_dicts = [asdict(torneo) for torneo in self.torneos]
         BaseModel.guardar_datos("torneos.json", torneos_dicts)
-        # Actualizar el mapeo de nombres a IDs
-        torneo_id_map[nombre] = nuevo_id
-        # Agregar la entrada visual del nuevo torneo en la lista
-        torneos_list.controls.append(
+        self.torneo_id_map[nombre] = nuevo_id
+
+        self.torneos_list.controls.append(
             ft.ListTile(
                 title=ft.Text(nuevo_torneo.nombre),
-                on_click=lambda e, t=nuevo_torneo.id: on_torneo_click(t),
-                data=nuevo_torneo.id  # Almacenar torneo.id como data
+                on_click=lambda e, t=nuevo_torneo.id: self.on_torneo_click(t),
+                data=nuevo_torneo.id
             )
         )
-        # Actualizar las opciones en el dropdown de torneos
-        dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos]
-        # Actualizar las opciones en el dropdown de usuarios
-        dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()]
-        
-        mostrar_snackbar(f"Torneo '{nombre}' agregado exitosamente.", "SUCCESS")
-        # Cerrar el diálogo correctamente
-        page.dialog.open = False
-        page.update()
 
-    def on_torneo_click(torneo_id):
-        asistencias_list.controls.clear()
-        
-        # Obtener las asistencias para este torneo
-        asistencias = controller.get_asistencias_by_torneo(torneo_id)  # Ahora retorna instancias
-        
+        self.dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in self.torneos]
+        self.dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in self.controller.usuarios_matriculados_list()]
+        self.mostrar_snackbar(f"Torneo '{nombre}' agregado exitosamente.", "SUCCESS")
+        self.page.dialog.open = False
+        self.page.update()
+
+    def on_torneo_click(self, torneo_id):
+        self.asistencias_list.controls.clear()
+        asistencias = self.controller.get_asistencias_by_torneo(torneo_id)
         if not asistencias:
-            asistencias_list.controls.append(ft.Text("No hay asistencias para este torneo."))
+            self.asistencias_list.controls.append(ft.Text("No hay asistencias para este torneo."))
         else:
             for asis in asistencias:
-                # Buscar el nombre del usuario a partir de su ID
-                user_obj = controller.get_user_by_id(asis.usuario_id)
-                if user_obj:
-                    nombre_usuario = user_obj.nombre
-                else:
-                    nombre_usuario = f"Usuario ID={asis.usuario_id}"
-                
-                # Mostramos nombre y puesto
-                asistencias_list.controls.append(
+                user_obj = self.controller.get_user_by_id(asis.usuario_id)
+                nombre_usuario = user_obj.nombre if user_obj else f"Usuario ID={asis.usuario_id}"
+                self.asistencias_list.controls.append(
                     ft.ListTile(
                         leading=ft.Icon(ft.icons.PERSON),
                         title=ft.Text(f"{nombre_usuario} (Puesto: {asis.puesto})")
                     )
                 )
-        page.update()
+        self.page.update()
 
-    
-    def actualizar_data_torneos():
-        """
-        Refresca la lista de torneos y actualiza los dropdowns de usuarios y torneos.
-        """
-        # Recargar la lista de torneos desde el controlador
-        torneos_actualizados = controller.cargar_torneos()
-        
-        # Actualizar el dropdown de torneos
-        dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos_actualizados]
+    def actualizar_data_torneos(self):
+        torneos_actualizados = self.controller.cargar_torneos()
+        self.dropdown_torneos.options = [ft.dropdown.Option(torneo.nombre) for torneo in torneos_actualizados]
+        self.torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos_actualizados}
 
-        # Actualizar el mapeo de nombres a IDs para torneos
-        torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos_actualizados}
-
-        # Limpiar y reconstruir la lista de torneos
-        torneos_list.controls.clear()
-        torneos_list.controls.extend([
+        self.torneos_list.controls.clear()
+        self.torneos_list.controls.extend([
             ft.ListTile(
                 title=ft.Text(torneo.nombre),
-                on_click=lambda e, t=torneo.id: on_torneo_click(t),
+                on_click=lambda e, t=torneo.id: self.on_torneo_click(t),
                 data=torneo.id
             )
             for torneo in torneos_actualizados
         ])
 
-        # Actualizar las opciones en el dropdown de usuarios
-        dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()]
-        
-        # Recargar la lista de usuarios matriculados y actualizar el dropdown
-        # dropdown_usuarios = controller.dropdown_usuarios_matriculados()  # Removido para evitar redefinición
+        self.dropdown_usuarios.options = [ft.dropdown.Option(usuario.nombre) for usuario in self.controller.usuarios_matriculados_list()]
+        self.page.update()
 
-        # Asegurarse de actualizar la UI
-        page.update()
+    def get_contenedor(self):
+        """Retorna el contenedor principal para integrarlo en la vista."""
+        return self.torneos_view
+    
+class ContenedorTorneos:
+    def __init__(self, controller, torneos, page, usuario_id):
+        self.controller = controller
+        self.torneos = torneos
+        self.page = page
+        self.usuario_id = usuario_id
 
+        # Dropdown de torneos disponibles (ya que el usuario es el mismo, no se requiere seleccionar usuario)
+        self.dropdown_torneos = ft.Dropdown(
+            label="Seleccione un torneo",
+            options=[ft.dropdown.Option(torneo.nombre) for torneo in torneos],
+            value=None
+        )
 
+        # Campos para filtrar por año y mes
+        self.anio_field = ft.TextField(label="Año", hint_text="YYYY")
+        self.mes_field = ft.TextField(label="Mes", hint_text="MM")
 
-    # Dropdown de usuarios (matriculados)
-    dropdown_usuarios = ft.Dropdown(
-        label="Seleccione un usuario",
-        options=[ft.dropdown.Option(usuario.nombre) for usuario in controller.usuarios_matriculados_list()],
-        value=None  # Inicialmente sin selección
-    )
+        # Botón para filtrar torneos
+        self.filtrar_button = ft.ElevatedButton(
+            "Filtrar",
+            on_click=self.filtrar_torneos
+        )
 
-    # Mapeo de nombres de torneos a IDs para uso interno
-    torneo_id_map = {torneo.nombre: torneo.id for torneo in torneos}
+        # Botón para inscribirse en el torneo seleccionado
+        self.inscribir_button = ft.ElevatedButton(
+            "Inscribirme",
+            icon=ft.icons.CHECK,
+            on_click=self.inscribir_a_torneo
+        )
 
-    # Dropdown de torneos
-    dropdown_torneos = ft.Dropdown(
-        label="Seleccione un torneo",
-        options=[ft.dropdown.Option(torneo.nombre) for torneo in torneos],
-        value=None  # Inicialmente sin selección
-    )
+        # Lista para mostrar torneos (disponibles o inscritos)
+        self.torneos_list = ft.ListView(expand=True, spacing=10)
 
-    # Campo para el puesto
-    puesto_field = ft.TextField(label="Puesto en el Torneo", value="")
+        # Contenedor para filtros
+        self.filtros_container = ft.Container(
+            content=ft.Row(
+                controls=[self.anio_field, self.mes_field, self.filtrar_button],
+                spacing=10,
+            ),
+            padding=10
+        )
 
-    # Lista de torneos
-    torneos_list = ft.ListView(
-        controls=[
-            ft.ListTile(
-                title=ft.Text(torneo.nombre),
-                on_click=lambda e, t=torneo.id: on_torneo_click(t),  # Corregido el acceso
-                data=torneo.id
-            )
-            for torneo in torneos
-        ],
-        expand=True,
-        auto_scroll=False
-    )
-
-    # Botón para crear asistencia (antes "Inscribir")
-    inscribir_button = ft.ElevatedButton(
-        "Crear Asistencia",
-        icon=ft.icons.CHECK,
-        on_click=inscribir_a_torneo
-    )
-
-    # Botón flotante para agregar torneo
-    agregar_torneo_button = ft.FloatingActionButton(
-        icon=ft.icons.ADD,
-        on_click=agregar_torneo,
-        tooltip="Añadir Torneo"
-    )
-
-    # Lista para mostrar asistencias
-    asistencias_list = ft.ListView(expand=True, spacing=10)  # Cambiado a ListView
-
-    # Contenedor (columna) de asistencias
-    asistencias_view = ft.Container(
-        ft.Column(
-            [
-                ft.Text("Asistencias", size=24, weight=ft.FontWeight.BOLD),
+        # Contenedor principal con las secciones:
+        # - Dropdown e inscribir
+        # - Filtros para búsqueda
+        # - Lista de torneos
+        self.contenedor = ft.Column(
+            controls=[
+                ft.Text("Torneos Disponibles", size=24, weight=ft.FontWeight.BOLD),
+                ft.Container(
+                    content=ft.Column(
+                        controls=[
+                            self.dropdown_torneos,
+                            self.inscribir_button
+                        ],
+                        spacing=10
+                    ),
+                    padding=10,
+                    bgcolor=ft.colors.SURFACE_VARIANT,
+                    border_radius=10,
+                    width=300
+                ),
+                self.filtros_container,
                 ft.Divider(height=10, thickness=2),
-                asistencias_list,
+                ft.Text("Listado de Torneos", size=20, weight=ft.FontWeight.BOLD),
+                self.torneos_list,
             ],
             spacing=20,
-            alignment=ft.MainAxisAlignment.START,
-        ),
-        expand=True,
-        padding=20,
-    )
+            expand=True
+        )
 
-    # Vista principal de torneos
-    torneos_view = ft.Row(
-        [
-            # Columna de selección de usuario, torneo y puesto
-            ft.Container(
-                ft.Column(
-                    [
-                        dropdown_usuarios,
-                        dropdown_torneos,
-                        puesto_field,
-                        inscribir_button,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                width=300,
-                padding=20,
-                bgcolor=ft.colors.SURFACE_VARIANT,
-                border_radius=10,
-            ),
-            ft.VerticalDivider(width=1),
-            # Columna de lista de torneos y botón para agregar
-            ft.Container(
-                ft.Column(
-                    [
-                        ft.Text("Torneos", size=24, weight=ft.FontWeight.BOLD),
-                        ft.Divider(height=10, thickness=2),
-                        torneos_list,
-                        agregar_torneo_button,
-                    ],
-                    spacing=20,
-                    alignment=ft.MainAxisAlignment.START,
-                ),
-                expand=True,
-                padding=20,
-            ),
-            ft.VerticalDivider(width=1),
-            # Columna de asistencias registradas
-            asistencias_view,
-        ],
-        expand=True,
-    )
+        # Inicialmente se muestran todos los torneos disponibles
+        self.mostrar_torneos_disponibles()
 
-    return torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos
+    def mostrar_snackbar(self, mensaje, tipo):
+        color = ft.colors.GREEN if tipo == "SUCCESS" else ft.colors.RED
+        snack_bar = ft.SnackBar(ft.Text(mensaje, color=ft.colors.WHITE), bgcolor=color)
+        self.page.snack_bar = snack_bar
+        snack_bar.open = True
+        self.page.update()
+
+    def mostrar_torneos_disponibles(self, torneos_filtrados=None):
+        """Muestra la lista de torneos disponibles (filtrados o completos)."""
+        self.torneos_list.controls.clear()
+        torneos_a_mostrar = torneos_filtrados if torneos_filtrados is not None else self.torneos
+        if not torneos_a_mostrar:
+            self.torneos_list.controls.append(ft.Text("No hay torneos disponibles."))
+        else:
+            for torneo in torneos_a_mostrar:
+                self.torneos_list.controls.append(
+                    ft.ListTile(
+                        title=ft.Text(torneo.nombre),
+                        subtitle=ft.Text(f"Fecha: {torneo.fecha}"),
+                        on_click=lambda e, t=torneo.id: self.ver_detalle_torneo(t)
+                    )
+                )
+        self.page.update()
+
+    def ver_detalle_torneo(self, torneo_id):
+        """Muestra detalles del torneo seleccionado, junto con la opción de inscribirse si aún no lo está."""
+        # Buscar torneo por id
+        torneo = next((t for t in self.torneos if t.id == torneo_id), None)
+        if not torneo:
+            self.mostrar_snackbar("Torneo no encontrado.", "ERROR")
+            return
+
+        # Verificar si el usuario ya está inscrito en este torneo
+        asistencias = self.controller.get_asistencias_by_torneo(torneo_id)
+        inscrito = any(asis.usuario_id == self.usuario_id for asis in asistencias)
+
+        detalle = ft.Column(
+            controls=[
+                ft.Text(f"Torneo: {torneo.nombre}", size=24, weight=ft.FontWeight.BOLD),
+                ft.Text(f"Fecha: {torneo.fecha}"),
+                ft.Text("Ya inscrito" if inscrito else "No inscrito"),
+                ft.ElevatedButton(
+                    "Inscribirme" if not inscrito else "Ya inscrito",
+                    on_click=lambda e: self.inscribir_a_torneo(e, torneo_id),
+                    disabled=inscrito
+                ),
+                ft.ElevatedButton(
+                    "Regresar",
+                    on_click=lambda e: self.mostrar_torneos_disponibles()
+                )
+            ],
+            spacing=10
+        )
+        self.torneos_list.controls.clear()
+        self.torneos_list.controls.append(detalle)
+        self.page.update()
+
+    def inscribir_a_torneo(self, e, torneo_id=None):
+        """Permite inscribirse al torneo seleccionado. Si torneo_id no se pasa, se toma del dropdown."""
+        # Si no se pasó torneo_id, se toma del dropdown
+        if torneo_id is None:
+            torneo_nombre = self.dropdown_torneos.value
+            if not torneo_nombre:
+                self.mostrar_snackbar("Seleccione un torneo para inscribirse.", "ERROR")
+                return
+            # Buscar torneo por nombre
+            torneo = next((t for t in self.torneos if t.nombre == torneo_nombre), None)
+            if not torneo:
+                self.mostrar_snackbar("El torneo seleccionado no existe.", "ERROR")
+                return
+            torneo_id = torneo.id
+
+        try:
+            asistencias = self.controller.get_asistencias_by_torneo(torneo_id)
+            # Verificar si ya existe inscripción para este usuario
+            if any(asis.usuario_id == self.usuario_id for asis in asistencias):
+                self.mostrar_snackbar("Ya estás inscrito en este torneo.", "ERROR")
+                return
+
+            # Crear la asistencia para el usuario
+            Asistencia_Torneo.crear_asistencia(
+                torneo_id=torneo_id,
+                usuario_id=self.usuario_id,
+                puesto=0  # Se puede definir un valor predeterminado para el puesto
+            )
+            self.mostrar_snackbar("Inscripción exitosa.", "SUCCESS")
+        except Exception as ex:
+            self.mostrar_snackbar(f"Error al inscribirse: {ex}", "ERROR")
+        self.page.update()
+
+    def filtrar_torneos(self, e):
+        """Filtra los torneos disponibles según el año y mes ingresados."""
+        anio = self.anio_field.value.strip()
+        mes = self.mes_field.value.strip()
+        torneos_filtrados = self.torneos
+
+        if anio:
+            torneos_filtrados = [t for t in torneos_filtrados if t.fecha.startswith(anio)]
+        if mes:
+            torneos_filtrados = [t for t in torneos_filtrados if "-"+mes.zfill(2)+"-" in t.fecha]
+
+        self.mostrar_torneos_disponibles(torneos_filtrados)
+
+    def get_contenedor(self):
+        """Retorna el contenedor principal para integrarlo en la vista."""
+        return self.contenedor
+
+
+
+
+
