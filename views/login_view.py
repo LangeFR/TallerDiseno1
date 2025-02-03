@@ -1,39 +1,35 @@
 import flet as ft
+from controllers.auth_controller import auth_controller
+from modelos import Usuario
 
 def main(page: ft.Page):
     # Paleta de colores extraída de Coolors
-    COLOR_DARK_PURPLE = "#89023e"   # Para elementos destacados y el botón de admin
-    COLOR_MUTED_PINK = "#cc7178"    # Para el botón de entrenador
-    COLOR_LIGHT_PINK = "#ffd9da"    # Para el fondo de la página
-    COLOR_PALE_PINK = "#f3e1dd"     # Para el fondo del contenedor principal
-    COLOR_SOFT_GREEN = "#9FAE92"    # Verde para el botón de usuario, tono más oscuro
+    COLOR_DARK_PURPLE = "#89023e"   # Elementos destacados y botón de admin
+    COLOR_MUTED_PINK = "#cc7178"    # Botón de entrenador
+    COLOR_LIGHT_PINK = "#ffd9da"    # Fondo de la página
+    COLOR_PALE_PINK = "#f3e1dd"     # Fondo del contenedor principal
+    COLOR_SOFT_GREEN = "#9FAE92"    # Botón de usuario, tono más oscuro
 
-    # Configuración de la página
     page.title = "Inicio de Sesión - Roles"
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.bgcolor = COLOR_LIGHT_PINK
 
-    # Variables de estado
-    view_mode = "login"  # "login" o "register"
+    view_mode = "login"  # Puede ser "login" o "register"
     selected_role = ""
 
-    # AnimatedSwitcher para el formulario de login (parte de la vista login)
-    login_form_switcher = ft.AnimatedSwitcher(
-        duration=300,
-        transition=ft.AnimatedSwitcherTransition.FADE,
-        content=ft.Container(key="empty")
-    )
-
-    # AnimatedSwitcher para el logo, que se mostrará solo en la vista login
-    logo_switcher = ft.AnimatedSwitcher(
-        duration=50,
-        transition=ft.AnimatedSwitcherTransition.FADE,
-        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
-    )
-
-    # Función que genera el formulario de login (con el rol actualizado)
+    # Función que genera el formulario de login (se muestra cuando se selecciona un rol)
     def get_login_form():
+        # Se crean los campos de correo y contraseña
+        username_field = ft.TextField(label="Correo", width=300, key="username_field")
+        password_field = ft.TextField(label="Contraseña", password=True, width=300, key="password_field")
+        login_button = ft.ElevatedButton(
+            text="Ingresar",
+            width=300,
+            bgcolor=COLOR_DARK_PURPLE,
+            color="white",
+            on_click=lambda e: on_login(username_field.value, password_field.value)
+        )
         return ft.Container(
             key="login_form",
             content=ft.Column(
@@ -44,14 +40,9 @@ def main(page: ft.Page):
                         weight=ft.FontWeight.W_600,
                         color=COLOR_DARK_PURPLE
                     ),
-                    ft.TextField(label="Usuario", width=300),
-                    ft.TextField(label="Contraseña", password=True, width=300),
-                    ft.ElevatedButton(
-                        text="Ingresar",
-                        width=300,
-                        bgcolor=COLOR_DARK_PURPLE,
-                        color="white"
-                    )
+                    username_field,
+                    password_field,
+                    login_button
                 ],
                 spacing=10,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
@@ -59,14 +50,29 @@ def main(page: ft.Page):
             padding=ft.padding.all(10)
         )
 
-    # Función que se invoca al seleccionar un rol en la vista login
+    # Función para validar el login usando auth_controller
+    def on_login(correo, contrasena):
+        usuario_valido = auth_controller.validar_login(correo, contrasena)
+        if usuario_valido is None:
+            page.snack_bar = ft.SnackBar(content=ft.Text("Credenciales incorrectas"))
+            page.snack_bar.open = True
+            page.update()
+        else:
+            page.snack_bar = ft.SnackBar(content=ft.Text("Login exitoso"))
+            page.snack_bar.open = True
+            page.update()
+            # Aquí se podría invocar la interfaz de administración (por ejemplo, tenis.py)
+            print("Usuario autenticado:", usuario_valido)
+            # Por ejemplo: tenis.iniciar(usuario_valido)
+
+    # Cuando se selecciona un rol, se actualiza el formulario de login
     def on_role_click(e, role):
         nonlocal selected_role
         selected_role = role
         login_form_switcher.content = get_login_form()
         page.update()
 
-    # Función auxiliar para crear botones con icono y texto dispuestos verticalmente
+    # Función auxiliar para crear botones verticales (icono arriba y texto abajo)
     def vertical_button(icon, label, role, bgcolor):
         return ft.ElevatedButton(
             content=ft.Column(
@@ -83,18 +89,17 @@ def main(page: ft.Page):
             width=150
         )
 
-    # Fila de botones para seleccionar rol (vista de Login)
     roles_row = ft.Row(
         controls=[
             vertical_button(ft.Icons.ADMIN_PANEL_SETTINGS, "ADMINISTRADOR", "admin", COLOR_DARK_PURPLE),
             vertical_button(ft.Icons.SPORTS_TENNIS, "ENTRENADOR", "coach", COLOR_MUTED_PINK),
-            vertical_button(ft.Icons.PERSON, "MIEMBRO", "member", COLOR_SOFT_GREEN)
+            vertical_button(ft.Icons.PERSON, "USUARIO", "user", COLOR_SOFT_GREEN)
         ],
         spacing=20,
         alignment=ft.MainAxisAlignment.CENTER
     )
 
-    # Vista de Login: formulario (si se selecciona rol), botones y enlace para registrarse
+    # Vista de Login: muestra el formulario (si se seleccionó rol), los botones de rol y el enlace a registro
     def get_login_view():
         return ft.Column(
             controls=[
@@ -111,22 +116,47 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER
         )
 
-    # Vista de Registro: formulario de registro con campos y enlace para volver al login
+    # Vista de Registro: formulario de registro y enlace para volver al login
     def get_register_view():
+        nombre_field = ft.TextField(label="Nombre completo", width=300, key="nombre_field")
+        correo_field = ft.TextField(label="Correo electrónico", width=300, key="correo_field")
+        telefono_field = ft.TextField(label="Teléfono", width=300, key="telefono_field")
+        contrasena_field = ft.TextField(label="Contraseña", password=True, width=300, key="contrasena_field")
+        verificar_field = ft.TextField(label="Verificar contraseña", password=True, width=300, key="verificar_field")
+        rol_dropdown = ft.Dropdown(
+            label="Selecciona tu rol",
+            width=300,
+            key="rol_dropdown",
+            options=[
+                ft.dropdown.Option("admin", "Administrador"),
+                ft.dropdown.Option("coach", "Entrenador"),
+                ft.dropdown.Option("user", "Usuario")
+            ]
+        )
+        register_button = ft.ElevatedButton(
+            text="Registrarse",
+            width=300,
+            bgcolor=COLOR_DARK_PURPLE,
+            color="white",
+            on_click=lambda e: on_register(
+                nombre_field.value,
+                correo_field.value,
+                telefono_field.value,
+                contrasena_field.value,
+                verificar_field.value,
+                rol_dropdown.value
+            )
+        )
         return ft.Column(
             controls=[
                 ft.Text("Registro de Usuario", size=20, weight=ft.FontWeight.W_600, color=COLOR_DARK_PURPLE),
-                ft.TextField(label="Nombre completo", width=300),
-                ft.TextField(label="Correo electrónico", width=300),
-                ft.TextField(label="Teléfono", width=300),
-                ft.TextField(label="Contraseña", password=True, width=300),
-                ft.TextField(label="Verificar contraseña", password=True, width=300),
-                ft.ElevatedButton(
-                    text="Registrarse",
-                    width=300,
-                    bgcolor=COLOR_DARK_PURPLE,
-                    color="white"
-                ),
+                nombre_field,
+                correo_field,
+                telefono_field,
+                contrasena_field,
+                verificar_field,
+                rol_dropdown,
+                register_button,
                 ft.TextButton(
                     "¿Ya tienes cuenta? Inicia sesión",
                     on_click=lambda e: switch_to_login()
@@ -138,7 +168,37 @@ def main(page: ft.Page):
             key="register_view"
         )
 
-    # Funciones para cambiar la vista
+    # Función para procesar el registro
+    def on_register(nombre, correo, telefono, contrasena, verificar, rol):
+        if contrasena != verificar:
+            page.snack_bar = ft.SnackBar(content=ft.Text("Las contraseñas no coinciden"))
+            page.snack_bar.open = True
+            page.update()
+            return
+        nuevo_usuario = Usuario(
+            id=Usuario.nuevo_id(),
+            nombre=nombre,
+            apellidos="",
+            edad=0,
+            num_identificacion="",
+            correo=correo,
+            telefono=telefono,
+            estado="inscrito",
+            rol=rol,
+            contrasena=contrasena
+        )
+        success = auth_controller.registrar_usuario(nuevo_usuario)
+        if not success:
+            page.snack_bar = ft.SnackBar(content=ft.Text("Ya existe un usuario con ese correo"))
+            page.snack_bar.open = True
+            page.update()
+        else:
+            page.snack_bar = ft.SnackBar(content=ft.Text("Registro exitoso! Inicia sesión"))
+            page.snack_bar.open = True
+            page.update()
+            switch_to_login()
+
+    # Funciones para cambiar de vista
     def switch_to_register():
         nonlocal view_mode
         view_mode = "register"
@@ -150,25 +210,37 @@ def main(page: ft.Page):
         login_form_switcher.content = ft.Container(key="empty")
         update_main_switcher()
 
-    # Actualiza el contenido del main_switcher y del logo según la vista actual
     def update_main_switcher():
         if view_mode == "login":
-            logo_switcher.content = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200)
             main_switcher.content = get_login_view()
+            logo_switcher.content = ft.Image(src="views/SpinTrackerLogo.jpeg", width=200, margin=ft.margin.only(top=20))
         else:
-            logo_switcher.content = ft.Container(key="empty")
             main_switcher.content = get_register_view()
+            logo_switcher.content = ft.Container(key="empty")
         page.update()
 
-    # AnimatedSwitcher principal para alternar entre las vistas de login y registro
+    # AnimatedSwitcher para el formulario de login
+    login_form_switcher = ft.AnimatedSwitcher(
+        duration=300,
+        transition=ft.AnimatedSwitcherTransition.FADE,
+        content=ft.Container(key="empty")
+    )
+
+    # AnimatedSwitcher principal para alternar entre vistas de login y registro
     main_switcher = ft.AnimatedSwitcher(
         duration=300,
         transition=ft.AnimatedSwitcherTransition.FADE,
         content=get_login_view()
     )
 
-    # Contenedor "card" estilizado que envuelve la vista principal con width ajustado a 600,
-    # e incluye el logo (mediante logo_switcher) en la parte superior
+    # AnimatedSwitcher para el logo (visible solo en la vista de login)
+    logo_switcher = ft.AnimatedSwitcher(
+        duration=300,
+        transition=ft.AnimatedSwitcherTransition.FADE,
+        content=ft.Image(src="views/SpinTrackerLogo.jpeg", width=200, margin=ft.margin.only(top=20))
+    )
+
+    # Contenedor "card" que agrupa el logo y la vista principal, con width ajustado a 600
     container = ft.Container(
         content=ft.Column(
             controls=[
@@ -194,6 +266,6 @@ def main(page: ft.Page):
     )
 
     page.add(container)
-
+    
 if __name__ == "__main__":
     ft.app(target=main)
