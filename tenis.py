@@ -144,12 +144,12 @@ def main(page: ft.Page):
         print("Configurando entorno de prueba...")
 
         # Cambiar a 'admin' para la prueba
-        # update_current_user(1)  # ID de usuario para 'admin'
-        # print("Configurado como Admin para la prueba.")
+        update_current_user(1)  # ID de usuario para 'admin'
+        print("Configurado como Admin para la prueba.")
 
         # Cambiar a 'miembro' para la prueba
-        update_current_user(17)  # ID de usuario para 'jugador'
-        print("Configurado como Jugador para la prueba.")
+        #update_current_user(17)  # ID de usuario para 'jugador'
+        #print("Configurado como Jugador para la prueba.")
 
         # Cambiar a 'coach' para la prueba
         # update_current_user(17)  # ID de usuario para 'coach'
@@ -176,15 +176,7 @@ def main(page: ft.Page):
     #torneos_view, torneos_list, dropdown_torneos, actualizar_data_torneos = create_torneos_view(controller, torneos, page)
     entrenamientos_view, entrenamientos_list, dropdown_entrenamientos, actualizar_entrenamientos = create_entrenamientos_view(controller, page)
     #informes_view, input_anio, input_mes, informe_container = create_informes_view(controller, page)
-    
-    
-    
-
-    
-
-    
-
-    
+        
 
     def cerrar_dialogo(e):
         aviso_dialog.open = False
@@ -198,14 +190,6 @@ def main(page: ft.Page):
             ft.TextButton("Cerrar", on_click=cerrar_dialogo),
         ],
     )
-
-    
-
-
-    
-
-
-    
 
 
     def destination_change(e):

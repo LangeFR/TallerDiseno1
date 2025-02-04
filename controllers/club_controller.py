@@ -211,3 +211,97 @@ class ClubController:
         Retorna una lista de instancias de Asistencia_Torneo filtradas por torneo_id.
         """
         return Asistencia_Torneo.obtener_asistencias_por_torneo(torneo_id)
+    
+    def mostrar_formulario_edicion(self, usuario):
+        """
+        Muestra un formulario para editar los datos de un usuario.
+        """
+        self.layout.controls.clear()
+        
+        nuevo_nombre = ft.TextField(label="Nuevo Nombre", value=usuario.nombre)
+        nuevo_apellido = ft.TextField(label="Nuevo Apellido", value=usuario.apellidos)
+        nuevo_telefono = ft.TextField(label="Nuevo Teléfono", value=usuario.telefono)
+        nuevo_estado = ft.Dropdown(
+            label="Nuevo Estado",
+            options=[
+                ft.dropdown.Option("matriculado"),
+                ft.dropdown.Option("pendiente"),
+                ft.dropdown.Option("expulsado")
+            ],
+            value=usuario.estado
+        )
+
+        btn_guardar = ft.ElevatedButton(
+            "Guardar Cambios",
+            bgcolor=ft.colors.GREEN,
+            color=ft.colors.WHITE,
+            on_click=lambda e: self.editar_usuario(usuario.id, nuevo_nombre.value, nuevo_apellido.value, nuevo_estado.value, nuevo_telefono.value)
+        )
+
+        btn_cancelar = ft.ElevatedButton(
+            "Cancelar",
+            on_click=lambda e: self.mostrar_info_usuario(usuario)
+        )
+
+        self.layout.controls.append(ft.Column([nuevo_nombre, nuevo_apellido, nuevo_telefono, nuevo_estado, btn_guardar, btn_cancelar]))
+        self.page.update()
+
+    
+    def editar_usuario(self, usuario_id, nuevo_nombre=None, nuevo_apellido=None, nuevo_estado=None, nuevo_telefono=None, nuevo_correo=None, nueva_identificación = None, callback=None):
+        """
+        Edita los datos de un usuario y, si se proporciona un callback, ejecuta una acción después de guardar.
+        
+        Parámetros:
+        - usuario_id (int): ID del usuario a modificar.
+        - nuevo_nombre (str, opcional): Nuevo nombre del usuario.
+        - nuevo_apellido (str, opcional): Nuevo apellido del usuario.
+        - nuevo_estado (str, opcional): Nuevo estado del usuario.
+        - nuevo_telefono (str, opcional): Nuevo número de teléfono.
+        - callback (function, opcional): Función a ejecutar después de la edición.
+        """
+        for usuario in self.usuarios:
+            if usuario.id == usuario_id:
+                if nuevo_nombre:
+                    usuario.nombre = nuevo_nombre
+                if nuevo_apellido:
+                    usuario.apellidos = nuevo_apellido
+                if nuevo_estado:
+                    usuario.estado = nuevo_estado
+                if nuevo_telefono:
+                    usuario.telefono = nuevo_telefono
+                if nuevo_correo:
+                    usuario.correo = nuevo_correo
+                if nueva_identificación:
+                    usuario.num_identificacion = nueva_identificación
+
+                self.guardar_usuarios()
+                print(f"✅ Usuario {usuario_id} editado correctamente.")
+
+                # Si hay un callback, lo ejecutamos (redirige a la lista de usuarios)
+                if callback:
+                    callback()
+
+                return usuario
+        
+        print(f"❌ No se encontró el usuario con ID {usuario_id}.")
+        return None
+
+    
+    
+    
+    def eliminar_usuario(self, usuario_id):
+        """
+        Elimina un usuario de la lista y actualiza la base de datos JSON.
+        
+        Parámetros:
+        - usuario_id (int): ID del usuario a eliminar.
+        """
+        usuarios_filtrados = [u for u in self.usuarios if u.id != usuario_id]
+        
+        if len(usuarios_filtrados) < len(self.usuarios):
+            self.usuarios = usuarios_filtrados
+            self.guardar_usuarios()
+            print(f"🗑 Usuario {usuario_id} eliminado correctamente.")
+        else:
+            print(f"❌ No se encontró el usuario con ID {usuario_id}.")
+
